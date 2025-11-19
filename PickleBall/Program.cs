@@ -139,15 +139,13 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline
-        if (app.Environment.IsDevelopment())
+        // Enable Swagger in all environments (you can restrict to Development if needed)
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "PickleBall Shop API V1");
-                c.RoutePrefix = "swagger"; // Swagger UI at /swagger
-            });
-        }
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "PickleBall Shop API V1");
+            c.RoutePrefix = "swagger"; // Swagger UI at /swagger
+        });
 
         // Global error handling middleware
         app.Use(async (context, next) =>
@@ -170,7 +168,12 @@ public class Program
             }
         });
 
-        app.UseHttpsRedirection();
+        // Only redirect to HTTPS in development
+        // In production (Render), HTTPS is handled by the reverse proxy
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
 
         app.UseCors("AllowAll");
 

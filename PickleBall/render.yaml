@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: pickleballshop-backend
+    env: dotnet
+    buildCommand: dotnet publish PickleBall/PickleBall.csproj -c Release -o ./publish
+    startCommand: cd PickleBall && dotnet PickleBall.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__SecretKey
+        sync: false
+      - key: Jwt__Issuer
+        value: PickleBallShop
+      - key: Jwt__Audience
+        value: PickleBallShop
+      - key: Jwt__ExpiryMinutes
+        value: "60"
+      - key: Payment__MoMo__PartnerCode
+        sync: false
+      - key: Payment__MoMo__AccessKey
+        sync: false
+      - key: Payment__MoMo__SecretKey
+        sync: false
+      - key: Payment__MoMo__Endpoint
+        value: https://test-payment.momo.vn/v2/gateway/api/create
+      - key: Payment__MoMo__ReturnUrl
+        sync: false
+      - key: Payment__MoMo__IpnUrl
+        sync: false
+      - key: Payment__VNPay__TmnCode
+        sync: false
+      - key: Payment__VNPay__HashSecret
+        sync: false
+      - key: Payment__VNPay__Endpoint
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+      - key: Payment__VNPay__ReturnUrl
+        sync: false
+      - key: Payment__VNPay__IpnUrl
+        sync: false
