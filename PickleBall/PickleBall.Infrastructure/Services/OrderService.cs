@@ -1,0 +1,175 @@
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using PickleBall.Application.DTOs.Orders;
+using PickleBall.Application.DTOs.Payments;
+using PickleBall.Application.Interfaces;
+using PickleBall.Domain.Entities;
+using PickleBall.Infrastructure.Data;
+
+namespace PickleBall.Infrastructure.Services;
+
+public class OrderService : IOrderService
+{
+    private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
+    private readonly IPaymentService _paymentService;
+
+    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService)
+    {
+        _context = context;
+        _mapper = mapper;
+        _paymentService = paymentService;
+    }
+
+    public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderRequest request)
+    {
+        // Get user cart
+        var cart = await _context.Carts
+            .Include(c => c.Items)
+                .ThenInclude(ci => ci.Product)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null || !cart.Items.Any())
+        {
+            throw new InvalidOperationException("Cart is empty");
+        }
+
+        // Validate stock
+        foreach (var item in cart.Items)
+        {
+            if (item.Product.StockQuantity < item.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock for product {item.Product.Name}");
+            }
+        }
+
+        // Generate order number
+        var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+
+        // Calculate total
+        var totalAmount = cart.Items.Sum(ci => ci.UnitPriceSnapshot * ci.Quantity);
+
+        // Create order
+        var order = new Order
+        {
+            OrderNumber = orderNumber,
+            UserId = userId,
+            TotalAmount = totalAmount,
+            PaymentStatus = PaymentStatus.Pending,
+            OrderStatus = OrderStatus.Pending,
+            PaymentMethod = request.PaymentMethod,
+            ShippingFullName = request.ShippingAddress.FullName,
+            ShippingPhoneNumber = request.ShippingAddress.PhoneNumber,
+            ShippingAddressLine = request.ShippingAddress.AddressLine,
+            ShippingWard = request.ShippingAddress.Ward,
+            ShippingDistrict = request.ShippingAddress.District,
+            ShippingCity = request.ShippingAddress.City
+        };
+
+        // Create order items
+        foreach (var cartItem in cart.Items)
+        {
+            var orderItem = new OrderItem
+            {
+                OrderId = order.Id,
+                ProductId = cartItem.ProductId,
+                ProductNameSnapshot = cartItem.Product.Name,
+                UnitPrice = cartItem.UnitPriceSnapshot,
+                Quantity = cartItem.Quantity,
+                LineTotal = cartItem.UnitPriceSnapshot * cartItem.Quantity
+            };
+            order.Items.Add(orderItem);
+
+            // Update inventory
+            cartItem.Product.StockQuantity -= cartItem.Quantity;
+
+            // Create inventory transaction
+            var transaction = new InventoryTransaction
+            {
+                ProductId = cartItem.ProductId,
+                ChangeQuantity = -cartItem.Quantity,
+                Reason = $"Order {orderNumber}"
+            };
+            _context.InventoryTransactions.Add(transaction);
+        }
+
+        _context.Orders.Add(order);
+
+        // Clear cart
+        _context.CartItems.RemoveRange(cart.Items);
+
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<OrderDto>(order);
+    }
+
+    public async Task<List<OrderDto>> GetUserOrdersAsync(Guid userId)
+    {
+        var orders = await _context.Orders
+            .Include(o => o.Items)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+
+        return _mapper.Map<List<OrderDto>>(orders);
+    }
+
+    public async Task<OrderDto?> GetOrderByIdAsync(Guid orderId, Guid userId)
+    {
+        var order = await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+
+        return order != null ? _mapper.Map<OrderDto>(order) : null;
+    }
+
+    public async Task<CreatePaymentResponse?> InitiatePaymentAsync(Guid orderId, Guid userId)
+    {
+        var order = await _context.Orders
+            .Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
+
+        if (order == null)
+        {
+            throw new KeyNotFoundException("Order not found");
+        }
+
+        if (order.PaymentStatus != PaymentStatus.Pending)
+        {
+            throw new InvalidOperationException("Order payment is already processed");
+        }
+
+        if (!order.PaymentMethod.HasValue)
+        {
+            throw new InvalidOperationException("Payment method not specified");
+        }
+
+        // Build return URL and IPN URL based on payment method
+        var returnUrl = $"/api/payments/{order.PaymentMethod.Value.ToString().ToLower()}/return";
+        var notifyUrl = $"/api/payments/{order.PaymentMethod.Value.ToString().ToLower()}/ipn";
+
+        var paymentResponse = await _paymentService.CreatePaymentAsync(order, returnUrl, notifyUrl);
+
+        return paymentResponse;
+    }
+
+    public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid)
+    {
+        var order = await _context.Orders.FindAsync(orderId);
+
+        if (order == null)
+        {
+            throw new KeyNotFoundException("Order not found");
+        }
+
+        order.PaymentTransactionId = transactionId;
+        order.PaymentStatus = isPaid ? PaymentStatus.Paid : PaymentStatus.Failed;
+
+        if (isPaid)
+        {
+            order.OrderStatus = OrderStatus.Confirmed;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+}
