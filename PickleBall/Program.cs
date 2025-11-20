@@ -10,6 +10,7 @@ using PickleBall.Application.Interfaces;
 using PickleBall.Application.Mapping;
 using PickleBall.Application.Validators;
 using PickleBall.Infrastructure.Data;
+using ApplicationDbContext = PickleBall.Infrastructure.Data.ApplicationDbContext;
 using PickleBall.Infrastructure.Services;
 
 namespace PickleBall;
@@ -190,7 +191,7 @@ public class Program
             {
                 var context = services.GetRequiredService<ApplicationDbContext>();
                 // Uncomment to apply migrations automatically
-                // context.Database.Migrate();
+                context.Database.Migrate();
             }
             catch (Exception ex)
             {

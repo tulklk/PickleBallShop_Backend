@@ -1,26 +1,37 @@
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Domain.Entities;
+using PickleBall.Infrastructure.Data.Configurations;
 
 namespace PickleBall.Infrastructure.Data;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
     {
     }
 
+    // User related
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<ProductCategory> ProductCategories { get; set; }
+
+    // Product related
     public DbSet<Product> Products { get; set; }
+    public DbSet<ProductCategory> ProductCategories { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
+    public DbSet<ProductReview> ProductReviews { get; set; }
     public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+
+    // Cart related
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+
+    // Order related
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Payment> Payments { get; set; }
-    public DbSet<ProductReview> ProductReviews { get; set; }
+
+    // Wishlist
     public DbSet<Wishlist> Wishlists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,83 +39,60 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // Apply all entity configurations
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-        // Configure snake_case naming for PostgreSQL
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
-        {
-            var tableName = entityType.GetTableName();
-            if (tableName != null)
-            {
-                entityType.SetTableName(ToSnakeCase(tableName));
-            }
-
-            foreach (var property in entityType.GetProperties())
-            {
-                property.SetColumnName(ToSnakeCase(property.GetColumnName()));
-            }
-
-            foreach (var key in entityType.GetKeys())
-            {
-                var keyName = key.GetName();
-                if (keyName != null)
-                {
-                    key.SetName(ToSnakeCase(keyName));
-                }
-            }
-
-            foreach (var foreignKey in entityType.GetForeignKeys())
-            {
-                var foreignKeyName = foreignKey.GetConstraintName();
-                if (foreignKeyName != null)
-                {
-                    foreignKey.SetConstraintName(ToSnakeCase(foreignKeyName));
-                }
-            }
-
-            foreach (var index in entityType.GetIndexes())
-            {
-                var indexName = index.GetDatabaseName();
-                if (indexName != null)
-                {
-                    index.SetDatabaseName(ToSnakeCase(indexName));
-                }
-            }
-        }
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductCategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductReviewConfiguration());
+        modelBuilder.ApplyConfiguration(new InventoryTransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new CartConfiguration());
+        modelBuilder.ApplyConfiguration(new CartItemConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+        modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new WishlistConfiguration());
     }
 
-    private static string ToSnakeCase(string input)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(input))
-            return input;
+        var entries = ChangeTracker.Entries<BaseEntity>();
 
-        return string.Concat(input.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
+        foreach (var entry in entries)
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 
     public override int SaveChanges()
     {
-        UpdateTimestamps();
-        return base.SaveChanges();
-    }
-
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        UpdateTimestamps();
-        return base.SaveChangesAsync(cancellationToken);
-    }
-
-    private void UpdateTimestamps()
-    {
-        var entries = ChangeTracker.Entries<BaseEntity>()
-            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+        var entries = ChangeTracker.Entries<BaseEntity>();
 
         foreach (var entry in entries)
         {
-            if (entry.State == EntityState.Added)
+            switch (entry.State)
             {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
             }
-            entry.Entity.UpdatedAt = DateTime.UtcNow;
         }
+
+        return base.SaveChanges();
     }
 }
