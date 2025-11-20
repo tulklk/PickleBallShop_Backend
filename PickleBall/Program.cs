@@ -192,6 +192,7 @@ public class Program
                 var context = services.GetRequiredService<ApplicationDbContext>();
                 // Uncomment to apply migrations automatically
                 context.Database.Migrate();
+                SeedData.SeedAsync(context).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
