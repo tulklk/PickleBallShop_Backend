@@ -7,16 +7,16 @@
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.infrastructure\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\pickleball.infrastructure\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.infrastructure\\data\\designtimedbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\pickleball.infrastructure\\data\\designtimedbcontextfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -118,20 +118,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Program.cs",
               "RelativeDocumentMoniker": "PickleBall\\Program.cs",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Program.cs",
               "RelativeToolTip": "PickleBall\\Program.cs",
-              "ViewState": "AgIAAL0AAAAAAAAAAAAawMsAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAADQAAAAAAAAAAAAawOYAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-19T18:47:57.399Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "DesignTimeDbContextFactory.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
@@ -139,8 +139,7 @@
               "RelativeToolTip": "PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T18:45:14.601Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T18:45:14.601Z"
             },
             {
               "$type": "Document",
@@ -288,7 +287,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "SeedData.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
@@ -296,8 +295,7 @@
               "RelativeToolTip": "PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
               "ViewState": "AgIAAH8AAAAAAAAAAAAQwI0AAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T18:08:25.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T18:08:25.612Z"
             },
             {
               "$type": "Document",
@@ -307,7 +305,7 @@
               "RelativeDocumentMoniker": "PickleBall\\appsettings.json",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\appsettings.json",
               "RelativeToolTip": "PickleBall\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAApAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-11-19T16:57:06.084Z",
               "EditorCaption": ""

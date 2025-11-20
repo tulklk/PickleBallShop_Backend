@@ -53,6 +53,7 @@ public class CartService : ICartService
             throw new InvalidOperationException("Insufficient stock");
         }
 
+        // Get or create cart
         var cart = await _context.Carts
             .Include(c => c.Items)
             .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -62,10 +63,17 @@ public class CartService : ICartService
             cart = new Cart { UserId = userId };
             _context.Carts.Add(cart);
             await _context.SaveChangesAsync();
+            // Reload cart with items to ensure proper tracking
+            cart = await _context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.Id == cart.Id);
         }
 
-        var existingItem = cart.Items.FirstOrDefault(ci => ci.ProductId == request.ProductId);
+        // Check for existing item
+        var existingItem = await _context.CartItems
+            .FirstOrDefaultAsync(ci => ci.CartId == cart.Id && ci.ProductId == request.ProductId);
 
+        CartItem cartItem;
         if (existingItem != null)
         {
             existingItem.Quantity += request.Quantity;
@@ -73,26 +81,27 @@ public class CartService : ICartService
             {
                 throw new InvalidOperationException("Insufficient stock");
             }
+            cartItem = existingItem;
         }
         else
         {
-            var cartItem = new CartItem
+            cartItem = new CartItem
             {
                 CartId = cart.Id,
                 ProductId = request.ProductId,
                 Quantity = request.Quantity,
                 UnitPriceSnapshot = product.Price
             };
-            cart.Items.Add(cartItem);
+            _context.CartItems.Add(cartItem);
         }
 
         await _context.SaveChangesAsync();
 
-        var itemId = existingItem != null ? existingItem.Id : cart.Items.Last().Id;
+        // Reload the item with related data
         var updatedItem = await _context.CartItems
             .Include(ci => ci.Product)
                 .ThenInclude(p => p.Images)
-            .FirstOrDefaultAsync(ci => ci.Id == itemId);
+            .FirstOrDefaultAsync(ci => ci.Id == cartItem.Id);
 
         return _mapper.Map<CartItemDto>(updatedItem!);
     }

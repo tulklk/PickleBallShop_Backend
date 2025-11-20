@@ -38,11 +38,12 @@ public class Program
             // JWT Authentication in Swagger
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token",
+                Description = "JWT Authorization header using the Bearer scheme. Enter your token (without 'Bearer' prefix)",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT"
             });
 
             c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -98,7 +99,33 @@ public class Program
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = jwtSettings["Issuer"] ?? "PickleBallShop",
                 ValidAudience = jwtSettings["Audience"] ?? "PickleBallShop",
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+                ClockSkew = TimeSpan.Zero // Remove clock skew tolerance
+            };
+
+            // Add event handlers for better error logging
+            options.Events = new JwtBearerEvents
+            {
+                OnAuthenticationFailed = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(context.Exception, "Authentication failed: {Error}", context.Exception.Message);
+                    return Task.CompletedTask;
+                },
+                OnChallenge = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                    logger.LogWarning("Authentication challenge: {Error}, {ErrorDescription}", 
+                        context.Error, context.ErrorDescription);
+                    return Task.CompletedTask;
+                },
+                OnTokenValidated = context =>
+                {
+                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+                    logger.LogInformation("Token validated successfully for user: {UserId}", 
+                        context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
+                    return Task.CompletedTask;
+                }
             };
         });
 
