@@ -13,7 +13,7 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
         builder.HasIndex(c => c.UserId);
 
         builder.HasOne(c => c.User)
-            .WithMany()
+            .WithMany(u => u.Carts)
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 

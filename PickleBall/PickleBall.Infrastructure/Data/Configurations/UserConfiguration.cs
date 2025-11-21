@@ -22,10 +22,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(rt => rt.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasMany(u => u.Carts)
-            .WithOne(c => c.User)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // Cart relationship is configured in CartConfiguration to avoid conflicts
 
         builder.HasMany(u => u.Orders)
             .WithOne(o => o.User)
