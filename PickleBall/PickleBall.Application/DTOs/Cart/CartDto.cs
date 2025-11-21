@@ -3,6 +3,7 @@ namespace PickleBall.Application.DTOs.Cart;
 public class CartDto
 {
     public Guid Id { get; set; }
+    public Guid UserId { get; set; }
     public List<CartItemDto> Items { get; set; } = new();
     public decimal SubTotal { get; set; }
     public int TotalItems { get; set; }

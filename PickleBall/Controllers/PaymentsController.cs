@@ -62,6 +62,7 @@ public class PaymentsController : ControllerBase
                         var payment = new Payment
                         {
                             OrderId = order.Id,
+                            UserId = order.UserId,
                             PaymentGateway = PaymentMethod.MoMo,
                             Amount = order.TotalAmount,
                             Currency = "VND",
@@ -121,6 +122,7 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
+                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.MoMo,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -173,6 +175,7 @@ public class PaymentsController : ControllerBase
                         var payment = new Payment
                         {
                             OrderId = order.Id,
+                            UserId = order.UserId,
                             PaymentGateway = PaymentMethod.VNPay,
                             Amount = order.TotalAmount,
                             Currency = "VND",
@@ -231,6 +234,7 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
+                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.VNPay,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",

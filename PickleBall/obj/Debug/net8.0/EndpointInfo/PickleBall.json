@@ -1580,6 +1580,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "items": {
             "type": "array",
             "items": {
@@ -1886,6 +1890,10 @@
             "type": "string",
             "nullable": true
           },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "totalAmount": {
             "type": "number",
             "format": "double"
@@ -2031,6 +2039,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "paymentGateway": {
             "$ref": "#/components/schemas/PaymentMethod"
           },
@@ -2055,6 +2067,9 @@
           },
           "order": {
             "$ref": "#/components/schemas/Order"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
           }
         },
         "additionalProperties": false
