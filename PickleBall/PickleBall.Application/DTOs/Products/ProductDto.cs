@@ -14,11 +14,6 @@ public class ProductDto
     public string SKU { get; set; } = string.Empty;
     public string? Brand { get; set; }
     public bool IsActive { get; set; }
-    public string ProductType { get; set; } = string.Empty;
-    public string? SkillLevel { get; set; }
-    public string? WeightRange { get; set; }
-    public string? SurfaceType { get; set; }
-    public string? Material { get; set; }
     public List<string> ImageUrls { get; set; } = new();
     public string? PrimaryImageUrl { get; set; }
     public double? AverageRating { get; set; }

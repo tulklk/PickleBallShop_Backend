@@ -8,8 +8,6 @@ public class ProductQueryDto
     public decimal? MinPrice { get; set; }
     public decimal? MaxPrice { get; set; }
     public string? SortBy { get; set; } // price, newest, popularity
-    public string? ProductType { get; set; }
-    public string? SkillLevel { get; set; }
     public string? Brand { get; set; }
     public string? SearchTerm { get; set; }
 }

@@ -9,7 +9,6 @@ public class ProductListDto
     public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
     public string? Brand { get; set; }
-    public string ProductType { get; set; } = string.Empty;
     public string? PrimaryImageUrl { get; set; }
     public double? AverageRating { get; set; }
     public int ReviewCount { get; set; }

@@ -1447,20 +1447,6 @@
             }
           },
           {
-            "name": "ProductType",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "SkillLevel",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "Brand",
             "in": "query",
             "schema": {
@@ -2124,22 +2110,6 @@
           "isActive": {
             "type": "boolean"
           },
-          "productType": {
-            "$ref": "#/components/schemas/ProductType"
-          },
-          "skillLevel": {
-            "$ref": "#/components/schemas/SkillLevel"
-          },
-          "weightRange": {
-            "$ref": "#/components/schemas/WeightRange"
-          },
-          "surfaceType": {
-            "$ref": "#/components/schemas/SurfaceType"
-          },
-          "material": {
-            "type": "string",
-            "nullable": true
-          },
           "imageUrls": {
             "type": "array",
             "items": {
@@ -2550,22 +2520,6 @@
           "isActive": {
             "type": "boolean"
           },
-          "productType": {
-            "$ref": "#/components/schemas/ProductType"
-          },
-          "skillLevel": {
-            "$ref": "#/components/schemas/SkillLevel"
-          },
-          "weightRange": {
-            "$ref": "#/components/schemas/WeightRange"
-          },
-          "surfaceType": {
-            "$ref": "#/components/schemas/SurfaceType"
-          },
-          "material": {
-            "type": "string",
-            "nullable": true
-          },
           "category": {
             "$ref": "#/components/schemas/ProductCategory"
           },
@@ -2717,26 +2671,6 @@
           "isActive": {
             "type": "boolean"
           },
-          "productType": {
-            "type": "string",
-            "nullable": true
-          },
-          "skillLevel": {
-            "type": "string",
-            "nullable": true
-          },
-          "weightRange": {
-            "type": "string",
-            "nullable": true
-          },
-          "surfaceType": {
-            "type": "string",
-            "nullable": true
-          },
-          "material": {
-            "type": "string",
-            "nullable": true
-          },
           "imageUrls": {
             "type": "array",
             "items": {
@@ -2825,10 +2759,6 @@
             "format": "int32"
           },
           "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "productType": {
             "type": "string",
             "nullable": true
           },
@@ -2925,19 +2855,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "ProductType": {
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7
-        ],
-        "type": "integer",
-        "format": "int32"
       },
       "RefreshToken": {
         "type": "object",
@@ -3071,24 +2988,6 @@
         },
         "additionalProperties": false
       },
-      "SkillLevel": {
-        "enum": [
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
-      "SurfaceType": {
-        "enum": [
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "format": "int32"
-      },
       "UpdateCartItemRequest": {
         "type": "object",
         "properties": {
@@ -3165,22 +3064,6 @@
           },
           "isActive": {
             "type": "boolean"
-          },
-          "productType": {
-            "$ref": "#/components/schemas/ProductType"
-          },
-          "skillLevel": {
-            "$ref": "#/components/schemas/SkillLevel"
-          },
-          "weightRange": {
-            "$ref": "#/components/schemas/WeightRange"
-          },
-          "surfaceType": {
-            "$ref": "#/components/schemas/SurfaceType"
-          },
-          "material": {
-            "type": "string",
-            "nullable": true
           },
           "imageUrls": {
             "type": "array",
@@ -3292,15 +3175,6 @@
           }
         },
         "additionalProperties": false
-      },
-      "WeightRange": {
-        "enum": [
-          1,
-          2,
-          3
-        ],
-        "type": "integer",
-        "format": "int32"
       },
       "Wishlist": {
         "type": "object",

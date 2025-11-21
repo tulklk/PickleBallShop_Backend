@@ -14,13 +14,6 @@ public class CreateProductRequest
     public string? Brand { get; set; }
     public bool IsActive { get; set; } = true;
     
-    // Pickleball-specific fields
-    public ProductType ProductType { get; set; }
-    public SkillLevel? SkillLevel { get; set; }
-    public WeightRange? WeightRange { get; set; }
-    public SurfaceType? SurfaceType { get; set; }
-    public string? Material { get; set; }
-    
     // Images
     public List<string> ImageUrls { get; set; } = new();
 }

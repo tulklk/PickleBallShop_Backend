@@ -20,11 +20,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.SKU).IsUnique();
         builder.Property(p => p.Brand).HasMaxLength(256);
         builder.Property(p => p.IsActive).HasDefaultValue(true);
-        builder.Property(p => p.ProductType).HasConversion<int>().IsRequired();
-        builder.Property(p => p.SkillLevel).HasConversion<int?>();
-        builder.Property(p => p.WeightRange).HasConversion<int?>();
-        builder.Property(p => p.SurfaceType).HasConversion<int?>();
-        builder.Property(p => p.Material).HasMaxLength(256);
 
         builder.HasMany(p => p.Images)
             .WithOne(pi => pi.Product)

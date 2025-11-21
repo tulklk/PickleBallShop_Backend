@@ -43,16 +43,6 @@ public class ProductService : IProductService
             products = products.Where(p => p.Price <= query.MaxPrice.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(query.ProductType) && Enum.TryParse<ProductType>(query.ProductType, out var productType))
-        {
-            products = products.Where(p => p.ProductType == productType);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.SkillLevel) && Enum.TryParse<SkillLevel>(query.SkillLevel, out var skillLevel))
-        {
-            products = products.Where(p => p.SkillLevel == skillLevel);
-        }
-
         if (!string.IsNullOrWhiteSpace(query.Brand))
         {
             products = products.Where(p => p.Brand != null && p.Brand.Contains(query.Brand));
@@ -179,12 +169,7 @@ public class ProductService : IProductService
             StockQuantity = request.StockQuantity,
             SKU = request.SKU,
             Brand = request.Brand,
-            IsActive = request.IsActive,
-            ProductType = request.ProductType,
-            SkillLevel = request.SkillLevel,
-            WeightRange = request.WeightRange,
-            SurfaceType = request.SurfaceType,
-            Material = request.Material
+            IsActive = request.IsActive
         };
 
         _context.Products.Add(product);
@@ -261,11 +246,6 @@ public class ProductService : IProductService
         product.SKU = request.SKU;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
-        product.ProductType = request.ProductType;
-        product.SkillLevel = request.SkillLevel;
-        product.WeightRange = request.WeightRange;
-        product.SurfaceType = request.SurfaceType;
-        product.Material = request.Material;
 
         // Update images
         _context.ProductImages.RemoveRange(product.Images);

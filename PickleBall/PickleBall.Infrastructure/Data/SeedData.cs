@@ -74,10 +74,7 @@ public static class SeedData
                         StockQuantity = 100,
                         SKU = "PB-ONIX-FUSE-G2-OUT",
                         Brand = "Onix",
-                        IsActive = true,
-                        ProductType = ProductType.Ball,
-                        SurfaceType = SurfaceType.Outdoor,
-                        Material = "Polymer"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -91,11 +88,7 @@ public static class SeedData
                         StockQuantity = 50,
                         SKU = "PB-SELKIRK-AMPED-INV",
                         Brand = "Selkirk",
-                        IsActive = true,
-                        ProductType = ProductType.Paddle,
-                        SkillLevel = SkillLevel.Advanced,
-                        WeightRange = WeightRange.Midweight,
-                        Material = "Graphite Composite"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -108,11 +101,7 @@ public static class SeedData
                         StockQuantity = 75,
                         SKU = "PB-PADDLETEK-BANTAM-EXL",
                         Brand = "Paddletek",
-                        IsActive = true,
-                        ProductType = ProductType.Paddle,
-                        SkillLevel = SkillLevel.Beginner,
-                        WeightRange = WeightRange.Light,
-                        Material = "Polymer"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -125,9 +114,7 @@ public static class SeedData
                         StockQuantity = 30,
                         SKU = "PB-NET-REG-36",
                         Brand = "Pro-Lite",
-                        IsActive = true,
-                        ProductType = ProductType.Net,
-                        Material = "Nylon"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -140,9 +127,7 @@ public static class SeedData
                         StockQuantity = 200,
                         SKU = "PB-POLO-PERF-BLUE",
                         Brand = "HEAD",
-                        IsActive = true,
-                        ProductType = ProductType.Apparel,
-                        Material = "Polyester"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -156,9 +141,7 @@ public static class SeedData
                         StockQuantity = 60,
                         SKU = "PB-SHOES-COURT-BLACK",
                         Brand = "ASICS",
-                        IsActive = true,
-                        ProductType = ProductType.Shoe,
-                        SkillLevel = SkillLevel.Intermediate
+                        IsActive = true
                     },
                     new Product
                     {
@@ -171,9 +154,7 @@ public static class SeedData
                         StockQuantity = 80,
                         SKU = "PB-BAG-DELUXE-BLACK",
                         Brand = "Onix",
-                        IsActive = true,
-                        ProductType = ProductType.Accessory,
-                        Material = "Nylon"
+                        IsActive = true
                     },
                     new Product
                     {
@@ -187,9 +168,7 @@ public static class SeedData
                         StockQuantity = 25,
                         SKU = "PB-BALL-PRACTICE-100",
                         Brand = "Franklin",
-                        IsActive = true,
-                        ProductType = ProductType.TrainingAid,
-                        SurfaceType = SurfaceType.IndoorOutdoor
+                        IsActive = true
                     }
                 };
 

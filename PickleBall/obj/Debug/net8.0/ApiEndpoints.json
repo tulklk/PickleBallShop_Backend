@@ -834,16 +834,6 @@
         "IsRequired": false
       },
       {
-        "Name": "ProductType",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "SkillLevel",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
         "Name": "Brand",
         "Type": "System.String",
         "IsRequired": false
