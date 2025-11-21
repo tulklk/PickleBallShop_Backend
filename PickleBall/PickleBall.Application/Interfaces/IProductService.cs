@@ -9,4 +9,7 @@ public interface IProductService
     Task<ProductDto?> GetProductBySlugAsync(string slug);
     Task<List<ProductListDto>> GetFeaturedProductsAsync(int count = 10);
     Task<List<ProductListDto>> SearchProductsAsync(string searchTerm, int page = 1, int pageSize = 20);
+    Task<ProductDto> CreateProductAsync(CreateProductRequest request);
+    Task<ProductDto> UpdateProductAsync(Guid id, UpdateProductRequest request);
+    Task<bool> DeleteProductAsync(Guid id);
 }

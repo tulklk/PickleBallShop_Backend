@@ -78,7 +78,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -102,10 +102,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:62:0:{e8034f19-ab72-4f06-83fd-f6832b41aa63}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             },
             {
@@ -118,8 +114,7 @@
               "RelativeToolTip": "PickleBall\\PickleBall.Infrastructure\\Data\\ApplicationDbContext.cs",
               "ViewState": "AgIAAEcAAAAAAAAAAAAuwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T18:59:17.894Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T18:59:17.894Z"
             },
             {
               "$type": "Document",
@@ -141,7 +136,7 @@
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
               "RelativeToolTip": "PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAzwAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAAAwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-19T18:45:14.601Z",
               "EditorCaption": ""
@@ -312,8 +307,7 @@
               "RelativeToolTip": "PickleBall\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-11-19T16:57:06.084Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T16:57:06.084Z"
             }
           ]
         }
