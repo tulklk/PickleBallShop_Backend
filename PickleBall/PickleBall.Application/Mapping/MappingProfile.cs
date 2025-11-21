@@ -41,6 +41,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.SubCategories, opt => opt.MapFrom(src => src.SubCategories));
 
         // Cart mapping
+        CreateMap<Cart, CartDto>();
+        
         CreateMap<CartItem, CartItemDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
             .ForMember(dest => dest.ProductImageUrl, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Product.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Product.Images.FirstOrDefault() != null ? src.Product.Images.FirstOrDefault()!.ImageUrl : null))

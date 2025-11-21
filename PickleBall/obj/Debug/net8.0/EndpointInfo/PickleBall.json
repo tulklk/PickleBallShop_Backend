@@ -1557,8 +1557,7 @@
           },
           "userId": {
             "type": "string",
-            "format": "uuid",
-            "nullable": true
+            "format": "uuid"
           },
           "user": {
             "$ref": "#/components/schemas/User"
