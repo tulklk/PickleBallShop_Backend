@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.domain\\entities\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\pickleball.domain\\entities\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.domain\\entities\\productcategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\pickleball.domain\\entities\\productcategory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\pickleball.infrastructure\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\pickleball.infrastructure\\data\\seeddata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -78,7 +86,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 21,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -106,7 +114,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
+              "Title": "Product.cs",
+              "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
+              "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
+              "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
+              "RelativeToolTip": "PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAUwBgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-23T19:50:32.11Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ProductCategory.cs",
+              "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\ProductCategory.cs",
+              "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\ProductCategory.cs",
+              "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\ProductCategory.cs",
+              "RelativeToolTip": "PickleBall\\PickleBall.Domain\\Entities\\ProductCategory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-23T19:20:25.742Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "ApplicationDbContext.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\ApplicationDbContext.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\ApplicationDbContext.cs",
@@ -118,7 +152,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Program.cs",
               "RelativeDocumentMoniker": "PickleBall\\Program.cs",
@@ -130,7 +164,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "DesignTimeDbContextFactory.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\DesignTimeDbContextFactory.cs",
@@ -142,7 +176,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "Payment.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Payment.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Payment.cs",
@@ -154,7 +188,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "OrderItem.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\OrderItem.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\OrderItem.cs",
@@ -166,7 +200,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "InventoryTransaction.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\InventoryTransaction.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\InventoryTransaction.cs",
@@ -178,7 +212,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "Enums.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Enums.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Enums.cs",
@@ -190,7 +224,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 11,
               "Title": "CartItem.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\CartItem.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\CartItem.cs",
@@ -202,7 +236,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "Cart.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Cart.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Cart.cs",
@@ -214,7 +248,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 13,
               "Title": "BaseEntity.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\BaseEntity.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\BaseEntity.cs",
@@ -226,7 +260,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 14,
               "Title": "Wishlist.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Wishlist.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Wishlist.cs",
@@ -238,7 +272,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 15,
               "Title": "CartController.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Controllers\\CartController.cs",
               "RelativeDocumentMoniker": "PickleBall\\Controllers\\CartController.cs",
@@ -250,7 +284,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 16,
               "Title": "AuthController.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Controllers\\AuthController.cs",
               "RelativeDocumentMoniker": "PickleBall\\Controllers\\AuthController.cs",
@@ -262,7 +296,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 17,
               "Title": "VnPayPaymentService.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Services\\VnPayPaymentService.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Services\\VnPayPaymentService.cs",
@@ -274,7 +308,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 18,
               "Title": "ErrorHandlingMiddleware.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Middleware\\ErrorHandlingMiddleware.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Middleware\\ErrorHandlingMiddleware.cs",
@@ -286,7 +320,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "SeedData.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
@@ -299,7 +333,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "appsettings.json",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\appsettings.json",
               "RelativeDocumentMoniker": "PickleBall\\appsettings.json",

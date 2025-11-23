@@ -134,13 +134,6 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> CreateProductAsync(CreateProductRequest request)
     {
-        // Check if category exists
-        var category = await _context.ProductCategories.FindAsync(request.CategoryId);
-        if (category == null)
-        {
-            throw new KeyNotFoundException("Category not found");
-        }
-
         // Check if SKU already exists
         var existingSku = await _context.Products.FirstOrDefaultAsync(p => p.SKU == request.SKU);
         if (existingSku != null)
@@ -208,13 +201,6 @@ public class ProductService : IProductService
         if (product == null)
         {
             throw new KeyNotFoundException("Product not found");
-        }
-
-        // Check if category exists
-        var category = await _context.ProductCategories.FindAsync(request.CategoryId);
-        if (category == null)
-        {
-            throw new KeyNotFoundException("Category not found");
         }
 
         // Check if SKU already exists (excluding current product)
