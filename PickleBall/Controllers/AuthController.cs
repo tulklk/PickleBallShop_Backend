@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.Interfaces;
+using System.Security.Claims;
 
 namespace PickleBall.Controllers;
 
@@ -13,6 +15,12 @@ public class AuthController : ControllerBase
     public AuthController(IAuthService authService)
     {
         _authService = authService;
+    }
+
+    private Guid GetUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException());
     }
 
     [HttpPost("register")]
@@ -34,7 +42,9 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var result = await _authService.LoginAsync(request);
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            var result = await _authService.LoginAsync(request, ipAddress, userAgent);
             return Ok(result);
         }
         catch (UnauthorizedAccessException ex)
@@ -57,11 +67,46 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpPost("logout")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public async Task<ActionResult> Logout([FromBody] RefreshTokenRequest request)
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<ActionResult<UserDto>> GetCurrentUser()
     {
-        await _authService.LogoutAsync(request.RefreshToken);
-        return Ok(new { message = "Logged out successfully" });
+        try
+        {
+            var userId = GetUserId();
+            var user = await _authService.GetCurrentUserAsync(userId);
+            return Ok(user);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<ActionResult> Logout([FromBody] RefreshTokenRequest? request = null)
+    {
+        try
+        {
+            var userId = GetUserId();
+            
+            // If refresh token is provided, revoke it
+            if (request != null && !string.IsNullOrEmpty(request.RefreshToken))
+            {
+                await _authService.LogoutAsync(request.RefreshToken);
+            }
+            else
+            {
+                // Otherwise, revoke all refresh tokens for this user
+                await _authService.LogoutByUserIdAsync(userId);
+            }
+            
+            return Ok(new { message = "Logged out successfully" });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 }

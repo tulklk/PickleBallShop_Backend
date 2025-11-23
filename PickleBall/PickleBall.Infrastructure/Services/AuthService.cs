@@ -59,7 +59,7 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress = null, string? userAgent = null)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
@@ -76,7 +76,7 @@ public class AuthService : IAuthService
         // Generate tokens
         var accessToken = _tokenService.GenerateAccessToken(user);
         var refreshToken = _tokenService.GenerateRefreshToken();
-        await _tokenService.SaveRefreshTokenAsync(user.Id, refreshToken);
+        await _tokenService.SaveRefreshTokenAsync(user.Id, refreshToken, ipAddress, userAgent);
 
         return new AuthResponse
         {
@@ -117,9 +117,34 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task LogoutAsync(string refreshToken)
+    public async Task<UserDto> GetCurrentUserAsync(Guid userId)
     {
-        await _tokenService.RevokeRefreshTokenAsync(refreshToken);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("User not found");
+        }
+
+        if (!user.IsActive)
+        {
+            throw new UnauthorizedAccessException("Account is inactive");
+        }
+
+        return _mapper.Map<UserDto>(user);
+    }
+
+    public async Task LogoutAsync(string? refreshToken = null)
+    {
+        if (!string.IsNullOrEmpty(refreshToken))
+        {
+            await _tokenService.RevokeRefreshTokenAsync(refreshToken);
+        }
+    }
+
+    public async Task LogoutByUserIdAsync(Guid userId)
+    {
+        await _tokenService.RevokeAllRefreshTokensAsync(userId);
     }
 
     public async Task LogoutAllAsync(Guid userId)
