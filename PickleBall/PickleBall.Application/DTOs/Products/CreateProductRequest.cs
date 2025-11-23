@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Application.DTOs.Products;
@@ -7,6 +8,10 @@ public class CreateProductRequest
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public Guid CategoryId { get; set; }
+    
+    [JsonIgnore]
+    public ProductCategory? Category { get; set; }
+    
     public decimal Price { get; set; }
     public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; } = 0;
