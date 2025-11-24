@@ -1941,22 +1941,6 @@
             "type": "string",
             "nullable": true
           },
-          "parentCategoryId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "parentCategoryName": {
-            "type": "string",
-            "nullable": true
-          },
-          "subCategories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CategoryDto"
-            },
-            "nullable": true
-          },
           "productCount": {
             "type": "integer",
             "format": "int32"
@@ -1973,16 +1957,6 @@
           },
           "description": {
             "type": "string",
-            "nullable": true
-          },
-          "parentCategoryId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "parentIndex": {
-            "type": "integer",
-            "format": "int32",
             "nullable": true
           }
         },
@@ -2531,21 +2505,6 @@
             "type": "string",
             "nullable": true
           },
-          "parentCategoryId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "parentCategory": {
-            "$ref": "#/components/schemas/ProductCategory"
-          },
-          "subCategories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductCategory"
-            },
-            "nullable": true
-          },
           "products": {
             "type": "array",
             "items": {
@@ -2935,11 +2894,6 @@
           },
           "description": {
             "type": "string",
-            "nullable": true
-          },
-          "parentCategoryId": {
-            "type": "string",
-            "format": "uuid",
             "nullable": true
           }
         },

@@ -71,7 +71,6 @@ public class AdminCategoriesController : ControllerBase
     public async Task<ActionResult<ProductCategory>> GetCategory(Guid id)
     {
         var category = await _context.ProductCategories
-            .Include(c => c.ParentCategory)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)

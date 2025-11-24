@@ -31,9 +31,7 @@ public class MappingProfile : Profile
 
         // Category mapping
         CreateMap<ProductCategory, CategoryDto>()
-            .ForMember(dest => dest.ParentCategoryName, opt => opt.MapFrom(src => src.ParentCategory != null ? src.ParentCategory.Name : null))
-            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count(p => p.IsActive)))
-            .ForMember(dest => dest.SubCategories, opt => opt.MapFrom(src => src.SubCategories));
+            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count(p => p.IsActive)));
 
         // Cart mapping
         CreateMap<Cart, CartDto>();
