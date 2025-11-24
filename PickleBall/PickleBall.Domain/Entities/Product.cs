@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace PickleBall.Domain.Entities;
 
 public class Product : BaseEntity
@@ -14,6 +16,7 @@ public class Product : BaseEntity
     public bool IsActive { get; set; } = true;
 
     // Navigation properties
+    [JsonIgnore]
     public ProductCategory Category { get; set; } = null!;
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();

@@ -86,7 +86,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -109,10 +109,6 @@
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
-            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Product.cs",
@@ -120,7 +116,7 @@
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
               "RelativeToolTip": "PickleBall\\PickleBall.Domain\\Entities\\Product.cs",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAUwBgAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAIwBEAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-11-23T19:50:32.11Z",
               "EditorCaption": ""
@@ -135,8 +131,7 @@
               "RelativeToolTip": "PickleBall\\PickleBall.Domain\\Entities\\ProductCategory.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-23T19:20:25.742Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-23T19:20:25.742Z"
             },
             {
               "$type": "Document",
@@ -328,8 +323,7 @@
               "RelativeToolTip": "PickleBall\\PickleBall.Infrastructure\\Data\\SeedData.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T18:08:25.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-11-19T18:08:25.612Z"
             },
             {
               "$type": "Document",
@@ -342,6 +336,10 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-11-19T16:57:06.084Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             }
           ]
         }
