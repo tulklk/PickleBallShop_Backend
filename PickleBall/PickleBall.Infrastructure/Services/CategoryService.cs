@@ -41,17 +41,6 @@ public class CategoryService : ICategoryService
         return category != null ? _mapper.Map<CategoryDto>(category) : null;
     }
 
-    public async Task<CategoryDto?> GetCategoryBySlugAsync(string slug)
-    {
-        var category = await _context.ProductCategories
-            .Include(c => c.ParentCategory)
-            .Include(c => c.Products)
-            .Include(c => c.SubCategories)
-            .FirstOrDefaultAsync(c => c.Slug == slug);
-
-        return category != null ? _mapper.Map<CategoryDto>(category) : null;
-    }
-
     public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryRequest request)
     {
         // Validate parent category if provided
@@ -64,20 +53,9 @@ public class CategoryService : ICategoryService
             }
         }
 
-        // Generate slug from name
-        var slug = GenerateSlug(request.Name);
-        
-        // Ensure slug is unique
-        var slugExists = await _context.ProductCategories.AnyAsync(c => c.Slug == slug);
-        if (slugExists)
-        {
-            slug = $"{slug}-{Guid.NewGuid().ToString("N")[..8]}";
-        }
-
         var category = new ProductCategory
         {
             Name = request.Name,
-            Slug = slug,
             Description = request.Description,
             ParentCategoryId = request.ParentCategoryId
         };
@@ -153,7 +131,7 @@ public class CategoryService : ICategoryService
             }
             catch
             {
-                // Skip if error (e.g., duplicate slug)
+                // Skip if error
             }
         }
 
@@ -191,18 +169,6 @@ public class CategoryService : ICategoryService
             {
                 throw new KeyNotFoundException("Parent category not found");
             }
-        }
-
-        // Update slug if name changed
-        if (category.Name != request.Name)
-        {
-            var slug = GenerateSlug(request.Name);
-            var slugExists = await _context.ProductCategories.AnyAsync(c => c.Slug == slug && c.Id != id);
-            if (slugExists)
-            {
-                slug = $"{slug}-{Guid.NewGuid().ToString("N")[..8]}";
-            }
-            category.Slug = slug;
         }
 
         // Update category properties
@@ -269,27 +235,5 @@ public class CategoryService : ICategoryService
         }
 
         return await IsDescendantCategoryAsync(category.ParentCategoryId.Value, potentialAncestorId);
-    }
-
-    private static string GenerateSlug(string name)
-    {
-        return name.ToLower()
-            .Replace(" ", "-")
-            .Replace("á", "a").Replace("à", "a").Replace("ả", "a").Replace("ã", "a").Replace("ạ", "a")
-            .Replace("ă", "a").Replace("ắ", "a").Replace("ằ", "a").Replace("ẳ", "a").Replace("ẵ", "a").Replace("ặ", "a")
-            .Replace("â", "a").Replace("ấ", "a").Replace("ầ", "a").Replace("ẩ", "a").Replace("ẫ", "a").Replace("ậ", "a")
-            .Replace("đ", "d")
-            .Replace("é", "e").Replace("è", "e").Replace("ẻ", "e").Replace("ẽ", "e").Replace("ẹ", "e")
-            .Replace("ê", "e").Replace("ế", "e").Replace("ề", "e").Replace("ể", "e").Replace("ễ", "e").Replace("ệ", "e")
-            .Replace("í", "i").Replace("ì", "i").Replace("ỉ", "i").Replace("ĩ", "i").Replace("ị", "i")
-            .Replace("ó", "o").Replace("ò", "o").Replace("ỏ", "o").Replace("õ", "o").Replace("ọ", "o")
-            .Replace("ô", "o").Replace("ố", "o").Replace("ồ", "o").Replace("ổ", "o").Replace("ỗ", "o").Replace("ộ", "o")
-            .Replace("ơ", "o").Replace("ớ", "o").Replace("ờ", "o").Replace("ở", "o").Replace("ỡ", "o").Replace("ợ", "o")
-            .Replace("ú", "u").Replace("ù", "u").Replace("ủ", "u").Replace("ũ", "u").Replace("ụ", "u")
-            .Replace("ư", "u").Replace("ứ", "u").Replace("ừ", "u").Replace("ử", "u").Replace("ữ", "u").Replace("ự", "u")
-            .Replace("ý", "y").Replace("ỳ", "y").Replace("ỷ", "y").Replace("ỹ", "y").Replace("ỵ", "y")
-            .Replace(" ", "-")
-            .Replace("--", "-")
-            .Trim('-');
     }
 }

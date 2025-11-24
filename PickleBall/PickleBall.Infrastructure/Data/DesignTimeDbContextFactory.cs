@@ -6,9 +6,9 @@ using System.Linq;
 
 namespace PickleBall.Infrastructure.Data;
 
-public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Data.ApplicationDbContext>
 {
-    public ApplicationDbContext CreateDbContext(string[] args)
+    public Data.ApplicationDbContext CreateDbContext(string[] args)
     {
         var basePath = Directory.GetCurrentDirectory();
         var searchPaths = new[]
@@ -29,7 +29,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Applicatio
             .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
             .Build();
 
-        var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        var builder = new DbContextOptionsBuilder<Data.ApplicationDbContext>();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         if (!string.IsNullOrEmpty(connectionString) && !connectionString.Contains("your-supabase-host"))
@@ -41,7 +41,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<Applicatio
             builder.UseInMemoryDatabase("PickleBallShop");
         }
 
-        return new ApplicationDbContext(builder.Options);
+        return new Data.ApplicationDbContext(builder.Options);
     }
 }
 

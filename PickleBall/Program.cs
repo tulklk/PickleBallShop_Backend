@@ -10,8 +10,8 @@ using PickleBall.Application.Interfaces;
 using PickleBall.Application.Mapping;
 using PickleBall.Application.Validators;
 using PickleBall.Infrastructure.Data;
-using ApplicationDbContext = PickleBall.Infrastructure.Data.ApplicationDbContext;
 using PickleBall.Infrastructure.Services;
+using ApplicationDbContext = PickleBall.Infrastructure.Data.ApplicationDbContext;
 
 namespace PickleBall;
 

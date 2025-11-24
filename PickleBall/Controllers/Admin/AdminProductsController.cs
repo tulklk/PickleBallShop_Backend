@@ -4,9 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
-using System.Globalization;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace PickleBall.Controllers.Admin;
 
@@ -54,7 +51,6 @@ public class AdminProductsController : ControllerBase
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
-            Slug = GenerateSlug(request.Name),
             Description = request.Description,
             CategoryId = request.CategoryId,
             Price = request.Price,
@@ -130,12 +126,7 @@ public class AdminProductsController : ControllerBase
         }
 
         // Update product properties
-        var nameChanged = product.Name != request.Name;
         product.Name = request.Name;
-        if (nameChanged)
-        {
-            product.Slug = GenerateSlug(request.Name);
-        }
         product.Description = request.Description;
         product.CategoryId = request.CategoryId;
         product.Price = request.Price;
@@ -178,38 +169,6 @@ public class AdminProductsController : ControllerBase
         }
 
         return NoContent();
-    }
-
-    private static string GenerateSlug(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-            return string.Empty;
-
-        // Normalize and remove diacritics
-        var normalizedString = text.Normalize(NormalizationForm.FormD);
-        var stringBuilder = new StringBuilder();
-
-        foreach (var c in normalizedString)
-        {
-            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-            {
-                stringBuilder.Append(c);
-            }
-        }
-
-        var slug = stringBuilder.ToString().Normalize(NormalizationForm.FormC).ToLowerInvariant();
-
-        // Replace Vietnamese characters
-        slug = slug.Replace("đ", "d").Replace("Đ", "d");
-        
-        // Replace spaces and special characters with hyphens
-        slug = Regex.Replace(slug, @"[^a-z0-9\s-]", "");
-        slug = Regex.Replace(slug, @"\s+", " ").Trim();
-        slug = Regex.Replace(slug, @"\s", "-");
-        slug = Regex.Replace(slug, @"-+", "-");
-
-        return slug;
     }
 
     [HttpDelete("{id:guid}")]

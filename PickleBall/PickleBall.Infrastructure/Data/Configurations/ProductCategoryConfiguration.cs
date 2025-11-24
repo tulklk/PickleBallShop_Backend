@@ -10,8 +10,6 @@ public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCate
     {
         builder.HasKey(pc => pc.Id);
         builder.Property(pc => pc.Name).IsRequired().HasMaxLength(256);
-        builder.Property(pc => pc.Slug).IsRequired().HasMaxLength(256);
-        builder.HasIndex(pc => pc.Slug).IsUnique();
         builder.Property(pc => pc.Description).HasMaxLength(1000);
 
         builder.HasOne(pc => pc.ParentCategory)

@@ -1029,45 +1029,6 @@
         }
       }
     },
-    "/api/Categories/slug/{slug}": {
-      "get": {
-        "tags": [
-          "Categories"
-        ],
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Categories/bulk": {
       "post": {
         "tags": [
@@ -1678,45 +1639,6 @@
         }
       }
     },
-    "/api/Products/slug/{slug}": {
-      "get": {
-        "tags": [
-          "Products"
-        ],
-        "parameters": [
-          {
-            "name": "slug",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Products/featured": {
       "get": {
         "tags": [
@@ -2012,10 +1934,6 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "slug": {
             "type": "string",
             "nullable": true
           },
@@ -2513,10 +2431,6 @@
             "type": "string",
             "nullable": true
           },
-          "slug": {
-            "type": "string",
-            "nullable": true
-          },
           "description": {
             "type": "string",
             "nullable": true
@@ -2613,10 +2527,6 @@
             "type": "string",
             "nullable": true
           },
-          "slug": {
-            "type": "string",
-            "nullable": true
-          },
           "description": {
             "type": "string",
             "nullable": true
@@ -2654,10 +2564,6 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "slug": {
             "type": "string",
             "nullable": true
           },
@@ -2764,10 +2670,6 @@
             "format": "uuid"
           },
           "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "slug": {
             "type": "string",
             "nullable": true
           },

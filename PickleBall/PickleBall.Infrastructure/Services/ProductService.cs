@@ -94,17 +94,6 @@ public class ProductService : IProductService
         return product != null ? _mapper.Map<ProductDto>(product) : null;
     }
 
-    public async Task<ProductDto?> GetProductBySlugAsync(string slug)
-    {
-        var product = await _context.Products
-            .Include(p => p.Images)
-            .Include(p => p.Reviews)
-            .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
-
-        return product != null ? _mapper.Map<ProductDto>(product) : null;
-    }
-
     public async Task<List<ProductListDto>> GetFeaturedProductsAsync(int count = 10)
     {
         var products = await _context.Products
@@ -141,20 +130,9 @@ public class ProductService : IProductService
             throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
         }
 
-        // Generate slug from name
-        var slug = GenerateSlug(request.Name);
-        
-        // Ensure slug is unique
-        var slugExists = await _context.Products.AnyAsync(p => p.Slug == slug);
-        if (slugExists)
-        {
-            slug = $"{slug}-{Guid.NewGuid().ToString("N")[..8]}";
-        }
-
         var product = new Product
         {
             Name = request.Name,
-            Slug = slug,
             Description = request.Description,
             CategoryId = request.CategoryId,
             Price = request.Price,
@@ -210,18 +188,6 @@ public class ProductService : IProductService
             throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
         }
 
-        // Update slug if name changed
-        if (product.Name != request.Name)
-        {
-            var slug = GenerateSlug(request.Name);
-            var slugExists = await _context.Products.AnyAsync(p => p.Slug == slug && p.Id != id);
-            if (slugExists)
-            {
-                slug = $"{slug}-{Guid.NewGuid().ToString("N")[..8]}";
-            }
-            product.Slug = slug;
-        }
-
         // Update product properties
         product.Name = request.Name;
         product.Description = request.Description;
@@ -275,27 +241,5 @@ public class ProductService : IProductService
         await _context.SaveChangesAsync();
 
         return true;
-    }
-
-    private static string GenerateSlug(string name)
-    {
-        return name.ToLower()
-            .Replace(" ", "-")
-            .Replace("á", "a").Replace("à", "a").Replace("ả", "a").Replace("ã", "a").Replace("ạ", "a")
-            .Replace("ă", "a").Replace("ắ", "a").Replace("ằ", "a").Replace("ẳ", "a").Replace("ẵ", "a").Replace("ặ", "a")
-            .Replace("â", "a").Replace("ấ", "a").Replace("ầ", "a").Replace("ẩ", "a").Replace("ẫ", "a").Replace("ậ", "a")
-            .Replace("đ", "d")
-            .Replace("é", "e").Replace("è", "e").Replace("ẻ", "e").Replace("ẽ", "e").Replace("ẹ", "e")
-            .Replace("ê", "e").Replace("ế", "e").Replace("ề", "e").Replace("ể", "e").Replace("ễ", "e").Replace("ệ", "e")
-            .Replace("í", "i").Replace("ì", "i").Replace("ỉ", "i").Replace("ĩ", "i").Replace("ị", "i")
-            .Replace("ó", "o").Replace("ò", "o").Replace("ỏ", "o").Replace("õ", "o").Replace("ọ", "o")
-            .Replace("ô", "o").Replace("ố", "o").Replace("ồ", "o").Replace("ổ", "o").Replace("ỗ", "o").Replace("ộ", "o")
-            .Replace("ơ", "o").Replace("ớ", "o").Replace("ờ", "o").Replace("ở", "o").Replace("ỡ", "o").Replace("ợ", "o")
-            .Replace("ú", "u").Replace("ù", "u").Replace("ủ", "u").Replace("ũ", "u").Replace("ụ", "u")
-            .Replace("ư", "u").Replace("ứ", "u").Replace("ừ", "u").Replace("ử", "u").Replace("ữ", "u").Replace("ự", "u")
-            .Replace("ý", "y").Replace("ỳ", "y").Replace("ỷ", "y").Replace("ỹ", "y").Replace("ỵ", "y")
-            .Replace(" ", "-")
-            .Replace("--", "-")
-            .Trim('-');
     }
 }

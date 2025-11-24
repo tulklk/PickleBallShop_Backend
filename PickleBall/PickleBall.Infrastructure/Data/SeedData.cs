@@ -14,42 +14,36 @@ public static class SeedData
                 {
                     Id = Guid.NewGuid(),
                     Name = "Bóng Pickleball",
-                    Slug = "bong-pickleball",
                     Description = "Các loại bóng chơi pickleball chính hãng",
                 },
                 new ProductCategory
                 {
                     Id = Guid.NewGuid(),
                     Name = "Vợt Pickleball",
-                    Slug = "vot-pickleball",
                     Description = "Vợt pickleball cao cấp cho mọi trình độ",
                 },
                 new ProductCategory
                 {
                     Id = Guid.NewGuid(),
                     Name = "Lưới Pickleball",
-                    Slug = "luoi-pickleball",
                     Description = "Lưới pickleball chuyên nghiệp",
                 },
                 new ProductCategory
                 {
                     Id = Guid.NewGuid(),
                     Name = "Trang phục",
-                    Slug = "trang-phuc",
                     Description = "Quần áo chơi pickleball",
                 },
                 new ProductCategory
                 {
                     Id = Guid.NewGuid(),
                     Name = "Giày",
-                    Slug = "giay",
                     Description = "Giày chơi pickleball chuyên dụng",
                 },
                 new ProductCategory
                 {
                     Id = Guid.NewGuid(),
                     Name = "Phụ kiện",
-                    Slug = "phu-kien",
                     Description = "Các phụ kiện hỗ trợ chơi pickleball",
                 }
             };
@@ -66,7 +60,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Bóng Pickleball Onix Fuse G2 Outdoor",
-                        Slug = "bong-pickleball-onix-fuse-g2-outdoor",
                         Description = "Bóng pickleball chuyên nghiệp cho sân ngoài trời, bền và có độ nảy tốt",
                         CategoryId = categories[0].Id,
                         Price = 250000,
@@ -80,7 +73,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Vợt Pickleball Selkirk Amped Invikta",
-                        Slug = "vot-pickleball-selkirk-amped-invikta",
                         Description = "Vợt pickleball cao cấp với cán dài, phù hợp cho người chơi có trình độ",
                         CategoryId = categories[1].Id,
                         Price = 3500000,
@@ -94,7 +86,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Vợt Pickleball Paddletek Bantam EX-L",
-                        Slug = "vot-pickleball-paddletek-bantam-ex-l",
                         Description = "Vợt pickleball nhẹ, dễ chơi cho người mới bắt đầu",
                         CategoryId = categories[1].Id,
                         Price = 2800000,
@@ -107,7 +98,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Lưới Pickleball Regulation Net",
-                        Slug = "luoi-pickleball-regulation-net",
                         Description = "Lưới pickleball tiêu chuẩn quốc tế, cao 36 inch ở giữa",
                         CategoryId = categories[2].Id,
                         Price = 1500000,
@@ -120,7 +110,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Áo Polo Pickleball Performance",
-                        Slug = "ao-polo-pickleball-performance",
                         Description = "Áo polo chơi pickleball chất liệu thấm hút mồ hôi, thoáng mát",
                         CategoryId = categories[3].Id,
                         Price = 450000,
@@ -133,7 +122,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Giày Pickleball Court Shoes",
-                        Slug = "giay-pickleball-court-shoes",
                         Description = "Giày chơi pickleball chuyên dụng, đế không để lại vết trên sân",
                         CategoryId = categories[4].Id,
                         Price = 1800000,
@@ -147,7 +135,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Túi đựng vợt Pickleball Deluxe",
-                        Slug = "tui-dung-vot-pickleball-deluxe",
                         Description = "Túi đựng vợt pickleball cao cấp, có ngăn riêng cho phụ kiện",
                         CategoryId = categories[5].Id,
                         Price = 650000,
@@ -160,7 +147,6 @@ public static class SeedData
                     {
                         Id = Guid.NewGuid(),
                         Name = "Bộ bóng tập Pickleball 100 quả",
-                        Slug = "bo-bong-tap-pickleball-100-qua",
                         Description = "Bộ 100 quả bóng pickleball để tập luyện, giá ưu đãi",
                         CategoryId = categories[0].Id,
                         Price = 18000000,

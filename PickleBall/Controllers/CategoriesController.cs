@@ -34,17 +34,6 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
-    [HttpGet("slug/{slug}")]
-    public async Task<ActionResult<CategoryDto>> GetCategoryBySlug(string slug)
-    {
-        var category = await _categoryService.GetCategoryBySlugAsync(slug);
-        if (category == null)
-        {
-            return NotFound();
-        }
-        return Ok(category);
-    }
-
     // CRUD Operations - Admin Only
     [HttpPost]
     [Authorize(Roles = "Admin")]

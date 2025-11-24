@@ -34,17 +34,6 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    [HttpGet("slug/{slug}")]
-    public async Task<ActionResult<ProductDto>> GetProductBySlug(string slug)
-    {
-        var product = await _productService.GetProductBySlugAsync(slug);
-        if (product == null)
-        {
-            return NotFound();
-        }
-        return Ok(product);
-    }
-
     [HttpGet("featured")]
     public async Task<ActionResult<List<ProductListDto>>> GetFeaturedProducts([FromQuery] int count = 10)
     {

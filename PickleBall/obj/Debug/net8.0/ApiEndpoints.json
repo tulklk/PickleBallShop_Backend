@@ -628,32 +628,6 @@
     ]
   },
   {
-    "ContainingType": "PickleBall.Controllers.CategoriesController",
-    "Method": "GetCategoryBySlug",
-    "RelativePath": "api/Categories/slug/{slug}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "slug",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "PickleBall.Application.DTOs.Categories.CategoryDto",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
     "ContainingType": "PickleBall.Controllers.OrdersController",
     "Method": "CreateOrder",
     "RelativePath": "api/Orders",
@@ -1028,32 +1002,6 @@
     "ReturnTypes": [
       {
         "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
-      }
-    ]
-  },
-  {
-    "ContainingType": "PickleBall.Controllers.ProductsController",
-    "Method": "GetProductBySlug",
-    "RelativePath": "api/Products/slug/{slug}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "slug",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": [
-      {
-        "Type": "PickleBall.Application.DTOs.Products.ProductDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
