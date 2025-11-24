@@ -63,6 +63,19 @@ public class Program
 
             // Group by tags
             c.TagActionsBy(api => new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] ?? "Default" });
+            
+            // Ignore obsolete actions
+            c.IgnoreObsoleteActions();
+            
+            // Custom schema ID generation to avoid conflicts
+            c.CustomSchemaIds(type => type.FullName?.Replace("+", "."));
+            
+            // Use fully qualified names to avoid ambiguity
+            c.UseAllOfToExtendReferenceSchemas();
+            c.SupportNonNullableReferenceTypes();
+            
+            // Filter out problematic controllers/actions
+            c.DocInclusionPredicate((docName, apiDesc) => true);
         });
 
         // Configure Entity Framework Core with PostgreSQL
@@ -156,6 +169,7 @@ public class Program
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ICartService, CartService>();

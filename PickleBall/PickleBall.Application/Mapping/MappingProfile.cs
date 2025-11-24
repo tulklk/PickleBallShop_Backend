@@ -4,6 +4,7 @@ using PickleBall.Application.DTOs.Cart;
 using PickleBall.Application.DTOs.Categories;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Products;
+using PickleBall.Application.DTOs.Users;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Application.Mapping;
@@ -12,8 +13,12 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // User mapping
-        CreateMap<User, UserDto>()
+        // User mapping (Auth namespace)
+        CreateMap<User, DTOs.Auth.UserDto>()
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
+
+        // User mapping (Users namespace)
+        CreateMap<User, DTOs.Users.UserDto>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
 
         // Product mapping

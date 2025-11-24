@@ -15,17 +15,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             }
           }
@@ -36,17 +48,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               }
             }
@@ -74,17 +86,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductCategory"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  }
+                ]
               }
             }
           }
@@ -137,17 +161,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
                 }
               }
             }
@@ -165,14 +189,22 @@
             "name": "status",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/OrderStatus"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderStatus"
+                }
+              ]
             }
           },
           {
             "name": "paymentStatus",
             "in": "query",
             "schema": {
-              "$ref": "#/components/schemas/PaymentStatus"
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentStatus"
+                }
+              ]
             }
           },
           {
@@ -200,7 +232,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Order"
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                   }
                 }
               },
@@ -208,7 +240,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Order"
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                   }
                 }
               },
@@ -216,7 +248,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Order"
+                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                   }
                 }
               }
@@ -247,17 +279,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Order"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Order"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Order"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
                 }
               }
             }
@@ -285,17 +317,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrderStatusRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
+                  }
+                ]
               }
             }
           }
@@ -316,17 +360,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             }
           }
@@ -337,17 +393,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               }
             }
@@ -375,17 +431,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             }
           }
@@ -438,17 +506,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Product"
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
                 }
               }
             }
@@ -465,17 +533,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterRequest"
+                  }
+                ]
               }
             }
           }
@@ -486,17 +566,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               }
             }
@@ -513,17 +593,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.LoginRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.LoginRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.LoginRequest"
+                  }
+                ]
               }
             }
           }
@@ -534,17 +626,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               }
             }
@@ -561,17 +653,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleLoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.GoogleLoginRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleLoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.GoogleLoginRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/GoogleLoginRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.GoogleLoginRequest"
+                  }
+                ]
               }
             }
           }
@@ -582,17 +686,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               }
             }
@@ -609,17 +713,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             }
           }
@@ -630,17 +746,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
                 }
               }
             }
@@ -659,17 +775,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.UserDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.UserDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.UserDto"
                 }
               }
             }
@@ -686,17 +802,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RefreshTokenRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RefreshTokenRequest"
+                  }
+                ]
               }
             }
           }
@@ -719,17 +847,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartDto"
                 }
               }
             }
@@ -756,17 +884,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.AddCartItemRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.AddCartItemRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.AddCartItemRequest"
+                  }
+                ]
               }
             }
           }
@@ -777,17 +917,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               }
             }
@@ -815,17 +955,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.UpdateCartItemRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.UpdateCartItemRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.UpdateCartItemRequest"
+                  }
+                ]
               }
             }
           }
@@ -836,17 +988,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CartItemDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
                 }
               }
             }
@@ -888,7 +1040,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               },
@@ -896,7 +1048,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               },
@@ -904,7 +1056,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               }
@@ -920,17 +1072,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                  }
+                ]
               }
             }
           }
@@ -941,17 +1105,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               }
             }
@@ -981,17 +1145,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               }
             }
@@ -1017,17 +1181,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCategoryRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
+                  }
+                ]
               }
             }
           }
@@ -1038,17 +1214,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CategoryDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               }
             }
@@ -1088,7 +1264,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/CreateCategoryRequest"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                 }
               }
             },
@@ -1096,7 +1272,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/CreateCategoryRequest"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                 }
               }
             },
@@ -1104,7 +1280,7 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "$ref": "#/components/schemas/CreateCategoryRequest"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                 }
               }
             }
@@ -1118,7 +1294,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               },
@@ -1126,7 +1302,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               },
@@ -1134,7 +1310,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/CategoryDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                   }
                 }
               }
@@ -1152,17 +1328,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrderRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateOrderRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrderRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateOrderRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrderRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateOrderRequest"
+                  }
+                ]
               }
             }
           }
@@ -1173,17 +1361,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               }
             }
@@ -1204,7 +1392,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrderDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                   }
                 }
               },
@@ -1212,7 +1400,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrderDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                   }
                 }
               },
@@ -1220,7 +1408,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OrderDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                   }
                 }
               }
@@ -1251,17 +1439,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/OrderDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
                 }
               }
             }
@@ -1291,17 +1479,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreatePaymentResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreatePaymentResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreatePaymentResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
                 }
               }
             }
@@ -1505,17 +1693,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductListDtoPagedResultDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductListDtoPagedResultDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductListDtoPagedResultDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
                 }
               }
             }
@@ -1530,17 +1718,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.CreateProductRequest"
+                  }
+                ]
               }
             }
           }
@@ -1551,17 +1751,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               }
             }
@@ -1591,17 +1791,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               }
             }
@@ -1627,17 +1827,29 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProductRequest"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.UpdateProductRequest"
+                  }
+                ]
               }
             }
           }
@@ -1648,17 +1860,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductDto"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               }
             }
@@ -1711,7 +1923,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               },
@@ -1719,7 +1931,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               },
@@ -1727,7 +1939,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               }
@@ -1776,7 +1988,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               },
@@ -1784,7 +1996,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               },
@@ -1792,7 +2004,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/ProductListDto"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
                   }
                 }
               }
@@ -1800,11 +2012,306 @@
           }
         }
       }
+    },
+    "/api/Users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Users/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UpdateUserRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UpdateUserRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UpdateUserRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Users.UserDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "AddCartItemRequest": {
+      "PickleBall.Application.DTOs.Auth.AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.UserDto"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.GoogleLoginRequest": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.RefreshTokenRequest": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "confirmPassword": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Cart.AddCartItemRequest": {
         "type": "object",
         "properties": {
           "productId": {
@@ -1818,28 +2325,571 @@
         },
         "additionalProperties": false
       },
-      "AuthResponse": {
+      "PickleBall.Application.DTOs.Cart.CartDto": {
         "type": "object",
         "properties": {
-          "accessToken": {
+          "id": {
             "type": "string",
-            "nullable": true
+            "format": "uuid"
           },
-          "refreshToken": {
+          "userId": {
             "type": "string",
-            "nullable": true
+            "format": "uuid"
           },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Cart.CartItemDto"
+            }
           },
-          "user": {
-            "$ref": "#/components/schemas/UserDto"
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalItems": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "additionalProperties": false
       },
-      "Cart": {
+      "PickleBall.Application.DTOs.Cart.CartItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "productImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineTotal": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Cart.UpdateCartItemRequest": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Categories.CategoryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "productCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Categories.CreateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Categories.UpdateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.CreateOrderRequest": {
+        "type": "object",
+        "properties": {
+          "shippingAddress": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.ShippingAddressDto"
+              }
+            ]
+          },
+          "paymentMethod": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentMethod"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.OrderDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "shippingAddress": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.ShippingAddressDto"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderItemDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.OrderItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lineTotal": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.ShippingAddressDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "addressLine": {
+            "type": "string"
+          },
+          "ward": {
+            "type": "string",
+            "nullable": true
+          },
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Payments.CreatePaymentResponse": {
+        "type": "object",
+        "properties": {
+          "paymentUrl": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.CreateProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductListDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.ProductDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "primaryImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.ProductListDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "primaryImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.UpdateProductRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "imageUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Users.UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Users.UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest": {
+        "type": "object",
+        "properties": {
+          "orderStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderStatus"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.Cart": {
         "type": "object",
         "properties": {
           "id": {
@@ -1859,48 +2909,22 @@
             "format": "uuid"
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           },
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CartItem"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.CartItem"
+            }
           }
         },
         "additionalProperties": false
       },
-      "CartDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CartItemDto"
-            },
-            "nullable": true
-          },
-          "subTotal": {
-            "type": "number",
-            "format": "double"
-          },
-          "totalItems": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CartItem": {
+      "PickleBall.Domain.Entities.CartItem": {
         "type": "object",
         "properties": {
           "id": {
@@ -1932,174 +2956,23 @@
             "format": "double"
           },
           "cart": {
-            "$ref": "#/components/schemas/Cart"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Cart"
+              }
+            ]
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "CartItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "productId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "productName": {
-            "type": "string",
-            "nullable": true
-          },
-          "productImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double"
-          },
-          "quantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "lineTotal": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CategoryDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "productCount": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateCategoryRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateOrderRequest": {
-        "type": "object",
-        "properties": {
-          "shippingAddress": {
-            "$ref": "#/components/schemas/ShippingAddressDto"
-          },
-          "paymentMethod": {
-            "$ref": "#/components/schemas/PaymentMethod"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreatePaymentResponse": {
-        "type": "object",
-        "properties": {
-          "paymentUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "orderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateProductRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
-          },
-          "originalPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "stockQuantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sku": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "imageUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "GoogleLoginRequest": {
-        "type": "object",
-        "properties": {
-          "idToken": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "InventoryTransaction": {
+      "PickleBall.Domain.Entities.InventoryTransaction": {
         "type": "object",
         "properties": {
           "id": {
@@ -2123,30 +2996,19 @@
             "format": "int32"
           },
           "reason": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "LoginRequest": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "password": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "Order": {
+      "PickleBall.Domain.Entities.Order": {
         "type": "object",
         "properties": {
           "id": {
@@ -2162,8 +3024,7 @@
             "format": "date-time"
           },
           "orderNumber": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "userId": {
             "type": "string",
@@ -2174,29 +3035,39 @@
             "format": "double"
           },
           "paymentStatus": {
-            "$ref": "#/components/schemas/PaymentStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentStatus"
+              }
+            ]
           },
           "orderStatus": {
-            "$ref": "#/components/schemas/OrderStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderStatus"
+              }
+            ]
           },
           "paymentMethod": {
-            "$ref": "#/components/schemas/PaymentMethod"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentMethod"
+              }
+            ],
+            "nullable": true
           },
           "paymentTransactionId": {
             "type": "string",
             "nullable": true
           },
           "shippingFullName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "shippingPhoneNumber": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "shippingAddressLine": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "shippingWard": {
             "type": "string",
@@ -2211,78 +3082,28 @@
             "nullable": true
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           },
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OrderItem"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderItem"
+            }
           },
           "payments": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Payment"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Payment"
+            }
           }
         },
         "additionalProperties": false
       },
-      "OrderDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "orderNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "totalAmount": {
-            "type": "number",
-            "format": "double"
-          },
-          "paymentStatus": {
-            "type": "string",
-            "nullable": true
-          },
-          "orderStatus": {
-            "type": "string",
-            "nullable": true
-          },
-          "paymentMethod": {
-            "type": "string",
-            "nullable": true
-          },
-          "shippingAddress": {
-            "$ref": "#/components/schemas/ShippingAddressDto"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OrderItemDto"
-            },
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderItem": {
+      "PickleBall.Domain.Entities.OrderItem": {
         "type": "object",
         "properties": {
           "id": {
@@ -2306,8 +3127,7 @@
             "format": "uuid"
           },
           "productNameSnapshot": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "unitPrice": {
             "type": "number",
@@ -2322,45 +3142,23 @@
             "format": "double"
           },
           "order": {
-            "$ref": "#/components/schemas/Order"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+              }
+            ]
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "OrderItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "productId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "productName": {
-            "type": "string",
-            "nullable": true
-          },
-          "unitPrice": {
-            "type": "number",
-            "format": "double"
-          },
-          "quantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "lineTotal": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
-      "OrderStatus": {
+      "PickleBall.Domain.Entities.OrderStatus": {
         "enum": [
           1,
           2,
@@ -2371,7 +3169,7 @@
         "type": "integer",
         "format": "int32"
       },
-      "Payment": {
+      "PickleBall.Domain.Entities.Payment": {
         "type": "object",
         "properties": {
           "id": {
@@ -2395,37 +3193,52 @@
             "format": "uuid"
           },
           "paymentGateway": {
-            "$ref": "#/components/schemas/PaymentMethod"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentMethod"
+              }
+            ]
           },
           "amount": {
             "type": "number",
             "format": "double"
           },
           "currency": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "transactionId": {
             "type": "string",
             "nullable": true
           },
           "status": {
-            "$ref": "#/components/schemas/PaymentStatus"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentStatus"
+              }
+            ]
           },
           "rawResponse": {
             "type": "string",
             "nullable": true
           },
           "order": {
-            "$ref": "#/components/schemas/Order"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+              }
+            ]
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "PaymentMethod": {
+      "PickleBall.Domain.Entities.PaymentMethod": {
         "enum": [
           1,
           2,
@@ -2434,7 +3247,7 @@
         "type": "integer",
         "format": "int32"
       },
-      "PaymentStatus": {
+      "PickleBall.Domain.Entities.PaymentStatus": {
         "enum": [
           1,
           2,
@@ -2444,7 +3257,7 @@
         "type": "integer",
         "format": "int32"
       },
-      "Product": {
+      "PickleBall.Domain.Entities.Product": {
         "type": "object",
         "properties": {
           "id": {
@@ -2460,8 +3273,7 @@
             "format": "date-time"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -2485,8 +3297,7 @@
             "format": "int32"
           },
           "sku": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "brand": {
             "type": "string",
@@ -2498,49 +3309,43 @@
           "images": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProductImage"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductImage"
+            }
           },
           "cartItems": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CartItem"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.CartItem"
+            }
           },
           "orderItems": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OrderItem"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderItem"
+            }
           },
           "reviews": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProductReview"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductReview"
+            }
           },
           "wishlists": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Wishlist"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Wishlist"
+            }
           },
           "inventoryTransactions": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/InventoryTransaction"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.InventoryTransaction"
+            }
           }
         },
         "additionalProperties": false
       },
-      "ProductCategory": {
+      "PickleBall.Domain.Entities.ProductCategory": {
         "type": "object",
         "properties": {
           "id": {
@@ -2556,8 +3361,7 @@
             "format": "date-time"
           },
           "name": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -2566,88 +3370,13 @@
           "products": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Product"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+            }
           }
         },
         "additionalProperties": false
       },
-      "ProductDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "categoryName": {
-            "type": "string",
-            "nullable": true
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
-          },
-          "originalPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "stockQuantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sku": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "imageUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          },
-          "primaryImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "averageRating": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "reviewCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProductImage": {
+      "PickleBall.Domain.Entities.ProductImage": {
         "type": "object",
         "properties": {
           "id": {
@@ -2667,101 +3396,22 @@
             "format": "uuid"
           },
           "imageUrl": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "isPrimary": {
             "type": "boolean"
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "ProductListDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
-          },
-          "originalPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "stockQuantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "primaryImageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "averageRating": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "reviewCount": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProductListDtoPagedResultDto": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProductListDto"
-            },
-            "nullable": true
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "pageSize": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          },
-          "hasPreviousPage": {
-            "type": "boolean",
-            "readOnly": true
-          },
-          "hasNextPage": {
-            "type": "boolean",
-            "readOnly": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProductReview": {
+      "PickleBall.Domain.Entities.ProductReview": {
         "type": "object",
         "properties": {
           "id": {
@@ -2793,15 +3443,23 @@
             "nullable": true
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           }
         },
         "additionalProperties": false
       },
-      "RefreshToken": {
+      "PickleBall.Domain.Entities.RefreshToken": {
         "type": "object",
         "properties": {
           "id": {
@@ -2821,8 +3479,7 @@
             "format": "uuid"
           },
           "token": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "expiresAt": {
             "type": "string",
@@ -2842,7 +3499,11 @@
             "nullable": true
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           },
           "isExpired": {
             "type": "boolean",
@@ -2859,43 +3520,7 @@
         },
         "additionalProperties": false
       },
-      "RefreshTokenRequest": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RegisterRequest": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "password": {
-            "type": "string",
-            "nullable": true
-          },
-          "confirmPassword": {
-            "type": "string",
-            "nullable": true
-          },
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "Role": {
+      "PickleBall.Domain.Entities.Role": {
         "enum": [
           1,
           2
@@ -2903,119 +3528,7 @@
         "type": "integer",
         "format": "int32"
       },
-      "ShippingAddressDto": {
-        "type": "object",
-        "properties": {
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "addressLine": {
-            "type": "string",
-            "nullable": true
-          },
-          "ward": {
-            "type": "string",
-            "nullable": true
-          },
-          "district": {
-            "type": "string",
-            "nullable": true
-          },
-          "city": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateCartItemRequest": {
-        "type": "object",
-        "properties": {
-          "quantity": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateCategoryRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateOrderStatusRequest": {
-        "type": "object",
-        "properties": {
-          "orderStatus": {
-            "$ref": "#/components/schemas/OrderStatus"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateProductRequest": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "categoryId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "price": {
-            "type": "number",
-            "format": "double"
-          },
-          "originalPrice": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "stockQuantity": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "sku": {
-            "type": "string",
-            "nullable": true
-          },
-          "brand": {
-            "type": "string",
-            "nullable": true
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "imageUrls": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "User": {
+      "PickleBall.Domain.Entities.User": {
         "type": "object",
         "properties": {
           "id": {
@@ -3031,16 +3544,13 @@
             "format": "date-time"
           },
           "email": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "passwordHash": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "fullName": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "phoneNumber": {
             "type": "string",
@@ -3051,7 +3561,11 @@
             "nullable": true
           },
           "role": {
-            "$ref": "#/components/schemas/Role"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Role"
+              }
+            ]
           },
           "isActive": {
             "type": "boolean"
@@ -3059,68 +3573,37 @@
           "refreshTokens": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/RefreshToken"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.RefreshToken"
+            }
           },
           "carts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Cart"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Cart"
+            }
           },
           "orders": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Order"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+            }
           },
           "productReviews": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ProductReview"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductReview"
+            }
           },
           "wishlists": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Wishlist"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Wishlist"
+            }
           }
         },
         "additionalProperties": false
       },
-      "UserDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "role": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "Wishlist": {
+      "PickleBall.Domain.Entities.Wishlist": {
         "type": "object",
         "properties": {
           "id": {
@@ -3144,10 +3627,18 @@
             "format": "uuid"
           },
           "user": {
-            "$ref": "#/components/schemas/User"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
           },
           "product": {
-            "$ref": "#/components/schemas/Product"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
           }
         },
         "additionalProperties": false
