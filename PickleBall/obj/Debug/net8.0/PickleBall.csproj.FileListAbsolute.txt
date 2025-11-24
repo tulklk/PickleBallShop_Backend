@@ -139,3 +139,10 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleB
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.runtimeconfig.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\Debug\net8.0\PickleBall.Infrastructure.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\Google.Apis.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\Google.Apis.Auth.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\Google.Apis.Core.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\Newtonsoft.Json.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\System.Management.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

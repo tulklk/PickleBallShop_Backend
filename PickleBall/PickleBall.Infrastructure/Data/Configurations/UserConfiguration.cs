@@ -14,6 +14,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(500);
         builder.Property(u => u.FullName).IsRequired().HasMaxLength(256);
         builder.Property(u => u.PhoneNumber).HasMaxLength(20);
+        builder.Property(u => u.GoogleId).HasMaxLength(256);
+        builder.HasIndex(u => u.GoogleId).IsUnique().HasFilter("\"GoogleId\" IS NOT NULL");
         builder.Property(u => u.Role).HasConversion<int>();
         builder.Property(u => u.IsActive).HasDefaultValue(true);
 
