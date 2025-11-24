@@ -185,8 +185,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "product",
-        "Type": "PickleBall.Domain.Entities.Product",
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Products.CreateProductRequest",
         "IsRequired": true
       }
     ],
@@ -216,8 +216,8 @@
         "IsRequired": true
       },
       {
-        "Name": "product",
-        "Type": "PickleBall.Domain.Entities.Product",
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Products.UpdateProductRequest",
         "IsRequired": true
       }
     ],
