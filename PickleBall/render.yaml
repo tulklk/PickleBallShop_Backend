@@ -41,3 +41,7 @@ services:
         sync: false
       - key: Payment__VNPay__IpnUrl
         sync: false
+      - key: Google__ClientId
+        sync: false
+      - key: Google__ClientSecret
+        sync: false
