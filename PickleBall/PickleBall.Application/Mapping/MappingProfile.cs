@@ -61,7 +61,8 @@ public class MappingProfile : Profile
                 City = src.ShippingCity
             }));
 
-        CreateMap<OrderItem, OrderItemDto>();
+        CreateMap<OrderItem, OrderItemDto>()
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductNameSnapshot));
 
         // Admin Order mapping with user info
         CreateMap<Order, AdminOrderDto>()
