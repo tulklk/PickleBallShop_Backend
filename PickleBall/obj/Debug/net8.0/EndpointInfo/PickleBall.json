@@ -1357,24 +1357,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
@@ -2575,7 +2558,8 @@
         "type": "object",
         "properties": {
           "paymentUrl": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "orderId": {
             "type": "string",
@@ -2583,6 +2567,9 @@
           },
           "orderNumber": {
             "type": "string"
+          },
+          "isCod": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

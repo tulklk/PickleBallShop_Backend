@@ -26,12 +26,29 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderRequest request)
+    public async Task<ActionResult<object>> CreateOrder([FromBody] CreateOrderRequest request)
     {
         try
         {
             var userId = GetUserId();
             var order = await _orderService.CreateOrderAsync(userId, request);
+            
+            // For COD orders, return order with payment info indicating COD
+            if (request.PaymentMethod == Domain.Entities.PaymentMethod.COD)
+            {
+                return Ok(new
+                {
+                    Order = order,
+                    Payment = new
+                    {
+                        PaymentUrl = (string?)null,
+                        OrderId = order.Id,
+                        OrderNumber = order.OrderNumber,
+                        IsCod = true
+                    }
+                });
+            }
+            
             return Ok(order);
         }
         catch (InvalidOperationException ex)

@@ -56,7 +56,8 @@ public class OrderService : IOrderService
             UserId = userId,
             TotalAmount = totalAmount,
             PaymentStatus = PaymentStatus.Pending,
-            OrderStatus = OrderStatus.Pending,
+            // For COD orders, set order status to Confirmed since payment will be collected on delivery
+            OrderStatus = request.PaymentMethod == PaymentMethod.COD ? OrderStatus.Confirmed : OrderStatus.Pending,
             PaymentMethod = request.PaymentMethod,
             ShippingFullName = request.ShippingAddress.FullName,
             ShippingPhoneNumber = request.ShippingAddress.PhoneNumber,
@@ -142,6 +143,18 @@ public class OrderService : IOrderService
         if (!order.PaymentMethod.HasValue)
         {
             throw new InvalidOperationException("Payment method not specified");
+        }
+
+        // For COD orders, return response immediately without payment gateway
+        if (order.PaymentMethod.Value == PaymentMethod.COD)
+        {
+            return new CreatePaymentResponse
+            {
+                PaymentUrl = null,
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                IsCod = true
+            };
         }
 
         // Build return URL and IPN URL based on payment method

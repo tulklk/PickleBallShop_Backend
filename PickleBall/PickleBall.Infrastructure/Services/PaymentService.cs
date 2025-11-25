@@ -28,6 +28,18 @@ public class PaymentService : IPaymentService
             throw new InvalidOperationException("Payment method not specified");
         }
 
+        // COD doesn't require payment gateway, return response with empty payment URL
+        if (order.PaymentMethod.Value == PaymentMethod.COD)
+        {
+            return new CreatePaymentResponse
+            {
+                PaymentUrl = null, // No payment URL for COD
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                IsCod = true
+            };
+        }
+
         return order.PaymentMethod.Value switch
         {
             PaymentMethod.MoMo => await _moMoService.CreatePaymentAsync(order, returnUrl, notifyUrl),
