@@ -92,7 +92,6 @@ public class AdminOrdersController : ControllerBase
         var order = await _context.Orders
             .Include(o => o.Items)
             .Include(o => o.User)
-            .Include(o => o.Payments)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
