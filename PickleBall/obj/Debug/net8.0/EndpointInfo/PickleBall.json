@@ -208,6 +208,17 @@
             }
           },
           {
+            "name": "paymentMethod",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentMethod"
+                }
+              ]
+            }
+          },
+          {
             "name": "startDate",
             "in": "query",
             "schema": {
@@ -222,6 +233,24 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
           }
         ],
         "responses": {
@@ -232,7 +261,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                   }
                 }
               },
@@ -240,7 +269,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                   }
                 }
               },
@@ -248,7 +277,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                   }
                 }
               }
@@ -279,17 +308,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
                 }
               }
             }
@@ -2426,6 +2455,70 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Orders.AdminOrderDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UserInfoDto"
+              }
+            ],
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentTransactionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "shippingAddress": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.ShippingAddressDto"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderItemDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Orders.CreateOrderRequest": {
         "type": "object",
         "properties": {
@@ -2548,6 +2641,26 @@
             "nullable": true
           },
           "city": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.UserInfoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "phoneNumber": {
             "type": "string",
             "nullable": true
           }

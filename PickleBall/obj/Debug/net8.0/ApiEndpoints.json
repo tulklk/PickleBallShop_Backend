@@ -107,6 +107,11 @@
         "IsRequired": false
       },
       {
+        "Name": "paymentMethod",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
         "Name": "startDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
@@ -115,11 +120,21 @@
         "Name": "endDate",
         "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[PickleBall.Domain.Entities.Order, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.AdminOrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -145,7 +160,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Domain.Entities.Order",
+        "Type": "PickleBall.Application.DTOs.Orders.AdminOrderDto",
         "MediaTypes": [
           "text/plain",
           "application/json",

@@ -62,5 +62,27 @@ public class MappingProfile : Profile
             }));
 
         CreateMap<OrderItem, OrderItemDto>();
+
+        // Admin Order mapping with user info
+        CreateMap<Order, AdminOrderDto>()
+            .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => src.PaymentStatus.ToString()))
+            .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.OrderStatus.ToString()))
+            .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.HasValue ? src.PaymentMethod.Value.ToString() : null))
+            .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? new DTOs.Orders.UserInfoDto
+            {
+                Id = src.User.Id,
+                Email = src.User.Email,
+                FullName = src.User.FullName ?? string.Empty,
+                PhoneNumber = src.User.PhoneNumber
+            } : null))
+            .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => new ShippingAddressDto
+            {
+                FullName = src.ShippingFullName,
+                PhoneNumber = src.ShippingPhoneNumber,
+                AddressLine = src.ShippingAddressLine,
+                Ward = src.ShippingWard,
+                District = src.ShippingDistrict,
+                City = src.ShippingCity
+            }));
     }
 }
