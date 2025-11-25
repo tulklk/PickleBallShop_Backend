@@ -25,39 +25,7 @@ public enum OrderStatus
 
 public enum PaymentMethod
 {
+    COD = 0,
     MoMo = 1,
-    VNPay = 2,
-    COD = 3
-}
-
-public enum ProductType
-{
-    Ball = 1,
-    Paddle = 2,
-    Net = 3,
-    Apparel = 4,
-    Shoe = 5,
-    Accessory = 6,
-    TrainingAid = 7
-}
-
-public enum SkillLevel
-{
-    Beginner = 1,
-    Intermediate = 2,
-    Advanced = 3
-}
-
-public enum WeightRange
-{
-    Light = 1,
-    Midweight = 2,
-    Heavy = 3
-}
-
-public enum SurfaceType
-{
-    Indoor = 1,
-    Outdoor = 2,
-    IndoorOutdoor = 3
+    VNPay = 2
 }
