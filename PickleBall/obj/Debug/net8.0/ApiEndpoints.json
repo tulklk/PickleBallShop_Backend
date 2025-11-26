@@ -790,6 +790,32 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.PaymentsController",
+    "Method": "GetVietQRConfig",
+    "RelativePath": "api/payments/vietqr/config",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.PaymentsController",
+    "Method": "TestVietQR",
+    "RelativePath": "api/payments/vietqr/test",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "amount",
+        "Type": "System.Decimal",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.PaymentsController",
     "Method": "VnPayIpn",
     "RelativePath": "api/payments/vnpay/ipn",
     "HttpMethod": "POST",

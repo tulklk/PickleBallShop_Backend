@@ -44,8 +44,20 @@ public class OrdersController : ControllerBase
                         PaymentUrl = (string?)null,
                         OrderId = order.Id,
                         OrderNumber = order.OrderNumber,
-                        IsCod = true
+                        IsCod = true,
+                        IsBankTransfer = false
                     }
+                });
+            }
+            
+            // For Bank Transfer orders, immediately generate QR code and return
+            if (request.PaymentMethod == Domain.Entities.PaymentMethod.BankTransfer)
+            {
+                var paymentResponse = await _orderService.InitiatePaymentAsync(order.Id, userId);
+                return Ok(new
+                {
+                    Order = order,
+                    Payment = paymentResponse
                 });
             }
             

@@ -9,15 +9,18 @@ public class PaymentService : IPaymentService
 {
     private readonly IMoMoPaymentService _moMoService;
     private readonly IVnPayPaymentService _vnPayService;
+    private readonly IVietQRService _vietQRService;
     private readonly ILogger<PaymentService> _logger;
 
     public PaymentService(
         IMoMoPaymentService moMoService,
         IVnPayPaymentService vnPayService,
+        IVietQRService vietQRService,
         ILogger<PaymentService> logger)
     {
         _moMoService = moMoService;
         _vnPayService = vnPayService;
+        _vietQRService = vietQRService;
         _logger = logger;
     }
 
@@ -37,6 +40,29 @@ public class PaymentService : IPaymentService
                 OrderId = order.Id,
                 OrderNumber = order.OrderNumber,
                 IsCod = true
+            };
+        }
+
+        // Bank Transfer uses VietQR to generate QR code
+        if (order.PaymentMethod.Value == PaymentMethod.BankTransfer)
+        {
+            var vietQRResponse = await _vietQRService.GenerateQRCodeAsync(order);
+            return new CreatePaymentResponse
+            {
+                PaymentUrl = null, // No redirect URL for bank transfer
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                IsBankTransfer = true,
+                BankTransferInfo = new BankTransferInfo
+                {
+                    QrDataUrl = vietQRResponse.QrDataUrl,
+                    QrCode = vietQRResponse.QrCode,
+                    BankName = vietQRResponse.BankName,
+                    AccountNo = vietQRResponse.AccountNo,
+                    AccountName = vietQRResponse.AccountName,
+                    Amount = vietQRResponse.Amount,
+                    TransferContent = vietQRResponse.TransferContent
+                }
             };
         }
 

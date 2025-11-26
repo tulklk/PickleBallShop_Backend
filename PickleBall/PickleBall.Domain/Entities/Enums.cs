@@ -27,5 +27,6 @@ public enum PaymentMethod
 {
     COD = 0,
     MoMo = 1,
-    VNPay = 2
+    VNPay = 2,
+    BankTransfer = 3
 }

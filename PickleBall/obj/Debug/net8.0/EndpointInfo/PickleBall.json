@@ -1509,6 +1509,41 @@
         }
       }
     },
+    "/api/payments/vietqr/test": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 10000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/payments/vietqr/config": {
+      "get": {
+        "tags": [
+          "Payments"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/payments/momo/return": {
       "get": {
         "tags": [
@@ -2667,6 +2702,34 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Payments.BankTransferInfo": {
+        "type": "object",
+        "properties": {
+          "qrDataUrl": {
+            "type": "string"
+          },
+          "qrCode": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "accountNo": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "transferContent": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Payments.CreatePaymentResponse": {
         "type": "object",
         "properties": {
@@ -2683,6 +2746,17 @@
           },
           "isCod": {
             "type": "boolean"
+          },
+          "isBankTransfer": {
+            "type": "boolean"
+          },
+          "bankTransferInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.BankTransferInfo"
+              }
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3342,7 +3416,8 @@
         "enum": [
           0,
           1,
-          2
+          2,
+          3
         ],
         "type": "integer",
         "format": "int32"
