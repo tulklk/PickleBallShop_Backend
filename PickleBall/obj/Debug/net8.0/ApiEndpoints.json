@@ -171,27 +171,6 @@
     ]
   },
   {
-    "ContainingType": "PickleBall.Controllers.Admin.AdminOrdersController",
-    "Method": "UpdateOrderStatus",
-    "RelativePath": "api/admin/AdminOrders/{id}/status",
-    "HttpMethod": "PUT",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.Guid",
-        "IsRequired": true
-      },
-      {
-        "Name": "request",
-        "Type": "PickleBall.Controllers.Admin.AdminOrdersController\u002BUpdateOrderStatusRequest",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "PickleBall.Controllers.Admin.AdminProductsController",
     "Method": "CreateProduct",
     "RelativePath": "api/admin/AdminProducts",
@@ -790,36 +769,16 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.PaymentsController",
-    "Method": "PayOSReturn",
-    "RelativePath": "api/payments/payos/return",
-    "HttpMethod": "GET",
+    "Method": "PayOSConfirm",
+    "RelativePath": "api/payments/payos/confirm",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "code",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "id",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "cancel",
-        "Type": "System.Boolean",
-        "IsRequired": false
-      },
-      {
-        "Name": "status",
-        "Type": "System.String",
-        "IsRequired": false
-      },
-      {
-        "Name": "orderCode",
-        "Type": "System.Int64",
-        "IsRequired": false
+        "Name": "request",
+        "Type": "PickleBall.Controllers.PayOSConfirmRequest",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []
@@ -835,7 +794,7 @@
       {
         "Name": "webhookData",
         "Type": "PickleBall.Application.DTOs.Payments.PayOSWebhookRequest",
-        "IsRequired": true
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

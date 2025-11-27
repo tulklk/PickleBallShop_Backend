@@ -103,23 +103,16 @@ public class AdminOrdersController : ControllerBase
         return Ok(orderDto);
     }
 
-    [HttpPut("{id:guid}/status")]
-    public async Task<IActionResult> UpdateOrderStatus(Guid id, [FromBody] UpdateOrderStatusRequest request)
-    {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
-        {
-            return NotFound();
-        }
+    // NOTE: Order status updates are handled automatically by the system:
+    // - OrderStatus is set to Confirmed when payment is successful (via payment gateway callbacks)
+    // - Admin should not manually update order status to ensure data integrity
+    // 
+    // PaymentStatus can ONLY be updated by payment gateway callbacks (MoMo, VNPay, PayOS)
+    // - MoMo: /api/payments/momo/ipn and /api/payments/momo/return
+    // - VNPay: /api/payments/vnpay/ipn and /api/payments/vnpay/return  
+    // - PayOS: /api/payments/payos/webhook and /api/payments/payos/confirm
+    // - COD: PaymentStatus remains Pending (payment collected on delivery)
 
-        order.OrderStatus = request.OrderStatus;
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    public class UpdateOrderStatusRequest
-    {
-        public OrderStatus OrderStatus { get; set; }
-    }
+    // Removed UpdateOrderStatus API to prevent manual status changes
+    // Order status will be automatically updated when payment is confirmed via payment gateway
 }

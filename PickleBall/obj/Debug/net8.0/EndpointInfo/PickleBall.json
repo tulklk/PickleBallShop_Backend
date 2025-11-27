@@ -326,60 +326,6 @@
         }
       }
     },
-    "/api/admin/AdminOrders/{id}/status": {
-      "put": {
-        "tags": [
-          "AdminOrders"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
-                  }
-                ]
-              }
-            },
-            "text/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
-                  }
-                ]
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest"
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/admin/AdminProducts": {
       "post": {
         "tags": [
@@ -1674,49 +1620,42 @@
         }
       }
     },
-    "/api/payments/payos/return": {
-      "get": {
+    "/api/payments/payos/confirm": {
+      "post": {
         "tags": [
           "Payments"
         ],
-        "parameters": [
-          {
-            "name": "code",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "cancel",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "orderCode",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int64"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.PayOSConfirmRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.PayOSConfirmRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Controllers.PayOSConfirmRequest"
+                  }
+                ]
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -3190,15 +3129,29 @@
         },
         "additionalProperties": false
       },
-      "PickleBall.Controllers.Admin.AdminOrdersController.UpdateOrderStatusRequest": {
+      "PickleBall.Controllers.PayOSConfirmRequest": {
         "type": "object",
         "properties": {
-          "orderStatus": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderStatus"
-              }
-            ]
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "cancel": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "orderCode": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         },
         "additionalProperties": false

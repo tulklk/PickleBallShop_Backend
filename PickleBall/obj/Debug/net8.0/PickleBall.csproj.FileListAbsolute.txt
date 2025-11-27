@@ -145,3 +145,4 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\refint\
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.pdb
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.genruntimeconfig.cache
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\ref\PickleBall.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
