@@ -342,37 +342,96 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// PayOS return URL after payment
+    /// PayOS callback confirmation from frontend - updates order payment status
     /// </summary>
-    [HttpGet("payos/return")]
-    public async Task<IActionResult> PayOSReturn(
-        [FromQuery] string code,
-        [FromQuery] string id,
-        [FromQuery] bool cancel,
-        [FromQuery] string status,
-        [FromQuery] long orderCode)
+    [HttpPost("payos/confirm")]
+    public async Task<IActionResult> PayOSConfirm([FromBody] PayOSConfirmRequest request)
     {
         try
         {
-            _logger.LogInformation("PayOS return: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}", 
-                code, status, orderCode, cancel);
+            _logger.LogInformation("PayOS confirm: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}, orderId={OrderId}", 
+                request.Code, request.Status, request.OrderCode, request.Cancel, request.OrderId);
 
-            if (cancel || status == "CANCELLED")
+            if (request.Cancel || request.Status == "CANCELLED")
             {
-                return Redirect("/payment/cancelled");
+                return Ok(new { success = false, message = "Payment was cancelled" });
             }
 
-            if (code == "00" && status == "PAID")
+            if (request.Code == "00" && request.Status == "PAID")
             {
-                return Redirect("/payment/success");
+                // Find order by ID from request
+                Order? order = null;
+                
+                if (request.OrderId.HasValue)
+                {
+                    order = await _context.Orders.FindAsync(request.OrderId.Value);
+                }
+                
+                // If not found by ID, try to find the most recent pending BankTransfer order for the user
+                if (order == null)
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
+                    {
+                        order = await _context.Orders
+                            .Where(o => o.UserId == userGuid && 
+                                       o.PaymentMethod == PaymentMethod.BankTransfer && 
+                                       o.PaymentStatus == PaymentStatus.Pending)
+                            .OrderByDescending(o => o.CreatedAt)
+                            .FirstOrDefaultAsync();
+                    }
+                }
+
+                if (order == null)
+                {
+                    _logger.LogWarning("Order not found for PayOS confirm");
+                    return NotFound(new { success = false, message = "Order not found" });
+                }
+
+                // Update order payment status
+                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true);
+
+                // Create payment record if not exists
+                var existingPayment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.OrderId == order.Id);
+
+                if (existingPayment == null)
+                {
+                    var payment = new Payment
+                    {
+                        OrderId = order.Id,
+                        UserId = order.UserId,
+                        PaymentGateway = PaymentMethod.BankTransfer,
+                        Amount = order.TotalAmount,
+                        Currency = "VND",
+                        TransactionId = request.OrderCode.ToString(),
+                        Status = PaymentStatus.Paid,
+                        RawResponse = System.Text.Json.JsonSerializer.Serialize(request)
+                    };
+                    _context.Payments.Add(payment);
+                    await _context.SaveChangesAsync();
+                }
+
+                _logger.LogInformation("PayOS payment confirmed for Order {OrderId}", order.Id);
+                return Ok(new { success = true, message = "Payment confirmed", orderId = order.Id });
             }
 
-            return Redirect("/payment/failed");
+            return Ok(new { success = false, message = "Payment not successful" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing PayOS return");
-            return Redirect("/payment/failed");
+            _logger.LogError(ex, "Error processing PayOS confirm");
+            return StatusCode(500, new { success = false, message = "Error processing payment confirmation" });
         }
     }
+}
+
+public class PayOSConfirmRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
+    public bool Cancel { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public long OrderCode { get; set; }
+    public Guid? OrderId { get; set; }
 }
