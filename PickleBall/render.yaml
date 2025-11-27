@@ -45,3 +45,9 @@ services:
         sync: false
       - key: Google__ClientSecret
         sync: false
+      - key: Payment__PayOS__ClientId
+        sync: false
+      - key: Payment__PayOS__ApiKey
+        sync: false
+      - key: Payment__PayOS__ChecksumKey
+        sync: false

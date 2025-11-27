@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
@@ -15,6 +16,7 @@ public class PaymentsController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IMoMoPaymentService _moMoService;
     private readonly IVnPayPaymentService _vnPayService;
+    private readonly IPayOSService _payOSService;
     private readonly IOrderService _orderService;
     private readonly ILogger<PaymentsController> _logger;
 
@@ -22,12 +24,14 @@ public class PaymentsController : ControllerBase
         ApplicationDbContext context,
         IMoMoPaymentService moMoService,
         IVnPayPaymentService vnPayService,
+        IPayOSService payOSService,
         IOrderService orderService,
         ILogger<PaymentsController> logger)
     {
         _context = context;
         _moMoService = moMoService;
         _vnPayService = vnPayService;
+        _payOSService = payOSService;
         _orderService = orderService;
         _logger = logger;
     }
@@ -255,6 +259,112 @@ public class PaymentsController : ControllerBase
         {
             _logger.LogError(ex, "Error processing VNPay IPN");
             return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// PayOS webhook endpoint to receive payment notifications
+    /// </summary>
+    [HttpPost("payos/webhook")]
+    public async Task<IActionResult> PayOSWebhook([FromBody] PayOSWebhookRequest webhookData)
+    {
+        try
+        {
+            _logger.LogInformation("Received PayOS webhook: Code={Code}, Success={Success}", 
+                webhookData.Code, webhookData.Success);
+
+            var verifiedData = await _payOSService.VerifyWebhookAsync(webhookData);
+
+            if (verifiedData == null)
+            {
+                _logger.LogWarning("Invalid PayOS webhook signature");
+                return BadRequest(new { message = "Invalid webhook" });
+            }
+
+            // Find order by order code
+            var orderCode = verifiedData.OrderCode;
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCode.ToString().Substring(0, 8)));
+
+            if (order == null)
+            {
+                // Try to find by matching description
+                _logger.LogWarning("Order not found for PayOS orderCode: {OrderCode}", orderCode);
+                return Ok(new { message = "Order not found" });
+            }
+
+            var isPaid = webhookData.Code == "00" && webhookData.Success;
+            var transactionId = verifiedData.Reference;
+
+            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+
+            if (isPaid)
+            {
+                var existingPayment = await _context.Payments
+                    .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
+
+                if (existingPayment == null)
+                {
+                    var payment = new Payment
+                    {
+                        OrderId = order.Id,
+                        UserId = order.UserId,
+                        PaymentGateway = PaymentMethod.BankTransfer,
+                        Amount = verifiedData.Amount,
+                        Currency = verifiedData.Currency,
+                        TransactionId = transactionId,
+                        Status = PaymentStatus.Paid,
+                        RawResponse = System.Text.Json.JsonSerializer.Serialize(webhookData)
+                    };
+                    _context.Payments.Add(payment);
+                    await _context.SaveChangesAsync();
+                }
+
+                _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
+                    order.Id, transactionId);
+            }
+
+            return Ok(new { message = "Webhook processed" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing PayOS webhook");
+            return StatusCode(500);
+        }
+    }
+
+    /// <summary>
+    /// PayOS return URL after payment
+    /// </summary>
+    [HttpGet("payos/return")]
+    public async Task<IActionResult> PayOSReturn(
+        [FromQuery] string code,
+        [FromQuery] string id,
+        [FromQuery] bool cancel,
+        [FromQuery] string status,
+        [FromQuery] long orderCode)
+    {
+        try
+        {
+            _logger.LogInformation("PayOS return: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}", 
+                code, status, orderCode, cancel);
+
+            if (cancel || status == "CANCELLED")
+            {
+                return Redirect("/payment/cancelled");
+            }
+
+            if (code == "00" && status == "PAID")
+            {
+                return Redirect("/payment/success");
+            }
+
+            return Redirect("/payment/failed");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing PayOS return");
+            return Redirect("/payment/failed");
         }
     }
 }

@@ -790,26 +790,52 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.PaymentsController",
-    "Method": "GetVietQRConfig",
-    "RelativePath": "api/payments/vietqr/config",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "PickleBall.Controllers.PaymentsController",
-    "Method": "TestVietQR",
-    "RelativePath": "api/payments/vietqr/test",
+    "Method": "PayOSReturn",
+    "RelativePath": "api/payments/payos/return",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "amount",
-        "Type": "System.Decimal",
+        "Name": "code",
+        "Type": "System.String",
         "IsRequired": false
+      },
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "cancel",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "orderCode",
+        "Type": "System.Int64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.PaymentsController",
+    "Method": "PayOSWebhook",
+    "RelativePath": "api/payments/payos/webhook",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "webhookData",
+        "Type": "PickleBall.Application.DTOs.Payments.PayOSWebhookRequest",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []

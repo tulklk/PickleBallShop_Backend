@@ -165,10 +165,10 @@ public class Program
         // Configure payment settings
         builder.Services.Configure<MoMoPaymentSettings>(builder.Configuration.GetSection("Payment:MoMo"));
         builder.Services.Configure<VnPayPaymentSettings>(builder.Configuration.GetSection("Payment:VNPay"));
-        builder.Services.Configure<VietQRSettings>(builder.Configuration.GetSection("Payment:VietQR"));
+        builder.Services.Configure<PayOSSettings>(builder.Configuration.GetSection("Payment:PayOS"));
 
-        // Register HttpClient for VietQR
-        builder.Services.AddHttpClient<IVietQRService, VietQRService>();
+        // Register PayOS service with HttpClient
+        builder.Services.AddHttpClient<IPayOSService, PayOSService>();
 
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();
