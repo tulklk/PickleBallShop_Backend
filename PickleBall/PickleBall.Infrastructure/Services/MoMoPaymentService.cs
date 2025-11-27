@@ -21,7 +21,7 @@ public class MoMoPaymentService : IMoMoPaymentService
         _logger = logger;
     }
 
-    public async Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string notifyUrl)
+    public async Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string cancelUrl, string notifyUrl)
     {
         try
         {

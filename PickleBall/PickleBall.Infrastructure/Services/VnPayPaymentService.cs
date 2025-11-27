@@ -20,7 +20,7 @@ public class VnPayPaymentService : IVnPayPaymentService
         _logger = logger;
     }
 
-    public Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string notifyUrl)
+    public Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string cancelUrl, string notifyUrl)
     {
         try
         {

@@ -24,7 +24,7 @@ public class PaymentService : IPaymentService
         _logger = logger;
     }
 
-    public async Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string notifyUrl)
+    public async Task<CreatePaymentResponse> CreatePaymentAsync(Order order, string returnUrl, string cancelUrl, string notifyUrl)
     {
         if (!order.PaymentMethod.HasValue)
         {
@@ -46,13 +46,13 @@ public class PaymentService : IPaymentService
         // Bank Transfer uses PayOS to create payment link
         if (order.PaymentMethod.Value == PaymentMethod.BankTransfer)
         {
-            return await _payOSService.CreatePaymentLinkAsync(order, returnUrl, notifyUrl);
+            return await _payOSService.CreatePaymentLinkAsync(order, returnUrl, cancelUrl);
         }
 
         return order.PaymentMethod.Value switch
         {
-            PaymentMethod.MoMo => await _moMoService.CreatePaymentAsync(order, returnUrl, notifyUrl),
-            PaymentMethod.VNPay => await _vnPayService.CreatePaymentAsync(order, returnUrl, notifyUrl),
+            PaymentMethod.MoMo => await _moMoService.CreatePaymentAsync(order, returnUrl, cancelUrl, notifyUrl),
+            PaymentMethod.VNPay => await _vnPayService.CreatePaymentAsync(order, returnUrl, cancelUrl, notifyUrl),
             _ => throw new NotSupportedException($"Payment method {order.PaymentMethod.Value} is not supported")
         };
     }

@@ -157,11 +157,13 @@ public class OrderService : IOrderService
             };
         }
 
-        // Build return URL and IPN URL based on payment method
-        var returnUrl = $"/api/payments/{order.PaymentMethod.Value.ToString().ToLower()}/return";
+        // Build return URL (frontend) and notify URL (backend webhook)
+        var frontendBaseUrl = "https://pickleball-shop-frontend.vercel.app";
+        var returnUrl = $"{frontendBaseUrl}/payments/payos/return";
+        var cancelUrl = $"{frontendBaseUrl}/payments/payos/cancel";
         var notifyUrl = $"/api/payments/{order.PaymentMethod.Value.ToString().ToLower()}/ipn";
 
-        var paymentResponse = await _paymentService.CreatePaymentAsync(order, returnUrl, notifyUrl);
+        var paymentResponse = await _paymentService.CreatePaymentAsync(order, returnUrl, cancelUrl, notifyUrl);
 
         return paymentResponse;
     }
