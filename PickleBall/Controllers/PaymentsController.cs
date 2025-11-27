@@ -346,6 +346,7 @@ public class PaymentsController : ControllerBase
     /// PayOS callback confirmation from frontend - updates order payment status
     /// </summary>
     [HttpPost("payos/confirm")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> PayOSConfirm([FromBody] PayOSConfirmRequest request)
     {
         try
