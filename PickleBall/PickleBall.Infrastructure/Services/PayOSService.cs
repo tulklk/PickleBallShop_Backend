@@ -144,22 +144,10 @@ public class PayOSService : IPayOSService
 
     private long GenerateOrderCode(string orderNumber)
     {
-        // Generate unique numeric code from order number
-        var parts = orderNumber.Split('-');
-        if (parts.Length >= 3)
-        {
-            var datePart = parts[1]; // YYYYMMDD
-            var guidPart = parts[2].Length > 6 ? parts[2][..6] : parts[2];
-            
-            long code = 0;
-            foreach (var c in datePart + guidPart)
-            {
-                code = code * 10 + (c % 10);
-            }
-            return Math.Abs(code % 9007199254740991);
-        }
-        
-        return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % 9007199254740991;
+        // Generate unique numeric code using timestamp + random
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var random = new Random().Next(1000, 9999);
+        return (timestamp * 10000 + random) % 9007199254740991;
     }
 
     private static string ComputeHmacSha256(string data, string key)
