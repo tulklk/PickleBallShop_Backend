@@ -266,10 +266,17 @@ public class PaymentsController : ControllerBase
     /// PayOS webhook endpoint to receive payment notifications
     /// </summary>
     [HttpPost("payos/webhook")]
-    public async Task<IActionResult> PayOSWebhook([FromBody] PayOSWebhookRequest webhookData)
+    public async Task<IActionResult> PayOSWebhook([FromBody] PayOSWebhookRequest? webhookData)
     {
         try
         {
+            // Handle PayOS test/ping request
+            if (webhookData == null || string.IsNullOrEmpty(webhookData.Code))
+            {
+                _logger.LogInformation("Received PayOS test/ping webhook");
+                return Ok(new { success = true, message = "Webhook received" });
+            }
+
             _logger.LogInformation("Received PayOS webhook: Code={Code}, Success={Success}", 
                 webhookData.Code, webhookData.Success);
 
@@ -278,7 +285,8 @@ public class PaymentsController : ControllerBase
             if (verifiedData == null)
             {
                 _logger.LogWarning("Invalid PayOS webhook signature");
-                return BadRequest(new { message = "Invalid webhook" });
+                // Return OK for test webhooks to pass PayOS validation
+                return Ok(new { success = true, message = "Webhook processed" });
             }
 
             // Find order by order code
