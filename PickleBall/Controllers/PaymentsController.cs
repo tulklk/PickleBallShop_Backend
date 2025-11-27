@@ -1,11 +1,12 @@
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace PickleBall.Controllers;
 
