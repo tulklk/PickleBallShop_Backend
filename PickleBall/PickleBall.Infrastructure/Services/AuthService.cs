@@ -2,6 +2,7 @@ using AutoMapper;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
@@ -17,14 +18,16 @@ public class AuthService : IAuthService
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(ApplicationDbContext context, ITokenService tokenService, IMapper mapper, IConfiguration configuration, IEmailService emailService)
+    public AuthService(ApplicationDbContext context, ITokenService tokenService, IMapper mapper, IConfiguration configuration, IEmailService emailService, ILogger<AuthService> logger)
     {
         _context = context;
         _tokenService = tokenService;
         _mapper = mapper;
         _configuration = configuration;
         _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
@@ -67,7 +70,18 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
 
         // Send verification email
-        await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+            _logger.LogInformation("Verification email sent to: {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email to: {Email}", user.Email);
+            // Don't throw exception here - user is already created, they can request resend
+            // Throw exception to prevent silent failures in production
+            throw new InvalidOperationException($"Failed to send verification email. Please try resending verification email. Error: {ex.Message}", ex);
+        }
 
         return new RegisterResponse
         {
@@ -147,7 +161,16 @@ public class AuthService : IAuthService
         await _context.SaveChangesAsync();
 
         // Send verification email
-        await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+            _logger.LogInformation("Resend verification email sent to: {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resend verification email to: {Email}", user.Email);
+            throw new InvalidOperationException($"Failed to send verification email. Error: {ex.Message}", ex);
+        }
 
         return true;
     }

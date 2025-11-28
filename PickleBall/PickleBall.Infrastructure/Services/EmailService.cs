@@ -2,8 +2,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Email;
 using PickleBall.Application.Interfaces;
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace PickleBall.Infrastructure.Services;
 
@@ -71,41 +72,73 @@ public class EmailService : IEmailService
     {
         try
         {
-            if (string.IsNullOrEmpty(_emailSettings.SmtpHost) || 
-                string.IsNullOrEmpty(_emailSettings.SmtpUsername) || 
-                string.IsNullOrEmpty(_emailSettings.SmtpPassword))
+            // Validate email settings
+            if (string.IsNullOrEmpty(_emailSettings.SmtpHost))
             {
-                _logger.LogWarning("Email configuration is not set. Email will not be sent. To: {Email}, Subject: {Subject}", toEmail, subject);
-                // In development, log the email instead of sending
-                _logger.LogInformation("Email would be sent to: {Email}, Subject: {Subject}, Body: {Body}", toEmail, subject, body);
-                return true; // Return true to allow development to continue
+                _logger.LogError("SMTP Host is not configured");
+                throw new InvalidOperationException("Email configuration is incomplete: SMTP Host is missing");
             }
 
-            using var client = new SmtpClient(_emailSettings.SmtpHost, _emailSettings.SmtpPort)
+            if (string.IsNullOrEmpty(_emailSettings.SmtpUsername))
             {
-                EnableSsl = _emailSettings.EnableSsl,
-                Credentials = new NetworkCredential(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword)
-            };
+                _logger.LogError("SMTP Username is not configured");
+                throw new InvalidOperationException("Email configuration is incomplete: SMTP Username is missing");
+            }
 
-            using var message = new MailMessage
+            if (string.IsNullOrEmpty(_emailSettings.SmtpPassword))
             {
-                From = new MailAddress(_emailSettings.FromEmail, _emailSettings.FromName),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
+                _logger.LogError("SMTP Password is not configured");
+                throw new InvalidOperationException("Email configuration is incomplete: SMTP Password is missing");
+            }
+
+            if (_emailSettings.SmtpPort <= 0)
+            {
+                _logger.LogError("SMTP Port is not configured correctly");
+                throw new InvalidOperationException("Email configuration is incomplete: SMTP Port is invalid");
+            }
+
+            // Create email message
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
+            message.To.Add(new MailboxAddress("", toEmail));
+            message.Subject = subject;
+
+            var bodyBuilder = new BodyBuilder
+            {
+                HtmlBody = body
             };
+            message.Body = bodyBuilder.ToMessageBody();
 
-            message.To.Add(toEmail);
-
-            await client.SendMailAsync(message);
-            _logger.LogInformation("Verification email sent successfully to: {Email}", toEmail);
-            return true;
+            // Send email using MailKit
+            using var client = new SmtpClient();
+            
+            try
+            {
+                await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+                
+                _logger.LogInformation("Email sent successfully to: {Email}, Subject: {Subject}", toEmail, subject);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to: {Email}. SMTP Error: {Error}", toEmail, ex.Message);
+                throw;
+            }
+            finally
+            {
+                if (client.IsConnected)
+                {
+                    await client.DisconnectAsync(true);
+                }
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email to: {Email}", toEmail);
-            return false;
+            throw new InvalidOperationException($"Failed to send email: {ex.Message}", ex);
         }
     }
 }
-
