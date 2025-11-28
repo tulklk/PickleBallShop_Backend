@@ -65,6 +65,7 @@ public class UserService : IUserService
         // Update user properties
         user.FullName = request.FullName;
         user.PhoneNumber = request.PhoneNumber;
+        user.Avatar = request.Avatar;
         user.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

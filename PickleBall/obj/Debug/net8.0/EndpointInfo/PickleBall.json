@@ -2392,6 +2392,10 @@
             "type": "string",
             "nullable": true
           },
+          "avatar": {
+            "type": "string",
+            "nullable": true
+          },
           "role": {
             "type": "string"
           }
@@ -3149,6 +3153,10 @@
           "phoneNumber": {
             "type": "string",
             "nullable": true
+          },
+          "avatar": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3167,6 +3175,10 @@
             "type": "string"
           },
           "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatar": {
             "type": "string",
             "nullable": true
           },
@@ -3879,6 +3891,10 @@
             "type": "string"
           },
           "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatar": {
             "type": "string",
             "nullable": true
           },

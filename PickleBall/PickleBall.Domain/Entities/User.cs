@@ -6,6 +6,7 @@ public class User : BaseEntity
     public string PasswordHash { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public string? Avatar { get; set; }
     public string? GoogleId { get; set; }
     public Role Role { get; set; } = Role.Customer;
     public bool IsActive { get; set; } = true;
