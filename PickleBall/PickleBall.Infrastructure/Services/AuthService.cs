@@ -132,6 +132,12 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Email not found");
         }
 
+        // Admin accounts don't need email verification
+        if (user.Role == Role.Admin)
+        {
+            throw new InvalidOperationException("Admin accounts do not require email verification");
+        }
+
         if (user.EmailVerified)
         {
             throw new InvalidOperationException("Email is already verified");
@@ -197,7 +203,8 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Account is inactive");
         }
 
-        if (!user.EmailVerified)
+        // Admin accounts don't need email verification
+        if (user.Role != Role.Admin && !user.EmailVerified)
         {
             throw new UnauthorizedAccessException("Please verify your email before logging in");
         }
