@@ -87,5 +87,42 @@ public class UserService : IUserService
 
         return true;
     }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordRequest request)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User with id {userId} not found");
+        }
+
+        // Check if user has a password (Google login users might not have password)
+        if (string.IsNullOrEmpty(user.PasswordHash) || !string.IsNullOrEmpty(user.GoogleId))
+        {
+            throw new InvalidOperationException("Cannot change password for accounts without a password");
+        }
+
+        // Verify current password
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
+        {
+            throw new UnauthorizedAccessException("Current password is incorrect");
+        }
+
+        // Check if new password is different from current password
+        if (BCrypt.Net.BCrypt.Verify(request.NewPassword, user.PasswordHash))
+        {
+            throw new InvalidOperationException("New password must be different from current password");
+        }
+
+        // Hash and update password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
 }
 

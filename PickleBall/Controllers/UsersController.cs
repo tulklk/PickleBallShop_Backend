@@ -134,5 +134,46 @@ public class UsersController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// Change password for current user
+    /// </summary>
+    [HttpPost("me/change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var userId = GetUserId();
+            var success = await _userService.ChangePasswordAsync(userId, request);
+            
+            if (success)
+            {
+                return Ok(new { message = "Password changed successfully" });
+            }
+
+            return BadRequest(new { message = "Failed to change password" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while changing password", error = ex.Message });
+        }
+    }
 }
 

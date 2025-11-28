@@ -1165,5 +1165,21 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.UsersController",
+    "Method": "ChangePassword",
+    "RelativePath": "api/Users/me/change-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Users.ChangePasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]
