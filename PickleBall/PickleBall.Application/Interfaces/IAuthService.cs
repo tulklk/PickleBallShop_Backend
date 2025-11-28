@@ -6,6 +6,7 @@ public interface IAuthService
 {
     Task<RegisterResponse> RegisterAsync(RegisterRequest request);
     Task<bool> VerifyEmailAsync(string token);
+    Task<bool> ResendVerificationEmailAsync(string email);
     Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress = null, string? userAgent = null);
     Task<AuthResponse> LoginWithGoogleAsync(GoogleLoginRequest request, string? ipAddress = null, string? userAgent = null);
     Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request);

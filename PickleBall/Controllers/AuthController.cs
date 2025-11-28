@@ -55,6 +55,24 @@ public class AuthController : ControllerBase
         }
     }
 
+    [HttpPost("resend-verification")]
+    public async Task<ActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailRequest request)
+    {
+        try
+        {
+            var result = await _authService.ResendVerificationEmailAsync(request.Email);
+            if (result)
+            {
+                return Ok(new { message = "Verification email sent successfully" });
+            }
+            return BadRequest(new { message = "Failed to send verification email" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {

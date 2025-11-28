@@ -541,20 +541,106 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterResponse"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterResponse"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.AuthResponse"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.RegisterResponse"
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/Auth/verify-email": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.VerifyEmailRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.VerifyEmailRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.VerifyEmailRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Auth/resend-verification": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.ResendVerificationEmailRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.ResendVerificationEmailRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.ResendVerificationEmailRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -2375,6 +2461,27 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Auth.RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.ResendVerificationEmailRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Auth.UserDto": {
         "type": "object",
         "properties": {
@@ -2397,6 +2504,18 @@
             "nullable": true
           },
           "role": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.VerifyEmailRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
             "type": "string"
           }
         },
@@ -3188,6 +3307,9 @@
           "isActive": {
             "type": "boolean"
           },
+          "emailVerified": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3910,6 +4032,9 @@
             ]
           },
           "isActive": {
+            "type": "boolean"
+          },
+          "emailVerified": {
             "type": "boolean"
           },
           "refreshTokens": {

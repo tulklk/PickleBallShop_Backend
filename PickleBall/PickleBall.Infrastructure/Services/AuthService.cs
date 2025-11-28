@@ -109,6 +109,49 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public async Task<bool> ResendVerificationEmailAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("Email not found");
+        }
+
+        if (user.EmailVerified)
+        {
+            throw new InvalidOperationException("Email is already verified");
+        }
+
+        // Invalidate all existing unused tokens for this user
+        var existingTokens = await _context.EmailVerificationTokens
+            .Where(t => t.UserId == user.Id && !t.IsUsed)
+            .ToListAsync();
+
+        foreach (var token in existingTokens)
+        {
+            token.IsUsed = true; // Mark as used to invalidate
+        }
+
+        // Generate new verification token
+        var verificationToken = GenerateVerificationToken();
+        var verificationTokenEntity = new EmailVerificationToken
+        {
+            UserId = user.Id,
+            Token = verificationToken,
+            ExpiresAt = DateTime.UtcNow.AddHours(24), // Token expires in 24 hours
+            IsUsed = false
+        };
+
+        _context.EmailVerificationTokens.Add(verificationTokenEntity);
+        await _context.SaveChangesAsync();
+
+        // Send verification email
+        await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+
+        return true;
+    }
+
     private string GenerateVerificationToken()
     {
         var bytes = new byte[32];

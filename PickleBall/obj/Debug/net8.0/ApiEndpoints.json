@@ -389,7 +389,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Application.DTOs.Auth.AuthResponse",
+        "Type": "PickleBall.Application.DTOs.Auth.RegisterResponse",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -398,6 +398,38 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.AuthController",
+    "Method": "ResendVerificationEmail",
+    "RelativePath": "api/Auth/resend-verification",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Auth.ResendVerificationEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.AuthController",
+    "Method": "VerifyEmail",
+    "RelativePath": "api/Auth/verify-email",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Auth.VerifyEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "PickleBall.Controllers.CartController",
