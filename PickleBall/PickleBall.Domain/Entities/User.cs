@@ -10,6 +10,7 @@ public class User : BaseEntity
     public string? GoogleId { get; set; }
     public Role Role { get; set; } = Role.Customer;
     public bool IsActive { get; set; } = true;
+    public bool EmailVerified { get; set; } = false;
 
     // Navigation properties
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

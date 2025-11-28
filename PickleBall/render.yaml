@@ -51,3 +51,19 @@ services:
         sync: false
       - key: Payment__PayOS__ChecksumKey
         sync: false
+      - key: Email__SmtpHost
+        value: smtp.gmail.com
+      - key: Email__SmtpPort
+        value: "587"
+      - key: Email__SmtpUsername
+        sync: false
+      - key: Email__SmtpPassword
+        sync: false
+      - key: Email__FromEmail
+        sync: false
+      - key: Email__FromName
+        value: PickleBall Shop
+      - key: Email__EnableSsl
+        value: "true"
+      - key: Email__FrontendUrl
+        value: https://pickleball-shop-frontend.vercel.app

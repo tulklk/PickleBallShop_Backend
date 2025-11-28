@@ -19,6 +19,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.GoogleId).IsUnique().HasFilter("\"GoogleId\" IS NOT NULL");
         builder.Property(u => u.Role).HasConversion<int>();
         builder.Property(u => u.IsActive).HasDefaultValue(true);
+        builder.Property(u => u.EmailVerified).HasDefaultValue(false);
 
         builder.HasMany(u => u.RefreshTokens)
             .WithOne(rt => rt.User)

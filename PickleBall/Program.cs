@@ -170,8 +170,12 @@ public class Program
         // Register PayOS service with HttpClient
         builder.Services.AddHttpClient<IPayOSService, PayOSService>();
 
+        // Configure email settings
+        builder.Services.Configure<PickleBall.Application.DTOs.Email.EmailSettings>(builder.Configuration.GetSection("Email"));
+
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IProductService, ProductService>();

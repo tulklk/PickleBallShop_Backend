@@ -4,7 +4,8 @@ namespace PickleBall.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResponse> RegisterAsync(RegisterRequest request);
+    Task<RegisterResponse> RegisterAsync(RegisterRequest request);
+    Task<bool> VerifyEmailAsync(string token);
     Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress = null, string? userAgent = null);
     Task<AuthResponse> LoginWithGoogleAsync(GoogleLoginRequest request, string? ipAddress = null, string? userAgent = null);
     Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request);

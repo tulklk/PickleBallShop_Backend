@@ -24,12 +24,30 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
     {
         try
         {
             var result = await _authService.RegisterAsync(request);
             return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("verify-email")]
+    public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+    {
+        try
+        {
+            var result = await _authService.VerifyEmailAsync(request.Token);
+            if (result)
+            {
+                return Ok(new { message = "Email verified successfully" });
+            }
+            return BadRequest(new { message = "Failed to verify email" });
         }
         catch (InvalidOperationException ex)
         {

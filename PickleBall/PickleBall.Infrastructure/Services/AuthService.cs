@@ -6,6 +6,7 @@ using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
+using System.Security.Cryptography;
 
 namespace PickleBall.Infrastructure.Services;
 
@@ -15,16 +16,18 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly IMapper _mapper;
     private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
-    public AuthService(ApplicationDbContext context, ITokenService tokenService, IMapper mapper, IConfiguration configuration)
+    public AuthService(ApplicationDbContext context, ITokenService tokenService, IMapper mapper, IConfiguration configuration, IEmailService emailService)
     {
         _context = context;
         _tokenService = tokenService;
         _mapper = mapper;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
     {
         // Check if user already exists
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
@@ -35,7 +38,7 @@ public class AuthService : IAuthService
         // Hash password
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-        // Create user
+        // Create user (not verified yet)
         var user = new User
         {
             Email = request.Email,
@@ -43,24 +46,75 @@ public class AuthService : IAuthService
             FullName = request.FullName,
             PhoneNumber = request.PhoneNumber,
             Role = Role.Customer,
-            IsActive = true
+            IsActive = true,
+            EmailVerified = false // Email not verified yet
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        // Generate tokens
-        var accessToken = _tokenService.GenerateAccessToken(user);
-        var refreshToken = _tokenService.GenerateRefreshToken();
-        await _tokenService.SaveRefreshTokenAsync(user.Id, refreshToken);
-
-        return new AuthResponse
+        // Generate email verification token
+        var verificationToken = GenerateVerificationToken();
+        var verificationTokenEntity = new EmailVerificationToken
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            ExpiresAt = DateTime.UtcNow.AddHours(1),
-            User = _mapper.Map<UserDto>(user)
+            UserId = user.Id,
+            Token = verificationToken,
+            ExpiresAt = DateTime.UtcNow.AddHours(24), // Token expires in 24 hours
+            IsUsed = false
         };
+
+        _context.EmailVerificationTokens.Add(verificationTokenEntity);
+        await _context.SaveChangesAsync();
+
+        // Send verification email
+        await _emailService.SendVerificationEmailAsync(user.Email, user.FullName, verificationToken);
+
+        return new RegisterResponse
+        {
+            Message = "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.",
+            Email = user.Email
+        };
+    }
+
+    public async Task<bool> VerifyEmailAsync(string token)
+    {
+        var verificationToken = await _context.EmailVerificationTokens
+            .Include(e => e.User)
+            .FirstOrDefaultAsync(e => e.Token == token);
+
+        if (verificationToken == null)
+        {
+            throw new InvalidOperationException("Invalid verification token");
+        }
+
+        if (verificationToken.IsUsed)
+        {
+            throw new InvalidOperationException("Verification token has already been used");
+        }
+
+        if (verificationToken.ExpiresAt < DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("Verification token has expired");
+        }
+
+        // Mark token as used
+        verificationToken.IsUsed = true;
+
+        // Verify user email
+        verificationToken.User.EmailVerified = true;
+        verificationToken.User.IsActive = true; // Activate account upon verification
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    private string GenerateVerificationToken()
+    {
+        var bytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return Convert.ToBase64String(bytes).Replace("+", "-").Replace("/", "_").Replace("=", "");
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, string? ipAddress = null, string? userAgent = null)
@@ -75,6 +129,11 @@ public class AuthService : IAuthService
         if (!user.IsActive)
         {
             throw new UnauthorizedAccessException("Account is inactive");
+        }
+
+        if (!user.EmailVerified)
+        {
+            throw new UnauthorizedAccessException("Please verify your email before logging in");
         }
 
         // Generate tokens
@@ -137,7 +196,7 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            // Create new user
+            // Create new user (Google users are automatically verified)
             user = new User
             {
                 Email = email,
@@ -145,7 +204,8 @@ public class AuthService : IAuthService
                 FullName = fullName.Trim(),
                 GoogleId = googleId,
                 Role = Role.Customer,
-                IsActive = true
+                IsActive = true,
+                EmailVerified = true // Google login users are automatically verified
             };
 
             _context.Users.Add(user);
@@ -157,15 +217,21 @@ public class AuthService : IAuthService
             if (string.IsNullOrEmpty(user.GoogleId))
             {
                 user.GoogleId = googleId;
-                await _context.SaveChangesAsync();
+            }
+
+            // If existing user doesn't have email verified, verify it now (Google login)
+            if (!user.EmailVerified)
+            {
+                user.EmailVerified = true;
             }
 
             // Update name if different
             if (user.FullName != fullName.Trim())
             {
                 user.FullName = fullName.Trim();
-                await _context.SaveChangesAsync();
             }
+
+            await _context.SaveChangesAsync();
 
             if (!user.IsActive)
             {

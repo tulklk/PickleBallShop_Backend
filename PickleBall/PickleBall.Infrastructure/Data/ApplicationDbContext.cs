@@ -14,6 +14,7 @@ public class ApplicationDbContext : DbContext
     // User related
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
 
     // Product related
     public DbSet<Product> Products { get; set; }
@@ -41,6 +42,7 @@ public class ApplicationDbContext : DbContext
         // Apply all entity configurations
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new RefreshTokenConfiguration());
+        modelBuilder.ApplyConfiguration(new EmailVerificationTokenConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
         modelBuilder.ApplyConfiguration(new ProductCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
