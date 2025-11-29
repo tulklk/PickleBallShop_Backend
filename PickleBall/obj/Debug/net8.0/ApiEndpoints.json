@@ -775,6 +775,22 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.OrdersController",
+    "Method": "TestOrderEmail",
+    "RelativePath": "api/Orders/{id}/test-email",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.OrdersController",
     "Method": "GetMyOrders",
     "RelativePath": "api/Orders/my",
     "HttpMethod": "GET",
