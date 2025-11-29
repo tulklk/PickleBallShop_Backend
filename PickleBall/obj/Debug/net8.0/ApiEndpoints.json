@@ -417,6 +417,22 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.AuthController",
+    "Method": "TestEmail",
+    "RelativePath": "api/Auth/test-email",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Auth.TestEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.AuthController",
     "Method": "VerifyEmail",
     "RelativePath": "api/Auth/verify-email",
     "HttpMethod": "POST",

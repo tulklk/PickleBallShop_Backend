@@ -11,10 +11,12 @@ namespace PickleBall.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IEmailService _emailService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IEmailService emailService)
     {
         _authService = authService;
+        _emailService = emailService;
     }
 
     private Guid GetUserId()
@@ -163,6 +165,40 @@ public class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("test-email")]
+    public async Task<ActionResult> TestEmail([FromBody] TestEmailRequest request)
+    {
+        try
+        {
+            // Generate a test verification token
+            var testToken = Guid.NewGuid().ToString().Replace("-", "");
+            
+            // Send test verification email
+            await _emailService.SendVerificationEmailAsync(
+                request.Email, 
+                request.FullName, 
+                testToken
+            );
+            
+            return Ok(new 
+            { 
+                message = "Test email sent successfully",
+                email = request.Email,
+                fullName = request.FullName,
+                testToken = testToken,
+                note = "This is a test email. The token generated here is for testing purposes only."
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new 
+            { 
+                message = "Failed to send test email",
+                error = ex.Message 
+            });
         }
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using PickleBall.Application.DTOs.Email;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Application.Mapping;
@@ -171,7 +172,8 @@ public class Program
         builder.Services.AddHttpClient<IPayOSService, PayOSService>();
 
         // Configure email settings
-        builder.Services.Configure<PickleBall.Application.DTOs.Email.EmailSettings>(builder.Configuration.GetSection("Email"));
+        builder.Services.Configure<EmailSettings>(
+            builder.Configuration.GetSection("Email"));
 
         // Register services
         builder.Services.AddScoped<ITokenService, TokenService>();

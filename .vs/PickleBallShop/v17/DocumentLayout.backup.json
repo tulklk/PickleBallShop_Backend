@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}",
       "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|solutionrelative:pickleball\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2EEE28AB-0944-43C3-8AC4-2D1845C6C183}|PickleBall\\PickleBall.csproj|e:\\web\\pickleballshop_backend\\pickleballshop\\pickleball\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
@@ -94,7 +94,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 26,
+          "SelectedChildIndex": 10,
           "Children": [
             {
               "$type": "Bookmark",
@@ -117,12 +117,8 @@
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
-            {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Dockerfile",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Dockerfile",
               "RelativeDocumentMoniker": "PickleBall\\Dockerfile",
@@ -182,15 +178,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Program.cs",
               "RelativeDocumentMoniker": "PickleBall\\Program.cs",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\Program.cs",
               "RelativeToolTip": "PickleBall\\Program.cs",
-              "ViewState": "AgIAAFYAAAAAAAAAAAAawOYAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAawOgAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-11-19T18:47:57.399Z"
+              "WhenOpened": "2025-11-19T18:47:57.399Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -362,7 +359,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "appsettings.json",
               "DocumentMoniker": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\appsettings.json",
               "RelativeDocumentMoniker": "PickleBall\\appsettings.json",
@@ -372,6 +369,10 @@
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2025-11-19T16:57:06.084Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
             }
           ]
         }

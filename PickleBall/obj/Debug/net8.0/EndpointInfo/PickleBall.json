@@ -897,6 +897,49 @@
         }
       }
     },
+    "/api/Auth/test-email": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.TestEmailRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.TestEmailRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Auth.TestEmailRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Cart": {
       "get": {
         "tags": [
@@ -2477,6 +2520,18 @@
         "type": "object",
         "properties": {
           "email": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Auth.TestEmailRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
             "type": "string"
           }
         },
