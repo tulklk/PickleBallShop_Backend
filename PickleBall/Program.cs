@@ -20,11 +20,15 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // Read PORT from environment variable (for Fly.io deployment)
-        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-        Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://+:{port}");
-        
         var builder = WebApplication.CreateBuilder(args);
+        
+        // Only override ASPNETCORE_URLS if PORT is set (for Fly.io deployment)
+        // In local development, launchSettings.json will handle the URLs
+        var port = Environment.GetEnvironmentVariable("PORT");
+        if (!string.IsNullOrEmpty(port))
+        {
+            Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://+:{port}");
+        }
 
         // Add services to the container
         builder.Services.AddControllers();
@@ -161,10 +165,21 @@ public class Program
         {
             options.AddPolicy("AllowAll", policy =>
             {
-                policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
+                policy.AllowAnyOrigin() // Allow all origins for now
+                      .AllowAnyMethod() // Allow all HTTP methods
+                      .AllowAnyHeader() // Allow all headers
+                      .WithExposedHeaders("*"); // Expose all headers
+                
+                // Alternative: Use specific origins if needed (comment out AllowAnyOrigin above)
+                // var frontendUrl = builder.Configuration.GetSection("Email:FrontendUrl").Value ?? "https://pickleball-shop-frontend.vercel.app";
+                // policy.WithOrigins(frontendUrl)
+                //       .AllowAnyMethod()
+                //       .AllowAnyHeader()
+                //       .WithExposedHeaders("*");
             });
+            
+            // Add default policy as well
+            options.DefaultPolicyName = "AllowAll";
         });
 
         // Configure payment settings
@@ -195,13 +210,10 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline
-        // Enable Swagger in all environments (you can restrict to Development if needed)
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "PickleBall Shop API V1");
-            c.RoutePrefix = "swagger"; // Swagger UI at /swagger
-        });
+        
+        // CORS must be very early in the pipeline, before authentication and error handling
+        // This ensures preflight OPTIONS requests are handled correctly
+        app.UseCors("AllowAll");
 
         // Global error handling middleware
         app.Use(async (context, next) =>
@@ -215,23 +227,36 @@ public class Program
                 var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
                 logger.LogError(ex, "Unhandled exception occurred");
 
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsJsonAsync(new
+                // Ensure CORS headers are still set even on error
+                if (!context.Response.HasStarted)
                 {
-                    message = "An error occurred while processing your request",
-                    error = app.Environment.IsDevelopment() ? ex.Message : null
-                });
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        message = "An error occurred while processing your request",
+                        error = app.Environment.IsDevelopment() ? ex.Message : null
+                    });
+                }
             }
         });
 
+        // Enable Swagger in all environments
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "PickleBall Shop API V1");
+            c.RoutePrefix = "swagger"; // Swagger UI at /swagger
+            c.DisplayRequestDuration();
+        });
+
         // Only redirect to HTTPS in development
-        // In production (Render), HTTPS is handled by the reverse proxy
+        // In production (Fly.io), HTTPS is handled by the reverse proxy
         if (app.Environment.IsDevelopment())
         {
             app.UseHttpsRedirection();
         }
-
-        app.UseCors("AllowAll");
 
         app.UseAuthentication();
         app.UseAuthorization();
