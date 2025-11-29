@@ -59,7 +59,8 @@ public class PaymentsController : ControllerBase
                 if (order != null)
                 {
                     var isPaid = resultCode == "0"; // MoMo success code
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
 
                     if (isPaid)
                     {
@@ -114,7 +115,8 @@ public class PaymentsController : ControllerBase
                 if (order != null)
                 {
                     var isPaid = resultCode == "0";
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
 
                     if (isPaid)
                     {
@@ -227,7 +229,8 @@ public class PaymentsController : ControllerBase
                 if (order != null)
                 {
                     var isPaid = responseCode == "00";
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
 
                     if (isPaid)
                     {
@@ -304,8 +307,9 @@ public class PaymentsController : ControllerBase
 
             var isPaid = webhookData.Code == "00" && webhookData.Success;
             var transactionId = verifiedData.Reference;
+            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
 
             if (isPaid)
             {
@@ -391,7 +395,8 @@ public class PaymentsController : ControllerBase
                 }
 
                 // Update order payment status
-                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true);
+                var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true, clientIp);
 
                 // Create payment record if not exists
                 var existingPayment = await _context.Payments

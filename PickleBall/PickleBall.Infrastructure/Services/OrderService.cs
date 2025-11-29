@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
@@ -13,12 +14,16 @@ public class OrderService : IOrderService
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
     private readonly IPaymentService _paymentService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<OrderService> _logger;
 
-    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService)
+    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService, IEmailService emailService, ILogger<OrderService> logger)
     {
         _context = context;
         _mapper = mapper;
         _paymentService = paymentService;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderRequest request)
@@ -168,9 +173,14 @@ public class OrderService : IOrderService
         return paymentResponse;
     }
 
-    public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid)
+    public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null)
     {
-        var order = await _context.Orders.FindAsync(orderId);
+        var order = await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(p => p.Images)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
         {
@@ -186,5 +196,20 @@ public class OrderService : IOrderService
         }
 
         await _context.SaveChangesAsync();
+
+        // Send order confirmation email when payment is successful
+        if (isPaid)
+        {
+            try
+            {
+                await _emailService.SendOrderConfirmationEmailAsync(order, clientIpAddress);
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the payment update
+                // Email sending failure shouldn't prevent payment status update
+                _logger.LogError(ex, "Failed to send order confirmation email for order {OrderId}", orderId);
+            }
+        }
     }
 }

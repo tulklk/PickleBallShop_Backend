@@ -9,5 +9,5 @@ public interface IOrderService
     Task<List<OrderDto>> GetUserOrdersAsync(Guid userId);
     Task<OrderDto?> GetOrderByIdAsync(Guid orderId, Guid userId);
     Task<CreatePaymentResponse?> InitiatePaymentAsync(Guid orderId, Guid userId);
-    Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid);
+    Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null);
 }
