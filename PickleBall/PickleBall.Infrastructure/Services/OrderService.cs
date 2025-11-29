@@ -175,6 +175,8 @@ public class OrderService : IOrderService
 
     public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null)
     {
+        // Load order with all navigation properties needed for email
+        // If order is already tracked, EF Core will use the tracked entity
         var order = await _context.Orders
             .Include(o => o.User)
             .Include(o => o.Items)

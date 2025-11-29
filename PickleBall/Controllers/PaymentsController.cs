@@ -365,12 +365,17 @@ public class PaymentsController : ControllerBase
 
             if (request.Code == "00" && request.Status == "PAID")
             {
-                // Find order by ID from request
+                // Find order by ID from request - load with all navigation properties needed for email
                 Order? order = null;
                 
                 if (request.OrderId.HasValue)
                 {
-                    order = await _context.Orders.FindAsync(request.OrderId.Value);
+                    order = await _context.Orders
+                        .Include(o => o.User)
+                        .Include(o => o.Items)
+                            .ThenInclude(oi => oi.Product)
+                                .ThenInclude(p => p.Images)
+                        .FirstOrDefaultAsync(o => o.Id == request.OrderId.Value);
                 }
                 
                 // If not found by ID, try to find the most recent pending BankTransfer order for the user
@@ -380,6 +385,10 @@ public class PaymentsController : ControllerBase
                     if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
                     {
                         order = await _context.Orders
+                            .Include(o => o.User)
+                            .Include(o => o.Items)
+                                .ThenInclude(oi => oi.Product)
+                                    .ThenInclude(p => p.Images)
                             .Where(o => o.UserId == userGuid && 
                                        o.PaymentMethod == PaymentMethod.BankTransfer && 
                                        o.PaymentStatus == PaymentStatus.Pending)
@@ -394,9 +403,17 @@ public class PaymentsController : ControllerBase
                     return NotFound(new { success = false, message = "Order not found" });
                 }
 
-                // Update order payment status
+                // Update order payment status - this will also send email
                 var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true, clientIp);
+                try
+                {
+                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true, clientIp);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                    // Continue to create payment record even if email fails
+                }
 
                 // Create payment record if not exists
                 var existingPayment = await _context.Payments
