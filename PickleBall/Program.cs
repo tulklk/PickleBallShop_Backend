@@ -263,23 +263,39 @@ public class Program
 
         app.MapControllers();
 
-        // Apply migrations on startup (optional - remove in production)
-        using (var scope = app.Services.CreateScope())
+        // Apply migrations on startup (non-blocking)
+        // If migrations fail, app will still start but may have database issues
+        _ = Task.Run(async () =>
         {
-            var services = scope.ServiceProvider;
-            try
+            await Task.Delay(2000); // Wait 2 seconds for app to fully start
+            using (var scope = app.Services.CreateScope())
             {
-                var context = services.GetRequiredService<ApplicationDbContext>();
-                // Uncomment to apply migrations automatically
-                context.Database.Migrate();
-                SeedData.SeedAsync(context).GetAwaiter().GetResult();
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<ApplicationDbContext>();
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    
+                    // Test database connection first
+                    if (await context.Database.CanConnectAsync())
+                    {
+                        logger.LogInformation("Database connection successful, applying migrations...");
+                        await context.Database.MigrateAsync();
+                        await SeedData.SeedAsync(context);
+                        logger.LogInformation("Migrations and seeding completed successfully");
+                    }
+                    else
+                    {
+                        logger.LogWarning("Cannot connect to database. Migrations skipped.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger = services.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "An error occurred while migrating the database. App will continue running.");
+                }
             }
-            catch (Exception ex)
-            {
-                var logger = services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "An error occurred while migrating the database");
-            }
-        }
+        });
 
         app.Run();
     }

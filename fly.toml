@@ -19,9 +19,9 @@ primary_region = "sin"
   [[http_service.checks]]
     interval = "10s"
     timeout = "5s"
-    grace_period = "30s"
+    grace_period = "60s"
     method = "GET"
-    path = "/swagger"
+    path = "/api/health"
     protocol = "http"
     tls_skip_verify = false
 
