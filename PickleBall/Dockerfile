@@ -3,20 +3,21 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy csproj files and restore dependencies
-COPY ["PickleBall.csproj", "./"]
-COPY ["PickleBall.Domain/PickleBall.Domain.csproj", "PickleBall.Domain/"]
-COPY ["PickleBall.Application/PickleBall.Application.csproj", "PickleBall.Application/"]
-COPY ["PickleBall.Infrastructure/PickleBall.Infrastructure.csproj", "PickleBall.Infrastructure/"]
+COPY ["PickleBall/PickleBall.csproj", "PickleBall/"]
+COPY ["PickleBall/PickleBall.Domain/PickleBall.Domain.csproj", "PickleBall/PickleBall.Domain/"]
+COPY ["PickleBall/PickleBall.Application/PickleBall.Application.csproj", "PickleBall/PickleBall.Application/"]
+COPY ["PickleBall/PickleBall.Infrastructure/PickleBall.Infrastructure.csproj", "PickleBall/PickleBall.Infrastructure/"]
 
-RUN dotnet restore "PickleBall.csproj"
+RUN dotnet restore "PickleBall/PickleBall.csproj"
 
 # Copy everything else and build
-COPY . .
+COPY PickleBall/ PickleBall/
+WORKDIR "/src/PickleBall"
 RUN dotnet build "PickleBall.csproj" -c Release -o /app/build
 
 # Publish the application
 FROM build AS publish
-WORKDIR "/src"
+WORKDIR "/src/PickleBall"
 RUN dotnet publish "PickleBall.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Build runtime image
