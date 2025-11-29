@@ -111,8 +111,13 @@ public class OrderService : IOrderService
         {
             try
             {
-                // Reload order with all navigation properties needed for email
+                // Detach the tracked order entity first to avoid tracking conflicts
+                _context.Entry(order).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+                
+                // Reload order with all navigation properties needed for email using AsNoTracking
+                // This ensures we get fresh data from database, similar to test endpoint
                 var orderWithDetails = await _context.Orders
+                    .AsNoTracking()
                     .Include(o => o.User)
                     .Include(o => o.Items)
                         .ThenInclude(oi => oi.Product)
@@ -121,14 +126,32 @@ public class OrderService : IOrderService
 
                 if (orderWithDetails != null)
                 {
-                    await _emailService.SendOrderConfirmationEmailAsync(orderWithDetails);
-                    _logger.LogInformation("Order confirmation email sent for COD order {OrderId}", order.Id);
+                    // Validate user email before sending
+                    if (orderWithDetails.User != null && !string.IsNullOrWhiteSpace(orderWithDetails.User.Email))
+                    {
+                        _logger.LogInformation("Sending order confirmation email for COD order {OrderId} to {Email}", 
+                            order.Id, orderWithDetails.User.Email);
+                        
+                        await _emailService.SendOrderConfirmationEmailAsync(orderWithDetails);
+                        
+                        _logger.LogInformation("Order confirmation email sent successfully for COD order {OrderId} to {Email}", 
+                            order.Id, orderWithDetails.User.Email);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Cannot send order confirmation email for COD order {OrderId}: User email not available", order.Id);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Cannot reload order {OrderId} for email sending", order.Id);
                 }
             }
             catch (Exception ex)
             {
                 // Log error but don't fail order creation
-                _logger.LogError(ex, "Failed to send order confirmation email for COD order {OrderId}", order.Id);
+                _logger.LogError(ex, "Failed to send order confirmation email for COD order {OrderId}. Error: {Error}", 
+                    order.Id, ex.Message);
             }
         }
 
@@ -201,13 +224,8 @@ public class OrderService : IOrderService
 
     public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null)
     {
-        // Load order with all navigation properties needed for email
-        // Use AsNoTracking to avoid tracking issues, then reload after save
+        // Load order to update payment status (tracked)
         var order = await _context.Orders
-            .Include(o => o.User)
-            .Include(o => o.Items)
-                .ThenInclude(oi => oi.Product)
-                    .ThenInclude(p => p.Images)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         if (order == null)
@@ -215,27 +233,7 @@ public class OrderService : IOrderService
             throw new KeyNotFoundException("Order not found");
         }
 
-        // Validate that order has a user with email
-        if (order.User == null)
-        {
-            _logger.LogWarning("Order {OrderId} has no user associated. Attempting to reload user...", orderId);
-            // Try to reload user from database
-            var user = await _context.Users.FindAsync(order.UserId);
-            if (user == null)
-            {
-                _logger.LogError("Order {OrderId} user not found in database. UserId: {UserId}", orderId, order.UserId);
-                throw new InvalidOperationException("Order has no associated user");
-            }
-            order.User = user;
-        }
-
-        if (string.IsNullOrWhiteSpace(order.User.Email))
-        {
-            _logger.LogWarning("Order {OrderId} user has no email address. UserId: {UserId}. Payment will be updated but email will not be sent.", 
-                orderId, order.UserId);
-            // Don't throw exception - just skip email sending
-        }
-
+        // Update payment status
         order.PaymentTransactionId = transactionId;
         order.PaymentStatus = isPaid ? PaymentStatus.Paid : PaymentStatus.Failed;
 
@@ -246,8 +244,8 @@ public class OrderService : IOrderService
 
         await _context.SaveChangesAsync();
 
-        // Reload order after save to ensure we have the latest data for email
-        // This is important if order was modified elsewhere
+        // Reload order after save with all navigation properties needed for email
+        // Use AsNoTracking to get fresh data from database, similar to test endpoint
         var orderForEmail = await _context.Orders
             .AsNoTracking()
             .Include(o => o.User)
@@ -282,8 +280,15 @@ public class OrderService : IOrderService
             }
             else
             {
-                _logger.LogWarning("Skipping order confirmation email for order {OrderId} - user email not available", orderId);
+                _logger.LogWarning("Skipping order confirmation email for order {OrderId} - user email not available. User: {User}, Email: {Email}", 
+                    orderId, 
+                    orderForEmail.User != null ? "exists" : "null",
+                    orderForEmail.User?.Email ?? "null");
             }
+        }
+        else if (isPaid && orderForEmail == null)
+        {
+            _logger.LogWarning("Cannot send order confirmation email: Order {OrderId} not found after payment update", orderId);
         }
     }
 }
