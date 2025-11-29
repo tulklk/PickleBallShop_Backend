@@ -173,6 +173,11 @@ public class AuthController : ControllerBase
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { message = "Email is required" });
+            }
+
             // Generate a test verification token
             var testToken = Guid.NewGuid().ToString().Replace("-", "");
             
@@ -192,12 +197,23 @@ public class AuthController : ControllerBase
                 note = "This is a test email. The token generated here is for testing purposes only."
             });
         }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new 
+            { 
+                message = "Failed to send test email",
+                error = ex.Message,
+                details = ex.InnerException?.Message
+            });
+        }
         catch (Exception ex)
         {
             return BadRequest(new 
             { 
                 message = "Failed to send test email",
-                error = ex.Message 
+                error = ex.Message,
+                details = ex.InnerException?.Message,
+                type = ex.GetType().Name
             });
         }
     }

@@ -62,7 +62,7 @@ services:
       - key: Email__FromEmail
         sync: false
       - key: Email__FromName
-        value: PickleBall Shop
+        value: IKA PickleBall Shop
       - key: Email__EnableSsl
         value: "true"
       - key: Email__FrontendUrl

@@ -37,29 +37,27 @@ public class EmailService : IEmailService
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
         .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
         .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }}
-        .button {{ display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+        .button {{ display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }}
         .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
     </style>
 </head>
 <body>
     <div class='container'>
         <div class='header'>
-            <h1>Chào mừng đến với PickleBall Shop!</h1>
+            <h1>Chào mừng đến với IKA PickleBall Shop!</h1>
         </div>
         <div class='content'>
             <p>Xin chào <strong>{fullName}</strong>,</p>
-            <p>Cảm ơn bạn đã đăng ký tài khoản tại PickleBall Shop!</p>
+            <p>Cảm ơn bạn đã đăng ký tài khoản tại IKA PickleBall Shop!</p>
             <p>Vui lòng nhấp vào nút bên dưới để xác nhận địa chỉ email của bạn:</p>
             <p style='text-align: center;'>
-                <a href='{verificationUrl}' class='button'>Xác nhận Email</a>
+                <a href='{verificationUrl}' class='button' style='display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;'><span style='color: #ffffff !important;'>Xác nhận Email</span></a>
             </p>
-            <p>Hoặc bạn có thể copy và paste link sau vào trình duyệt:</p>
-            <p style='word-break: break-all; color: #4CAF50;'>{verificationUrl}</p>
             <p><strong>Lưu ý:</strong> Link này sẽ hết hạn sau 24 giờ.</p>
             <p>Nếu bạn không yêu cầu tạo tài khoản này, vui lòng bỏ qua email này.</p>
         </div>
         <div class='footer'>
-            <p>© {DateTime.UtcNow.Year} PickleBall Shop. Tất cả quyền được bảo lưu.</p>
+            <p>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
         </div>
     </div>
 </body>
@@ -112,15 +110,52 @@ public class EmailService : IEmailService
             // Send email using MailKit
             using var client = new SmtpClient();
             
+            // Set timeout to 30 seconds for connection, read, and write operations
+            client.Timeout = 30000; // 30 seconds in milliseconds
+            
             try
             {
-                await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
+                _logger.LogInformation("Attempting to connect to SMTP server: {Host}:{Port}", _emailSettings.SmtpHost, _emailSettings.SmtpPort);
+                
+                // Try Auto first, then fallback to StartTls
+                SecureSocketOptions socketOptions = SecureSocketOptions.Auto;
+                
+                try
+                {
+                    await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, socketOptions);
+                }
+                catch
+                {
+                    // Fallback to StartTls if Auto fails
+                    _logger.LogWarning("Auto connection failed, trying StartTls");
+                    socketOptions = SecureSocketOptions.StartTls;
+                    await client.ConnectAsync(_emailSettings.SmtpHost, _emailSettings.SmtpPort, socketOptions);
+                }
+                
+                _logger.LogInformation("SMTP connection established, authenticating...");
                 await client.AuthenticateAsync(_emailSettings.SmtpUsername, _emailSettings.SmtpPassword);
+                
+                _logger.LogInformation("SMTP authentication successful, sending email...");
                 await client.SendAsync(message);
                 await client.DisconnectAsync(true);
                 
                 _logger.LogInformation("Email sent successfully to: {Email}, Subject: {Subject}", toEmail, subject);
                 return true;
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "SMTP connection timeout to: {Host}:{Port}. Error: {Error}", _emailSettings.SmtpHost, _emailSettings.SmtpPort, ex.Message);
+                throw new InvalidOperationException($"SMTP connection timeout. Please check your network connection and SMTP settings.", ex);
+            }
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                _logger.LogError(ex, "SMTP socket error connecting to: {Host}:{Port}. Error: {Error}", _emailSettings.SmtpHost, _emailSettings.SmtpPort, ex.Message);
+                throw new InvalidOperationException($"Cannot connect to SMTP server. Please check SMTP host and port settings.", ex);
+            }
+            catch (MailKit.Security.AuthenticationException ex)
+            {
+                _logger.LogError(ex, "SMTP authentication failed. Error: {Error}", ex.Message);
+                throw new InvalidOperationException($"SMTP authentication failed. Please check your username and password (App Password for Gmail).", ex);
             }
             catch (Exception ex)
             {
@@ -131,7 +166,14 @@ public class EmailService : IEmailService
             {
                 if (client.IsConnected)
                 {
-                    await client.DisconnectAsync(true);
+                    try
+                    {
+                        await client.DisconnectAsync(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disconnecting SMTP client: {Error}", ex.Message);
+                    }
                 }
             }
         }
