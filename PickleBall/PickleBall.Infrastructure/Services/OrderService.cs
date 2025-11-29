@@ -106,6 +106,32 @@ public class OrderService : IOrderService
 
         await _context.SaveChangesAsync();
 
+        // For COD orders, send confirmation email immediately since order is confirmed
+        if (request.PaymentMethod == PaymentMethod.COD)
+        {
+            try
+            {
+                // Reload order with all navigation properties needed for email
+                var orderWithDetails = await _context.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.Items)
+                        .ThenInclude(oi => oi.Product)
+                            .ThenInclude(p => p.Images)
+                    .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                if (orderWithDetails != null)
+                {
+                    await _emailService.SendOrderConfirmationEmailAsync(orderWithDetails);
+                    _logger.LogInformation("Order confirmation email sent for COD order {OrderId}", order.Id);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail order creation
+                _logger.LogError(ex, "Failed to send order confirmation email for COD order {OrderId}", order.Id);
+            }
+        }
+
         return _mapper.Map<OrderDto>(order);
     }
 
@@ -176,7 +202,7 @@ public class OrderService : IOrderService
     public async Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null)
     {
         // Load order with all navigation properties needed for email
-        // If order is already tracked, EF Core will use the tracked entity
+        // Use AsNoTracking to avoid tracking issues, then reload after save
         var order = await _context.Orders
             .Include(o => o.User)
             .Include(o => o.Items)
@@ -189,6 +215,27 @@ public class OrderService : IOrderService
             throw new KeyNotFoundException("Order not found");
         }
 
+        // Validate that order has a user with email
+        if (order.User == null)
+        {
+            _logger.LogWarning("Order {OrderId} has no user associated. Attempting to reload user...", orderId);
+            // Try to reload user from database
+            var user = await _context.Users.FindAsync(order.UserId);
+            if (user == null)
+            {
+                _logger.LogError("Order {OrderId} user not found in database. UserId: {UserId}", orderId, order.UserId);
+                throw new InvalidOperationException("Order has no associated user");
+            }
+            order.User = user;
+        }
+
+        if (string.IsNullOrWhiteSpace(order.User.Email))
+        {
+            _logger.LogWarning("Order {OrderId} user has no email address. UserId: {UserId}. Payment will be updated but email will not be sent.", 
+                orderId, order.UserId);
+            // Don't throw exception - just skip email sending
+        }
+
         order.PaymentTransactionId = transactionId;
         order.PaymentStatus = isPaid ? PaymentStatus.Paid : PaymentStatus.Failed;
 
@@ -199,18 +246,43 @@ public class OrderService : IOrderService
 
         await _context.SaveChangesAsync();
 
+        // Reload order after save to ensure we have the latest data for email
+        // This is important if order was modified elsewhere
+        var orderForEmail = await _context.Orders
+            .AsNoTracking()
+            .Include(o => o.User)
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(p => p.Images)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
         // Send order confirmation email when payment is successful
-        if (isPaid)
+        if (isPaid && orderForEmail != null)
         {
-            try
+            // Only send email if user email is available
+            if (orderForEmail.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
             {
-                await _emailService.SendOrderConfirmationEmailAsync(order, clientIpAddress);
+                try
+                {
+                    _logger.LogInformation("Sending order confirmation email for order {OrderId} to {Email}", 
+                        orderId, orderForEmail.User.Email);
+                    
+                    await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIpAddress);
+                    
+                    _logger.LogInformation("Order confirmation email sent successfully for order {OrderId} to {Email}", 
+                        orderId, orderForEmail.User.Email);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail the payment update
+                    // Email sending failure shouldn't prevent payment status update
+                    _logger.LogError(ex, "Failed to send order confirmation email for order {OrderId} to {Email}. Error: {Error}", 
+                        orderId, orderForEmail.User.Email, ex.Message);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                // Log error but don't fail the payment update
-                // Email sending failure shouldn't prevent payment status update
-                _logger.LogError(ex, "Failed to send order confirmation email for order {OrderId}", orderId);
+                _logger.LogWarning("Skipping order confirmation email for order {OrderId} - user email not available", orderId);
             }
         }
     }

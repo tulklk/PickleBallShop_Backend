@@ -60,24 +60,40 @@ public class PaymentsController : ControllerBase
                 {
                     var isPaid = resultCode == "0"; // MoMo success code
                     var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    
+                    // Update order payment status - this will also send email
+                    try
+                    {
+                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                        // Continue to save payment record even if update fails
+                    }
 
                     if (isPaid)
                     {
                         // Save payment record
-                        var payment = new Payment
+                        var existingPayment = await _context.Payments
+                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
+
+                        if (existingPayment == null)
                         {
-                            OrderId = order.Id,
-                            UserId = order.UserId,
-                            PaymentGateway = PaymentMethod.MoMo,
-                            Amount = order.TotalAmount,
-                            Currency = "VND",
-                            TransactionId = transactionId,
-                            Status = PaymentStatus.Paid,
-                            RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                        };
-                        _context.Payments.Add(payment);
-                        await _context.SaveChangesAsync();
+                            var payment = new Payment
+                            {
+                                OrderId = order.Id,
+                                UserId = order.UserId,
+                                PaymentGateway = PaymentMethod.MoMo,
+                                Amount = order.TotalAmount,
+                                Currency = "VND",
+                                TransactionId = transactionId,
+                                Status = PaymentStatus.Paid,
+                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
+                            };
+                            _context.Payments.Add(payment);
+                            await _context.SaveChangesAsync();
+                        }
 
                         return Redirect("/payment/success");
                     }
@@ -116,7 +132,17 @@ public class PaymentsController : ControllerBase
                 {
                     var isPaid = resultCode == "0";
                     var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    
+                    // Update order payment status - this will also send email
+                    try
+                    {
+                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                        // Continue to save payment record even if update fails
+                    }
 
                     if (isPaid)
                     {
@@ -175,23 +201,40 @@ public class PaymentsController : ControllerBase
                 if (order != null)
                 {
                     var isPaid = responseCode == "00"; // VNPay success code
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid);
+                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+                    
+                    // Update order payment status - this will also send email
+                    try
+                    {
+                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                        // Continue to save payment record even if update fails
+                    }
 
                     if (isPaid)
                     {
-                        var payment = new Payment
+                        var existingPayment = await _context.Payments
+                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
+
+                        if (existingPayment == null)
                         {
-                            OrderId = order.Id,
-                            UserId = order.UserId,
-                            PaymentGateway = PaymentMethod.VNPay,
-                            Amount = order.TotalAmount,
-                            Currency = "VND",
-                            TransactionId = transactionId,
-                            Status = PaymentStatus.Paid,
-                            RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                        };
-                        _context.Payments.Add(payment);
-                        await _context.SaveChangesAsync();
+                            var payment = new Payment
+                            {
+                                OrderId = order.Id,
+                                UserId = order.UserId,
+                                PaymentGateway = PaymentMethod.VNPay,
+                                Amount = order.TotalAmount,
+                                Currency = "VND",
+                                TransactionId = transactionId,
+                                Status = PaymentStatus.Paid,
+                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
+                            };
+                            _context.Payments.Add(payment);
+                            await _context.SaveChangesAsync();
+                        }
 
                         return Redirect("/payment/success");
                     }
@@ -230,7 +273,17 @@ public class PaymentsController : ControllerBase
                 {
                     var isPaid = responseCode == "00";
                     var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    
+                    // Update order payment status - this will also send email
+                    try
+                    {
+                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                        // Continue to save payment record even if update fails
+                    }
 
                     if (isPaid)
                     {
@@ -309,7 +362,16 @@ public class PaymentsController : ControllerBase
             var transactionId = verifiedData.Reference;
             var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+            // Update order payment status - this will also send email
+            try
+            {
+                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                // Continue to save payment record even if update fails
+            }
 
             if (isPaid)
             {
@@ -403,16 +465,65 @@ public class PaymentsController : ControllerBase
                     return NotFound(new { success = false, message = "Order not found" });
                 }
 
+                // Validate order has user with email before updating
+                if (order.User == null || string.IsNullOrWhiteSpace(order.User.Email))
+                {
+                    _logger.LogWarning("Order {OrderId} has no user or user email. Reloading user from database...", order.Id);
+                    
+                    // Try to reload user from database
+                    var userId = order.UserId;
+                    var user = await _context.Users.FindAsync(userId);
+                    
+                    if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                    {
+                        // Try to get email from JWT token as fallback
+                        var emailFromToken = User.FindFirstValue(ClaimTypes.Email);
+                        
+                        if (string.IsNullOrWhiteSpace(emailFromToken))
+                        {
+                            _logger.LogError("Cannot send order confirmation email: Order {OrderId} has no user email and cannot get from token", order.Id);
+                            return StatusCode(500, new { success = false, message = "Cannot send order confirmation: User email not found" });
+                        }
+                        
+                        // Update user email if we have it from token
+                        if (user != null && string.IsNullOrWhiteSpace(user.Email))
+                        {
+                            user.Email = emailFromToken;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("Updated user {UserId} email from JWT token", userId);
+                        }
+                        
+                        // Reload order with updated user
+                        order = await _context.Orders
+                            .Include(o => o.User)
+                            .Include(o => o.Items)
+                                .ThenInclude(oi => oi.Product)
+                                    .ThenInclude(p => p.Images)
+                            .FirstOrDefaultAsync(o => o.Id == order.Id);
+                    }
+                }
+
                 // Update order payment status - this will also send email
                 var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
                 try
                 {
                     await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true, clientIp);
+                    _logger.LogInformation("Order payment status updated and email sent for Order {OrderId}", order.Id);
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("email"))
+                {
+                    _logger.LogError(ex, "Failed to send order confirmation email for Order {OrderId}: {Error}", order.Id, ex.Message);
+                    // Update payment status without email
+                    order.PaymentStatus = PaymentStatus.Paid;
+                    order.OrderStatus = OrderStatus.Confirmed;
+                    order.PaymentTransactionId = request.OrderCode.ToString();
+                    await _context.SaveChangesAsync();
+                    _logger.LogWarning("Order {OrderId} payment status updated without email confirmation", order.Id);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                    // Continue to create payment record even if email fails
+                    _logger.LogError(ex, "Error updating order payment status for Order {OrderId}: {Error}", order.Id, ex.Message);
+                    // Continue to create payment record even if update fails
                 }
 
                 // Create payment record if not exists

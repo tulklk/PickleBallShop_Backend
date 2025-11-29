@@ -238,13 +238,28 @@ public class EmailService : IEmailService
 </html>";
 
         var recipientEmail = order.User?.Email ?? "";
-        if (string.IsNullOrEmpty(recipientEmail))
+        
+        // Validate email is present and not empty
+        if (string.IsNullOrWhiteSpace(recipientEmail))
         {
-            _logger.LogWarning("Cannot send order confirmation email: Order {OrderId} has no user email", order.Id);
-            return;
+            _logger.LogError("Cannot send order confirmation email: Order {OrderId} has no user email. UserId: {UserId}, User: {User}", 
+                order.Id, order.UserId, order.User != null ? "exists but no email" : "null");
+            throw new InvalidOperationException($"Cannot send order confirmation email: User email is required for order {order.Id}");
         }
 
-        await SendEmailAsync(recipientEmail, subject, body);
+        _logger.LogInformation("Preparing to send order confirmation email to: {Email} for order {OrderId}", recipientEmail, order.Id);
+
+        try
+        {
+            await SendEmailAsync(recipientEmail, subject, body);
+            _logger.LogInformation("Order confirmation email sent successfully to: {Email} for order {OrderId}", recipientEmail, order.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send order confirmation email to: {Email} for order {OrderId}. Error: {Error}", 
+                recipientEmail, order.Id, ex.Message);
+            throw; // Re-throw to let caller handle
+        }
     }
 
     public async Task<bool> SendEmailAsync(string toEmail, string subject, string body)

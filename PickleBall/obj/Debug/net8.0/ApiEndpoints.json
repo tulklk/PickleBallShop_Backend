@@ -696,6 +696,16 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.HealthController",
+    "Method": "Get",
+    "RelativePath": "api/Health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "PickleBall.Controllers.OrdersController",
     "Method": "CreateOrder",
     "RelativePath": "api/Orders",
