@@ -20,6 +20,10 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        // Read PORT from environment variable (for Fly.io deployment)
+        var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+        Environment.SetEnvironmentVariable("ASPNETCORE_URLS", $"http://+:{port}");
+        
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container

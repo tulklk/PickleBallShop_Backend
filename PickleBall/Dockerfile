@@ -29,9 +29,8 @@ EXPOSE 8080
 COPY --from=publish /app/publish .
 
 # Set environment variables
-# Fly.io will set PORT automatically, but we default to 8080
-ENV PORT=8080
-ENV ASPNETCORE_URLS=http://+:$PORT
+# Fly.io will set PORT automatically at runtime
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-ENTRYPOINT ["dotnet", "PickleBall.dll"]
+# Use shell form to allow PORT variable expansion at runtime
+ENTRYPOINT ["/bin/sh", "-c", "export ASPNETCORE_URLS=http://+:${PORT:-8080} && dotnet PickleBall.dll"]
