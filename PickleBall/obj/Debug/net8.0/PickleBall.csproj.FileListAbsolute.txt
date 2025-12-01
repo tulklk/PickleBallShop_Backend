@@ -1,5 +1,4 @@
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\appsettings.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\bin\Debug\net8.0\PickleBall.Application.deps.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\Debug\net8.0\PickleBall.Application.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\PickleBall.Application.csproj.nuget.dgspec.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\project.assets.json
@@ -7,9 +6,6 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleB
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\Debug\net8.0\PickleBall.Domain.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\PickleBall.Domain.csproj.nuget.dgspec.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\project.assets.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.deps.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.runtimeconfig.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\Debug\net8.0\PickleBall.Infrastructure.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\PickleBall.Infrastructure.csproj.nuget.dgspec.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\project.assets.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.staticwebassets.endpoints.json
@@ -144,10 +140,14 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticw
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.build.json.cache
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.development.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.csproj.Up2Date
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.dll
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\refint\PickleBall.dll
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.pdb
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.genruntimeconfig.cache
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\ref\PickleBall.dll
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\bin\Debug\net8.0\PickleBall.Application.deps.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.deps.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.runtimeconfig.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\Debug\net8.0\PickleBall.Infrastructure.sourcelink.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
