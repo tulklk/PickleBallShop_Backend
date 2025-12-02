@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace PickleBall.Controllers.Admin;
 public class AdminProductsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMapper _mapper;
 
-    public AdminProductsController(ApplicationDbContext context)
+    public AdminProductsController(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     [HttpPost]
@@ -141,17 +144,28 @@ public class AdminProductsController : ControllerBase
                 UpdatedAt = DateTime.UtcNow
             }).ToList();
 
-            _context.ProductVariants.AddRange(variants);
-            await _context.SaveChangesAsync();
-        }
-        
-        var createdProduct = await _context.Products
-            .Include(p => p.Category)
-            .Include(p => p.Images)
-            .Include(p => p.Variants)
-            .FirstOrDefaultAsync(p => p.Id == product.Id);
-            
-        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, createdProduct);
+        _context.ProductVariants.AddRange(variants);
+        await _context.SaveChangesAsync();
+    }
+    
+    // Load product with all necessary includes for mapping
+    var createdProduct = await _context.Products
+        .Include(p => p.Category)
+        .Include(p => p.Images)
+        .Include(p => p.Variants.Where(v => v.IsActive))
+        .Include(p => p.Reviews)
+        .AsNoTracking() // Use AsNoTracking for read-only operation
+        .FirstOrDefaultAsync(p => p.Id == product.Id);
+    
+    if (createdProduct == null)
+    {
+        return StatusCode(500, new { message = "Failed to retrieve created product" });
+    }
+    
+    // Map to ProductDto to avoid large JSON response and serialization issues
+    var productDto = _mapper.Map<ProductDto>(createdProduct);
+    
+    return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, productDto);
     }
 
     [HttpPut("{id:guid}")]
@@ -341,12 +355,14 @@ public class AdminProductsController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Product>> GetProduct(Guid id)
+    public async Task<ActionResult<ProductDto>> GetProduct(Guid id)
     {
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Images)
-            .Include(p => p.Variants)
+            .Include(p => p.Variants.Where(v => v.IsActive))
+            .Include(p => p.Reviews)
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product == null)
@@ -354,7 +370,8 @@ public class AdminProductsController : ControllerBase
             return NotFound();
         }
 
-        return product;
+        var productDto = _mapper.Map<ProductDto>(product);
+        return productDto;
     }
 
     private async Task<bool> ProductExists(Guid id)

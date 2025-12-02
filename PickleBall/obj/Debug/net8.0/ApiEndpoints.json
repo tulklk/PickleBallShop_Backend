@@ -249,7 +249,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Domain.Entities.Product",
+        "Type": "PickleBall.Application.DTOs.Products.ProductDto",
         "MediaTypes": [
           "text/plain",
           "application/json",

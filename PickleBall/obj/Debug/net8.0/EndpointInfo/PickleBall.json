@@ -481,17 +481,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductDto"
                 }
               }
             }
