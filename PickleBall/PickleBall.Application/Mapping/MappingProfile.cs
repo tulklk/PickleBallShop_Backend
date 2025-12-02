@@ -21,13 +21,17 @@ public class MappingProfile : Profile
         CreateMap<User, DTOs.Users.UserDto>()
             .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
 
+        // ProductVariant mapping
+        CreateMap<ProductVariant, ProductVariantDto>();
+
         // Product mapping
         CreateMap<Product, ProductDto>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
             .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => src.Images.Select(i => i.ImageUrl).ToList()))
             .ForMember(dest => dest.PrimaryImageUrl, opt => opt.MapFrom(src => src.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Images.FirstOrDefault() != null ? src.Images.FirstOrDefault()!.ImageUrl : null))
             .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src => src.Reviews.Any() ? src.Reviews.Average(r => r.Rating) : (double?)null))
-            .ForMember(dest => dest.ReviewCount, opt => opt.MapFrom(src => src.Reviews.Count));
+            .ForMember(dest => dest.ReviewCount, opt => opt.MapFrom(src => src.Reviews.Count))
+            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants.Where(v => v.IsActive).ToList()));
 
         CreateMap<Product, ProductListDto>()
             .ForMember(dest => dest.PrimaryImageUrl, opt => opt.MapFrom(src => src.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Images.FirstOrDefault() != null ? src.Images.FirstOrDefault()!.ImageUrl : null))
@@ -44,6 +48,13 @@ public class MappingProfile : Profile
         CreateMap<CartItem, CartItemDto>()
             .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
             .ForMember(dest => dest.ProductImageUrl, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Product.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Product.Images.FirstOrDefault() != null ? src.Product.Images.FirstOrDefault()!.ImageUrl : null))
+            .ForMember(dest => dest.VariantInfo, opt => opt.MapFrom(src => src.ProductVariant != null 
+                ? string.Join(", ", new[] { 
+                    !string.IsNullOrWhiteSpace(src.ProductVariant.Color) ? $"Màu: {src.ProductVariant.Color}" : null,
+                    !string.IsNullOrWhiteSpace(src.ProductVariant.Size) ? $"Size: {src.ProductVariant.Size}" : null,
+                    !string.IsNullOrWhiteSpace(src.ProductVariant.Spec) ? $"Thông số: {src.ProductVariant.Spec}" : null
+                }.Where(x => x != null))
+                : null))
             .ForMember(dest => dest.LineTotal, opt => opt.MapFrom(src => src.UnitPriceSnapshot * src.Quantity));
 
         // Order mapping
@@ -62,7 +73,8 @@ public class MappingProfile : Profile
             }));
 
         CreateMap<OrderItem, OrderItemDto>()
-            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductNameSnapshot));
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.ProductNameSnapshot))
+            .ForMember(dest => dest.VariantInfo, opt => opt.MapFrom(src => src.VariantInfoSnapshot));
 
         // Admin Order mapping with user info
         CreateMap<Order, AdminOrderDto>()

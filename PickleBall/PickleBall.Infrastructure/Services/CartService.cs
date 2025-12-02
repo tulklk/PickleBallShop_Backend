@@ -24,6 +24,8 @@ public class CartService : ICartService
             .Include(c => c.Items)
                 .ThenInclude(ci => ci.Product)
                     .ThenInclude(p => p.Images)
+            .Include(c => c.Items)
+                .ThenInclude(ci => ci.ProductVariant)
             .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null)
@@ -42,15 +44,53 @@ public class CartService : ICartService
 
     public async Task<CartItemDto> AddCartItemAsync(Guid userId, AddCartItemRequest request)
     {
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId && p.IsActive);
+        // Load product with variants
+        var product = await _context.Products
+            .Include(p => p.Variants)
+            .FirstOrDefaultAsync(p => p.Id == request.ProductId && p.IsActive);
+        
         if (product == null)
         {
             throw new KeyNotFoundException("Product not found");
         }
 
-        if (product.StockQuantity < request.Quantity)
+        // Validate variant selection
+        ProductVariant? selectedVariant = null;
+        if (product.HasVariants)
         {
-            throw new InvalidOperationException("Insufficient stock");
+            // Product has variants, must provide ProductVariantId
+            if (!request.ProductVariantId.HasValue)
+            {
+                throw new InvalidOperationException("Product has variants. Please select a variant (color, size, or spec).");
+            }
+
+            selectedVariant = await _context.ProductVariants
+                .FirstOrDefaultAsync(v => v.Id == request.ProductVariantId.Value && v.ProductId == product.Id && v.IsActive);
+            
+            if (selectedVariant == null)
+            {
+                throw new KeyNotFoundException("Selected variant not found or is not active");
+            }
+
+            // Check stock at variant level
+            if (selectedVariant.StockQuantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock for selected variant. Available: {selectedVariant.StockQuantity}");
+            }
+        }
+        else
+        {
+            // Product doesn't have variants, ProductVariantId should be null
+            if (request.ProductVariantId.HasValue)
+            {
+                throw new InvalidOperationException("This product does not have variants. ProductVariantId should be null.");
+            }
+
+            // Check stock at product level
+            if (product.StockQuantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock. Available: {product.StockQuantity}");
+            }
         }
 
         // Get or create cart
@@ -69,18 +109,35 @@ public class CartService : ICartService
                 .FirstOrDefaultAsync(c => c.Id == cart.Id);
         }
 
-        // Check for existing item
+        // Check for existing item (same product AND same variant)
         var existingItem = await _context.CartItems
-            .FirstOrDefaultAsync(ci => ci.CartId == cart.Id && ci.ProductId == request.ProductId);
+            .FirstOrDefaultAsync(ci => ci.CartId == cart.Id 
+                && ci.ProductId == request.ProductId 
+                && ci.ProductVariantId == request.ProductVariantId);
 
         CartItem cartItem;
+        decimal unitPrice = selectedVariant?.Price ?? product.Price;
+        
         if (existingItem != null)
         {
             existingItem.Quantity += request.Quantity;
-            if (product.StockQuantity < existingItem.Quantity)
+            
+            // Re-validate stock
+            if (product.HasVariants && selectedVariant != null)
             {
-                throw new InvalidOperationException("Insufficient stock");
+                if (selectedVariant.StockQuantity < existingItem.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock for selected variant. Available: {selectedVariant.StockQuantity}, Requested: {existingItem.Quantity}");
+                }
             }
+            else
+            {
+                if (product.StockQuantity < existingItem.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock. Available: {product.StockQuantity}, Requested: {existingItem.Quantity}");
+                }
+            }
+            
             cartItem = existingItem;
         }
         else
@@ -89,8 +146,9 @@ public class CartService : ICartService
             {
                 CartId = cart.Id,
                 ProductId = request.ProductId,
+                ProductVariantId = request.ProductVariantId,
                 Quantity = request.Quantity,
-                UnitPriceSnapshot = product.Price
+                UnitPriceSnapshot = unitPrice
             };
             _context.CartItems.Add(cartItem);
         }
@@ -101,6 +159,7 @@ public class CartService : ICartService
         var updatedItem = await _context.CartItems
             .Include(ci => ci.Product)
                 .ThenInclude(p => p.Images)
+            .Include(ci => ci.ProductVariant)
             .FirstOrDefaultAsync(ci => ci.Id == cartItem.Id);
 
         return _mapper.Map<CartItemDto>(updatedItem!);
@@ -112,6 +171,7 @@ public class CartService : ICartService
             .Include(ci => ci.Cart)
             .Include(ci => ci.Product)
                 .ThenInclude(p => p.Images)
+            .Include(ci => ci.ProductVariant)
             .FirstOrDefaultAsync(ci => ci.Id == cartItemId && ci.Cart.UserId == userId);
 
         if (cartItem == null)
@@ -124,9 +184,22 @@ public class CartService : ICartService
             throw new InvalidOperationException("Quantity must be greater than 0");
         }
 
-        if (cartItem.Product.StockQuantity < request.Quantity)
+        // Check stock based on whether product has variants
+        if (cartItem.Product.HasVariants && cartItem.ProductVariant != null)
         {
-            throw new InvalidOperationException("Insufficient stock");
+            // Check stock at variant level
+            if (cartItem.ProductVariant.StockQuantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock for selected variant. Available: {cartItem.ProductVariant.StockQuantity}");
+            }
+        }
+        else
+        {
+            // Check stock at product level
+            if (cartItem.Product.StockQuantity < request.Quantity)
+            {
+                throw new InvalidOperationException($"Insufficient stock. Available: {cartItem.Product.StockQuantity}");
+            }
         }
 
         cartItem.Quantity = request.Quantity;

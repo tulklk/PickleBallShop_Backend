@@ -24,6 +24,7 @@ public class ProductService : IProductService
             .Include(p => p.Images)
             .Include(p => p.Reviews)
             .Include(p => p.Category)
+            .Include(p => p.Variants.Where(v => v.IsActive))
             .Where(p => p.IsActive)
             .AsQueryable();
 
@@ -89,6 +90,7 @@ public class ProductService : IProductService
             .Include(p => p.Images)
             .Include(p => p.Reviews)
             .Include(p => p.Category)
+            .Include(p => p.Variants.Where(v => v.IsActive))
             .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
 
         return product != null ? _mapper.Map<ProductDto>(product) : null;
@@ -99,6 +101,7 @@ public class ProductService : IProductService
         var products = await _context.Products
             .Include(p => p.Images)
             .Include(p => p.Reviews)
+            .Include(p => p.Variants.Where(v => v.IsActive))
             .Where(p => p.IsActive)
             .OrderByDescending(p => p.Reviews.Count)
             .ThenByDescending(p => p.CreatedAt)
@@ -165,6 +168,7 @@ public class ProductService : IProductService
             .Include(p => p.Images)
             .Include(p => p.Reviews)
             .Include(p => p.Category)
+            .Include(p => p.Variants.Where(v => v.IsActive))
             .FirstOrDefaultAsync(p => p.Id == product.Id);
 
         return _mapper.Map<ProductDto>(createdProduct!);
@@ -220,6 +224,7 @@ public class ProductService : IProductService
             .Include(p => p.Images)
             .Include(p => p.Reviews)
             .Include(p => p.Category)
+            .Include(p => p.Variants.Where(v => v.IsActive))
             .FirstOrDefaultAsync(p => p.Id == product.Id);
 
         return _mapper.Map<ProductDto>(updatedProduct!);

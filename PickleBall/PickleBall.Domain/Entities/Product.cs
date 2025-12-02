@@ -13,11 +13,13 @@ public class Product : BaseEntity
     public string SKU { get; set; } = string.Empty;
     public string? Brand { get; set; }
     public bool IsActive { get; set; } = true;
+    public bool HasVariants { get; set; } = false; // Có variants hay không (vợt, giày có variants)
 
     // Navigation properties
     [JsonIgnore]
     public ProductCategory Category { get; set; } = null!;
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+    public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();

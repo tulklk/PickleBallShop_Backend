@@ -18,6 +18,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(p => p.SKU).IsUnique();
         builder.Property(p => p.Brand).HasMaxLength(256);
         builder.Property(p => p.IsActive).HasDefaultValue(true);
+        builder.Property(p => p.HasVariants).HasDefaultValue(false);
+
+        builder.HasMany(p => p.Variants)
+            .WithOne(pv => pv.Product)
+            .HasForeignKey(pv => pv.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(p => p.Images)
             .WithOne(pi => pi.Product)

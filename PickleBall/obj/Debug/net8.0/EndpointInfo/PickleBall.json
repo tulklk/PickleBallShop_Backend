@@ -2898,6 +2898,11 @@
             "type": "string",
             "format": "uuid"
           },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "quantity": {
             "type": "integer",
             "format": "int32"
@@ -2944,10 +2949,19 @@
             "type": "string",
             "format": "uuid"
           },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "productName": {
             "type": "string"
           },
           "productImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "variantInfo": {
             "type": "string",
             "nullable": true
           },
@@ -3170,8 +3184,17 @@
             "type": "string",
             "format": "uuid"
           },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "productName": {
             "type": "string"
+          },
+          "variantInfo": {
+            "type": "string",
+            "nullable": true
           },
           "unitPrice": {
             "type": "number",
@@ -3522,6 +3545,15 @@
             "type": "integer",
             "format": "int32"
           },
+          "hasVariants": {
+            "type": "boolean"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.ProductVariantDto"
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -3568,6 +3600,55 @@
           "reviewCount": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Products.ProductVariantDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "string",
+            "nullable": true
+          },
+          "spec": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string",
+            "readOnly": true
           }
         },
         "additionalProperties": false
@@ -3815,6 +3896,11 @@
             "type": "string",
             "format": "uuid"
           },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "quantity": {
             "type": "integer",
             "format": "int32"
@@ -3836,6 +3922,14 @@
                 "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
               }
             ]
+          },
+          "productVariant": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductVariant"
+              }
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3994,8 +4088,17 @@
             "type": "string",
             "format": "uuid"
           },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "productNameSnapshot": {
             "type": "string"
+          },
+          "variantInfoSnapshot": {
+            "type": "string",
+            "nullable": true
           },
           "unitPrice": {
             "type": "number",
@@ -4022,6 +4125,14 @@
                 "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
               }
             ]
+          },
+          "productVariant": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductVariant"
+              }
+            ],
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -4175,10 +4286,19 @@
           "isActive": {
             "type": "boolean"
           },
+          "hasVariants": {
+            "type": "boolean"
+          },
           "images": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductImage"
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductVariant"
             }
           },
           "cartItems": {
@@ -4324,6 +4444,78 @@
                 "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
               }
             ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.ProductVariant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "size": {
+            "type": "string",
+            "nullable": true
+          },
+          "spec": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "double"
+          },
+          "originalPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "stockQuantity": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "product": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+              }
+            ]
+          },
+          "cartItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.CartItem"
+            }
+          },
+          "orderItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderItem"
+            }
           }
         },
         "additionalProperties": false

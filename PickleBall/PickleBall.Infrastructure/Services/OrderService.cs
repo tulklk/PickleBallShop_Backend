@@ -32,6 +32,8 @@ public class OrderService : IOrderService
         var cart = await _context.Carts
             .Include(c => c.Items)
                 .ThenInclude(ci => ci.Product)
+            .Include(c => c.Items)
+                .ThenInclude(ci => ci.ProductVariant)
             .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null || !cart.Items.Any())
@@ -39,12 +41,24 @@ public class OrderService : IOrderService
             throw new InvalidOperationException("Cart is empty");
         }
 
-        // Validate stock
+        // Validate stock (check at variant level if product has variants)
         foreach (var item in cart.Items)
         {
-            if (item.Product.StockQuantity < item.Quantity)
+            if (item.Product.HasVariants && item.ProductVariant != null)
             {
-                throw new InvalidOperationException($"Insufficient stock for product {item.Product.Name}");
+                // Check stock at variant level
+                if (item.ProductVariant.StockQuantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock for product {item.Product.Name} variant. Available: {item.ProductVariant.StockQuantity}");
+                }
+            }
+            else
+            {
+                // Check stock at product level
+                if (item.Product.StockQuantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock for product {item.Product.Name}. Available: {item.Product.StockQuantity}");
+                }
             }
         }
 
@@ -75,19 +89,48 @@ public class OrderService : IOrderService
         // Create order items
         foreach (var cartItem in cart.Items)
         {
+            // Build variant info snapshot for display
+            string? variantInfoSnapshot = null;
+            if (cartItem.ProductVariant != null)
+            {
+                var variantParts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(cartItem.ProductVariant.Color))
+                    variantParts.Add($"Màu: {cartItem.ProductVariant.Color}");
+                if (!string.IsNullOrWhiteSpace(cartItem.ProductVariant.Size))
+                    variantParts.Add($"Size: {cartItem.ProductVariant.Size}");
+                if (!string.IsNullOrWhiteSpace(cartItem.ProductVariant.Spec))
+                    variantParts.Add($"Thông số: {cartItem.ProductVariant.Spec}");
+                
+                if (variantParts.Any())
+                {
+                    variantInfoSnapshot = string.Join(", ", variantParts);
+                }
+            }
+
             var orderItem = new OrderItem
             {
                 OrderId = order.Id,
                 ProductId = cartItem.ProductId,
+                ProductVariantId = cartItem.ProductVariantId,
                 ProductNameSnapshot = cartItem.Product.Name,
+                VariantInfoSnapshot = variantInfoSnapshot,
                 UnitPrice = cartItem.UnitPriceSnapshot,
                 Quantity = cartItem.Quantity,
                 LineTotal = cartItem.UnitPriceSnapshot * cartItem.Quantity
             };
             order.Items.Add(orderItem);
 
-            // Update inventory
-            cartItem.Product.StockQuantity -= cartItem.Quantity;
+            // Update inventory (at variant level if product has variants)
+            if (cartItem.Product.HasVariants && cartItem.ProductVariant != null)
+            {
+                // Update variant inventory
+                cartItem.ProductVariant.StockQuantity -= cartItem.Quantity;
+            }
+            else
+            {
+                // Update product inventory
+                cartItem.Product.StockQuantity -= cartItem.Quantity;
+            }
 
             // Create inventory transaction
             var transaction = new InventoryTransaction
@@ -122,6 +165,8 @@ public class OrderService : IOrderService
                     .Include(o => o.Items)
                         .ThenInclude(oi => oi.Product)
                             .ThenInclude(p => p.Images)
+                    .Include(o => o.Items)
+                        .ThenInclude(oi => oi.ProductVariant)
                     .FirstOrDefaultAsync(o => o.Id == order.Id);
 
                 if (orderWithDetails != null)
@@ -252,6 +297,8 @@ public class OrderService : IOrderService
             .Include(o => o.Items)
                 .ThenInclude(oi => oi.Product)
                     .ThenInclude(p => p.Images)
+            .Include(o => o.Items)
+                .ThenInclude(oi => oi.ProductVariant)
             .FirstOrDefaultAsync(o => o.Id == orderId);
 
         // Send order confirmation email when payment is successful

@@ -12,6 +12,8 @@ public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
         builder.Property(ci => ci.Quantity).IsRequired();
         builder.Property(ci => ci.UnitPriceSnapshot).HasColumnType("decimal(18,2)").IsRequired();
 
-        builder.HasIndex(ci => new { ci.CartId, ci.ProductId }).IsUnique();
+        // Unique constraint: một variant của một product chỉ có thể có một lần trong một cart
+        // Nếu không có variant, thì một product chỉ có thể có một lần trong một cart
+        builder.HasIndex(ci => new { ci.CartId, ci.ProductId, ci.ProductVariantId }).IsUnique();
     }
 }

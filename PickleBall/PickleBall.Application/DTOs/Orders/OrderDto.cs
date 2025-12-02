@@ -19,7 +19,9 @@ public class OrderItemDto
 {
     public Guid Id { get; set; }
     public Guid ProductId { get; set; }
+    public Guid? ProductVariantId { get; set; } // Variant đã chọn (nếu có)
     public string ProductName { get; set; } = string.Empty;
+    public string? VariantInfo { get; set; } // Thông tin variant hiển thị (ví dụ: "Màu: Đỏ, Thông số: 13mm")
     public decimal UnitPrice { get; set; }
     public int Quantity { get; set; }
     public decimal LineTotal { get; set; }

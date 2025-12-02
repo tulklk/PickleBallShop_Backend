@@ -10,6 +10,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     {
         builder.HasKey(oi => oi.Id);
         builder.Property(oi => oi.ProductNameSnapshot).IsRequired().HasMaxLength(256);
+        builder.Property(oi => oi.VariantInfoSnapshot).HasMaxLength(500);
         builder.Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(oi => oi.Quantity).IsRequired();
         builder.Property(oi => oi.LineTotal).HasColumnType("decimal(18,2)").IsRequired();
