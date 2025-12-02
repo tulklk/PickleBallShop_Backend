@@ -390,4 +390,80 @@ public class AuthService : IAuthService
     {
         await _tokenService.RevokeAllRefreshTokensAsync(userId);
     }
+
+    public async Task<bool> ForgotPasswordAsync(string email)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            // Don't reveal if email exists or not for security
+            // Just return true to prevent email enumeration attacks
+            _logger.LogWarning("Forgot password requested for non-existent email: {Email}", email);
+            return true;
+        }
+
+        if (!user.IsActive)
+        {
+            _logger.LogWarning("Forgot password requested for inactive account: {Email}", email);
+            throw new InvalidOperationException("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ với quản trị viên.");
+        }
+
+        // Generate a new random password
+        var newPassword = GenerateRandomPassword();
+        
+        // Hash the new password
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+        // Update user's password
+        user.PasswordHash = passwordHash;
+        await _context.SaveChangesAsync();
+
+        // Send password reset email
+        try
+        {
+            await _emailService.SendPasswordResetEmailAsync(user.Email, user.FullName, newPassword);
+            _logger.LogInformation("Password reset email sent successfully to: {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email to: {Email}", user.Email);
+            throw new InvalidOperationException($"Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại sau. Error: {ex.Message}", ex);
+        }
+
+        return true;
+    }
+
+    private string GenerateRandomPassword()
+    {
+        // Generate a random password with 12 characters
+        // Includes uppercase, lowercase, numbers
+        const string uppercase = "ABCDEFGHJKLMNOPQRSTUVWXYZ";
+        const string lowercase = "abcdefghijkmnopqrstuvwxyz";
+        const string numbers = "23456789";
+        
+        var chars = new List<char>();
+        var random = new Random();
+        
+        // Ensure at least one character from each group
+        chars.Add(uppercase[random.Next(uppercase.Length)]);
+        chars.Add(lowercase[random.Next(lowercase.Length)]);
+        chars.Add(numbers[random.Next(numbers.Length)]);
+        
+        // Fill the rest randomly
+        var allChars = uppercase + lowercase + numbers;
+        for (int i = chars.Count; i < 12; i++)
+        {
+            chars.Add(allChars[random.Next(allChars.Length)]);
+        }
+        
+        // Shuffle the characters
+        for (int i = chars.Count - 1; i > 0; i--)
+        {
+            int j = random.Next(i + 1);
+            (chars[i], chars[j]) = (chars[j], chars[i]);
+        }
+        
+        return new string(chars.ToArray());
+    }
 }

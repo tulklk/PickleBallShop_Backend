@@ -7,5 +7,6 @@ public interface IEmailService
     Task SendVerificationEmailAsync(string email, string fullName, string verificationToken);
     Task<bool> SendEmailAsync(string toEmail, string subject, string body);
     Task SendOrderConfirmationEmailAsync(Order order, string? clientIpAddress = null);
+    Task SendPasswordResetEmailAsync(string email, string fullName, string newPassword);
 }
 

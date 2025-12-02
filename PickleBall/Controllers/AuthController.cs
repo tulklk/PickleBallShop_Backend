@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.Interfaces;
 using System.Security.Claims;
@@ -12,11 +13,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IEmailService _emailService;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, IEmailService emailService)
+    public AuthController(IAuthService authService, IEmailService emailService, ILogger<AuthController> logger)
     {
         _authService = authService;
         _emailService = emailService;
+        _logger = logger;
     }
 
     private Guid GetUserId()
@@ -165,6 +168,42 @@ public class AuthController : ControllerBase
         catch (UnauthorizedAccessException ex)
         {
             return Unauthorized(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest(new { message = "Email là bắt buộc" });
+            }
+
+            var result = await _authService.ForgotPasswordAsync(request.Email);
+            if (result)
+            {
+                // Always return success message to prevent email enumeration
+                return Ok(new 
+                { 
+                    message = "Nếu email bạn nhập tồn tại trong hệ thống, chúng tôi đã gửi mật khẩu mới đến email của bạn. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục spam)."
+                });
+            }
+            return BadRequest(new { message = "Không thể xử lý yêu cầu khôi phục mật khẩu" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ForgotPassword endpoint for email: {Email}", request.Email);
+            return StatusCode(500, new 
+            { 
+                message = "Đã xảy ra lỗi khi xử lý yêu cầu khôi phục mật khẩu",
+                error = ex.Message
+            });
         }
     }
 
