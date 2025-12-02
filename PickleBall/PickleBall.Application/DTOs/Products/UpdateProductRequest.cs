@@ -14,5 +14,8 @@ public class UpdateProductRequest
     
     // Images
     public List<string> ImageUrls { get; set; } = new();
+    
+    // Variants (optional - nếu gửi variants thì sẽ replace tất cả variants cũ)
+    public List<CreateProductVariantRequest>? Variants { get; set; }
 }
 

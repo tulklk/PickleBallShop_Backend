@@ -47,6 +47,47 @@ public class AdminProductsController : ControllerBase
             return BadRequest(new { message = "SKU already exists" });
         }
 
+        // Check if product has variants
+        bool hasVariants = request.Variants != null && request.Variants.Count > 0;
+
+        // Validate variants if provided
+        if (hasVariants)
+        {
+            // Validate variant SKUs are unique within the request
+            var variantSkus = request.Variants.Select(v => v.SKU).ToList();
+            if (variantSkus.Count != variantSkus.Distinct().Count())
+            {
+                return BadRequest(new { message = "Variant SKUs must be unique within the product" });
+            }
+
+            // Validate variant SKUs don't already exist in database
+            var existingVariantSkus = await _context.ProductVariants
+                .Where(pv => variantSkus.Contains(pv.SKU))
+                .Select(pv => pv.SKU)
+                .ToListAsync();
+            
+            if (existingVariantSkus.Any())
+            {
+                return BadRequest(new { message = $"Variant SKUs already exist: {string.Join(", ", existingVariantSkus)}" });
+            }
+
+            // Validate at least one variant attribute (Color, Size, or Spec) is provided for each variant
+            foreach (var variant in request.Variants)
+            {
+                if (string.IsNullOrWhiteSpace(variant.Color) && 
+                    string.IsNullOrWhiteSpace(variant.Size) && 
+                    string.IsNullOrWhiteSpace(variant.Spec))
+                {
+                    return BadRequest(new { message = $"Each variant must have at least one attribute (Color, Size, or Spec). SKU: {variant.SKU}" });
+                }
+
+                if (string.IsNullOrWhiteSpace(variant.SKU))
+                {
+                    return BadRequest(new { message = "Variant SKU is required" });
+                }
+            }
+        }
+
         var product = new Product
         {
             Id = Guid.NewGuid(),
@@ -55,10 +96,11 @@ public class AdminProductsController : ControllerBase
             CategoryId = request.CategoryId,
             Price = request.Price,
             OriginalPrice = request.OriginalPrice,
-            StockQuantity = request.StockQuantity,
+            StockQuantity = hasVariants ? 0 : request.StockQuantity, // If has variants, product stock = 0
             SKU = request.SKU,
             Brand = request.Brand,
             IsActive = request.IsActive,
+            HasVariants = hasVariants,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -79,10 +121,34 @@ public class AdminProductsController : ControllerBase
 
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
+
+        // Handle variants if provided
+        if (hasVariants && request.Variants != null)
+        {
+            var variants = request.Variants.Select(v => new ProductVariant
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                Color = v.Color,
+                Size = v.Size,
+                Spec = v.Spec,
+                Price = v.Price,
+                OriginalPrice = v.OriginalPrice,
+                StockQuantity = v.StockQuantity,
+                SKU = v.SKU,
+                IsActive = v.IsActive,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }).ToList();
+
+            _context.ProductVariants.AddRange(variants);
+            await _context.SaveChangesAsync();
+        }
         
         var createdProduct = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Images)
+            .Include(p => p.Variants)
             .FirstOrDefaultAsync(p => p.Id == product.Id);
             
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, createdProduct);
@@ -99,6 +165,7 @@ public class AdminProductsController : ControllerBase
 
         var product = await _context.Products
             .Include(p => p.Images)
+            .Include(p => p.Variants)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product == null)
@@ -125,17 +192,75 @@ public class AdminProductsController : ControllerBase
             return BadRequest(new { message = "SKU already exists" });
         }
 
+        // Check if variants are provided in request (null = keep existing, not null = replace)
+        bool shouldUpdateVariants = request.Variants != null;
+        bool hasVariants = request.Variants != null && request.Variants.Count > 0;
+
+        // Validate variants if provided
+        if (shouldUpdateVariants && hasVariants)
+        {
+            // Validate variant SKUs are unique within the request
+            var variantSkus = request.Variants.Select(v => v.SKU).ToList();
+            if (variantSkus.Count != variantSkus.Distinct().Count())
+            {
+                return BadRequest(new { message = "Variant SKUs must be unique within the product" });
+            }
+
+            // Get existing variant SKUs (excluding current product's variants)
+            var existingVariantSkus = await _context.ProductVariants
+                .Where(pv => variantSkus.Contains(pv.SKU) && pv.ProductId != id)
+                .Select(pv => pv.SKU)
+                .ToListAsync();
+            
+            if (existingVariantSkus.Any())
+            {
+                return BadRequest(new { message = $"Variant SKUs already exist for other products: {string.Join(", ", existingVariantSkus)}" });
+            }
+
+            // Validate at least one variant attribute (Color, Size, or Spec) is provided for each variant
+            foreach (var variant in request.Variants)
+            {
+                if (string.IsNullOrWhiteSpace(variant.Color) && 
+                    string.IsNullOrWhiteSpace(variant.Size) && 
+                    string.IsNullOrWhiteSpace(variant.Spec))
+                {
+                    return BadRequest(new { message = $"Each variant must have at least one attribute (Color, Size, or Spec). SKU: {variant.SKU}" });
+                }
+
+                if (string.IsNullOrWhiteSpace(variant.SKU))
+                {
+                    return BadRequest(new { message = "Variant SKU is required" });
+                }
+            }
+        }
+
         // Update product properties
         product.Name = request.Name;
         product.Description = request.Description;
         product.CategoryId = request.CategoryId;
         product.Price = request.Price;
         product.OriginalPrice = request.OriginalPrice;
-        product.StockQuantity = request.StockQuantity;
         product.SKU = request.SKU;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
+
+        // Update HasVariants and StockQuantity based on variants
+        if (shouldUpdateVariants)
+        {
+            // Variants are provided in request - update HasVariants
+            product.HasVariants = hasVariants;
+            product.StockQuantity = hasVariants ? 0 : request.StockQuantity;
+        }
+        else
+        {
+            // Variants are not provided - keep existing HasVariants, update StockQuantity only if no variants
+            if (!product.HasVariants)
+            {
+                product.StockQuantity = request.StockQuantity;
+            }
+            // If product has variants, keep stock at 0
+        }
 
         // Handle images - remove existing and add new ones
         _context.ProductImages.RemoveRange(product.Images);
@@ -153,6 +278,35 @@ public class AdminProductsController : ControllerBase
             }).ToList();
             
             _context.ProductImages.AddRange(newImages);
+        }
+
+        // Handle variants - only update if variants are provided in request
+        if (shouldUpdateVariants)
+        {
+            // Remove existing variants
+            _context.ProductVariants.RemoveRange(product.Variants);
+
+            // Add new variants if provided
+            if (hasVariants)
+            {
+                var variants = request.Variants.Select(v => new ProductVariant
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = product.Id,
+                    Color = v.Color,
+                    Size = v.Size,
+                    Spec = v.Spec,
+                    Price = v.Price,
+                    OriginalPrice = v.OriginalPrice,
+                    StockQuantity = v.StockQuantity,
+                    SKU = v.SKU,
+                    IsActive = v.IsActive,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }).ToList();
+
+                _context.ProductVariants.AddRange(variants);
+            }
         }
 
         try
@@ -192,6 +346,7 @@ public class AdminProductsController : ControllerBase
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Images)
+            .Include(p => p.Variants)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product == null)

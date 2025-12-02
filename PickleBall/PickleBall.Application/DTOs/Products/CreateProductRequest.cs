@@ -14,5 +14,8 @@ public class CreateProductRequest
     
     // Images
     public List<string> ImageUrls { get; set; } = new();
+    
+    // Variants (optional - nếu có variants thì product.HasVariants = true)
+    public List<CreateProductVariantRequest>? Variants { get; set; }
 }
 
