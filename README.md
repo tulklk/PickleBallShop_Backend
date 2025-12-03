@@ -560,9 +560,9 @@ This project is private and proprietary.
 ## 👨‍💻 Author
 
 **Your Name**
-- Email: your.email@example.com
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- GitHub: [@yourusername](https://github.com/yourusername)
+- Email: tulklk@gmail.com
+- LinkedIn:(https://www.linkedin.com/in/phan-th%C3%A0nh-t%C3%BA-21a13b36a )
+- GitHub: (https://github.com/tulklk)
 
 ---
 
