@@ -5,6 +5,7 @@ using PickleBall.Application.DTOs.Categories;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.DTOs.Users;
+using PickleBall.Application.DTOs.Wishlist;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Application.Mapping;
@@ -97,5 +98,21 @@ public class MappingProfile : Profile
                 District = src.ShippingDistrict,
                 City = src.ShippingCity
             }));
+
+        // Wishlist mapping
+        CreateMap<Wishlist, WishlistItemDto>()
+            .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+            .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
+            .ForMember(dest => dest.ProductDescription, opt => opt.MapFrom(src => src.Product.Description))
+            .ForMember(dest => dest.ProductImageUrl, opt => opt.MapFrom(src => src.Product.Images.FirstOrDefault(i => i.IsPrimary) != null 
+                ? src.Product.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl 
+                : src.Product.Images.FirstOrDefault() != null 
+                    ? src.Product.Images.FirstOrDefault()!.ImageUrl 
+                    : null))
+            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price))
+            .ForMember(dest => dest.OriginalPrice, opt => opt.MapFrom(src => src.Product.OriginalPrice))
+            .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Product.IsActive))
+            .ForMember(dest => dest.HasVariants, opt => opt.MapFrom(src => src.Product.HasVariants))
+            .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => src.CreatedAt));
     }
 }
