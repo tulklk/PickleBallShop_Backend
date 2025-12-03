@@ -1,248 +1,578 @@
-# PickleBall Shop Backend API
+# 🏓 PickleBall Shop - E-Commerce Backend API
 
-A production-ready ASP.NET Core 8.0 Web API backend for an e-commerce website specializing in pickleball products.
+Hệ thống Backend API hoàn chỉnh cho nền tảng thương mại điện tử chuyên bán các sản phẩm PickleBall (vợt, bóng, giày, phụ kiện). Dự án được xây dựng với kiến trúc Clean Architecture, tuân thủ các best practices của .NET và có đầy đủ tính năng e-commerce hiện đại.
 
-## Features
+## 📋 Mục Lục
 
-- **Authentication & Authorization**
-  - JWT Bearer authentication with refresh token mechanism
-  - Role-based access control (Customer, Admin)
-  - Secure password hashing with BCrypt
+- [Tổng Quan](#tổng-quan)
+- [Kiến Trúc Hệ Thống](#kiến-trúc-hệ-thống)
+- [Công Nghệ Sử Dụng](#công-nghệ-sử-dụng)
+- [Tính Năng Chính](#tính-năng-chính)
+- [Cấu Trúc Project](#cấu-trúc-project)
+- [Cài Đặt & Chạy Project](#cài-đặt--chạy-project)
+- [API Documentation](#api-documentation)
+- [Database Schema](#database-schema)
+- [Authentication & Authorization](#authentication--authorization)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
 
-- **Product Management**
-  - Browse products with filtering, sorting, and pagination
-  - Search functionality
-  - Product categories with hierarchical structure
-  - Product reviews and ratings
-  - Featured products
+---
 
-- **Shopping Cart**
-  - Add, update, and remove cart items
-  - Cart persistence for authenticated users
+## 🎯 Tổng Quan
 
-- **Order Management**
-  - Create orders from cart
-  - Order history for customers
-  - Order status tracking
+PickleBall Shop là một hệ thống e-commerce backend được thiết kế và phát triển với mục tiêu cung cấp API đầy đủ cho việc quản lý sản phẩm, đơn hàng, thanh toán và người dùng. Hệ thống hỗ trợ đa dạng phương thức thanh toán phổ biến tại Việt Nam, quản lý sản phẩm với variants (màu sắc, size, thông số), và tích hợp email service để gửi thông báo tự động.
 
-- **Payment Integration**
-  - MoMo payment gateway integration
-  - VNPay payment gateway integration
-  - Payment callback and IPN handling
-  - Payment status tracking
+### Điểm Nổi Bật
 
-- **Admin Features**
-  - Product CRUD operations
-  - Category management
-  - Order management and status updates
+- ✅ **Clean Architecture** - Tách biệt rõ ràng các layers, dễ maintain và scale
+- ✅ **RESTful API** - API design chuẩn, có Swagger documentation đầy đủ
+- ✅ **Multi-Payment Gateway** - Hỗ trợ MoMo, VNPay, PayOS, COD, Bank Transfer
+- ✅ **Product Variants** - Quản lý sản phẩm với variants (color, size, specs)
+- ✅ **JWT Authentication** - Bảo mật với JWT tokens và refresh tokens
+- ✅ **Email Integration** - Gửi email xác nhận đơn hàng, reset password, verify email
+- ✅ **Inventory Management** - Quản lý tồn kho tự động với inventory transactions
+- ✅ **Role-Based Access Control** - Phân quyền Admin/Customer
+- ✅ **Google OAuth** - Đăng nhập bằng tài khoản Google
 
-## Tech Stack
+---
 
-- **Framework**: ASP.NET Core 8.0 Web API
-- **Database**: Supabase PostgreSQL
-- **ORM**: Entity Framework Core 8.0
-- **Authentication**: JWT Bearer Tokens
-- **Mapping**: AutoMapper
-- **Validation**: FluentValidation
-- **Documentation**: Swagger/OpenAPI
+## 🏗️ Kiến Trúc Hệ Thống
 
-## Project Structure
+Project được xây dựng theo **Clean Architecture** với 4 layers chính:
+
+```
+┌─────────────────────────────────────────────┐
+│         Presentation Layer                  │
+│         (Controllers)                       │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│         Application Layer                   │
+│    (DTOs, Interfaces, Mapping, Validators)  │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│       Infrastructure Layer                  │
+│  (Services, Data Access, External Services) │
+└──────────────────┬──────────────────────────┘
+                   │
+┌──────────────────▼──────────────────────────┐
+│          Domain Layer                       │
+│      (Entities, Enums, Business Logic)      │
+└─────────────────────────────────────────────┘
+```
+
+### Layers Chi Tiết
+
+1. **Domain Layer** (`PickleBall.Domain`)
+   - Entities: User, Product, Order, Cart, Payment, etc.
+   - Enums: Role, PaymentStatus, OrderStatus, PaymentMethod
+   - Business logic cốt lõi, không phụ thuộc vào frameworks
+
+2. **Application Layer** (`PickleBall.Application`)
+   - DTOs (Data Transfer Objects) cho các operations
+   - Interfaces cho services (Dependency Inversion)
+   - AutoMapper profiles
+   - FluentValidation validators
+
+3. **Infrastructure Layer** (`PickleBall.Infrastructure`)
+   - Entity Framework Core configurations
+   - Database context (PostgreSQL)
+   - Service implementations
+   - External services integration (Email, Payment gateways)
+   - Middleware (Error handling)
+
+4. **Presentation Layer** (`PickleBall`)
+   - API Controllers
+   - Startup configuration
+   - Dependency Injection setup
+
+---
+
+## 🛠️ Công Nghệ Sử Dụng
+
+### Core Framework
+- **.NET 8.0** - Framework chính
+- **ASP.NET Core Web API** - RESTful API framework
+- **C# 12** - Ngôn ngữ lập trình
+
+### Database & ORM
+- **PostgreSQL** - Hệ quản trị cơ sở dữ liệu
+- **Entity Framework Core 8.0.11** - ORM framework
+- **Npgsql.EntityFrameworkCore.PostgreSQL** - PostgreSQL provider
+
+### Authentication & Security
+- **JWT (JSON Web Tokens)** - Authentication mechanism
+- **BCrypt.Net-Next 4.0.3** - Password hashing
+- **Google.Apis.Auth 1.68.0** - Google OAuth integration
+- **Microsoft.AspNetCore.Authentication.JwtBearer 8.0.0** - JWT middleware
+
+### Validation & Mapping
+- **FluentValidation.AspNetCore 11.3.1** - Input validation
+- **AutoMapper 12.0.1** - Object-to-object mapping
+
+### External Services
+- **MailKit 4.14.1** & **MimeKit 4.14.0** - Email sending
+- Payment Gateway APIs:
+  - MoMo Payment Gateway
+  - VNPay Payment Gateway
+  - PayOS Payment Gateway
+
+### API Documentation
+- **Swashbuckle.AspNetCore 6.6.2** - Swagger/OpenAPI documentation
+
+### Development Tools
+- **Docker** - Containerization
+- **Entity Framework Core Tools** - Database migrations
+
+---
+
+## ✨ Tính Năng Chính
+
+### 1. Authentication & Authorization
+- 🔐 Đăng ký tài khoản với email verification
+- 🔑 Đăng nhập với email/password (JWT tokens)
+- 🔄 Refresh token mechanism
+- 🌐 Google OAuth login
+- 🔒 Password reset qua email
+- 👤 Role-based access control (Admin/Customer)
+- ✅ Email verification system
+
+### 2. Product Management
+- 📦 CRUD operations cho sản phẩm
+- 🎨 Product variants (màu sắc, size, thông số kỹ thuật)
+- 🖼️ Multiple images per product
+- 📊 Product categories và filtering
+- 🔍 Advanced search với pagination
+- ⭐ Product reviews và ratings
+- 💰 Pricing với original price & sale price
+- 📈 Inventory management tự động
+- 🏷️ SKU management
+
+### 3. Shopping Cart
+- 🛒 Add/Remove/Update cart items
+- 📝 Cart persistence
+- 💵 Price snapshot (lưu giá tại thời điểm thêm vào giỏ)
+- 🔄 Variant selection trong cart
+- ✅ Stock validation
+
+### 4. Wishlist
+- ❤️ Thêm/xóa sản phẩm yêu thích
+- 📋 Xem danh sách wishlist
+- ✅ Kiểm tra sản phẩm có trong wishlist
+
+### 5. Order Management
+- 📦 Tạo đơn hàng từ cart
+- 📋 Xem lịch sử đơn hàng
+- 🔄 Order status tracking (Pending → Confirmed → Shipping → Completed)
+- 📧 Email xác nhận đơn hàng tự động
+- 📦 Variant information snapshot trong order items
+- 🏪 Shipping address management
+
+### 6. Payment Integration
+- 💳 **MoMo Payment** - Thanh toán qua ví điện tử MoMo
+- 🏦 **VNPay** - Thanh toán qua VNPay gateway
+- 💰 **PayOS** - Thanh toán qua PayOS (Bank Transfer)
+- 💵 **COD (Cash on Delivery)** - Thanh toán khi nhận hàng
+- 📊 **Bank Transfer** - Chuyển khoản ngân hàng với QR code
+- ✅ Payment status tracking
+- 🔔 Payment webhook/callback handling
+
+### 7. Email Service
+- 📧 Order confirmation emails (responsive HTML)
+- 🔐 Password reset emails
+- ✅ Email verification
+- 📨 Professional email templates
+
+### 8. Admin Panel APIs
+- 👥 User management (active/inactive status)
+- 📦 Product CRUD với variants
+- 📂 Category management
+- 📋 Order management và status updates
+- 📊 Admin dashboard data
+
+### 9. Additional Features
+- 🔍 Health check endpoint
+- 📝 Comprehensive error handling middleware
+- 🚀 Request/Response logging
+- 🔄 Database migrations
+- 🌍 CORS configuration
+- 📱 Mobile-responsive email templates
+
+---
+
+## 📁 Cấu Trúc Project
 
 ```
 PickleBall/
-├── PickleBall.Domain/          # Domain entities and enums
-├── PickleBall.Application/     # DTOs, interfaces, services, mapping
-├── PickleBall.Infrastructure/  # EF Core, repositories, payment services
-└── PickleBall/                 # API controllers and configuration
+│
+├── PickleBall.Domain/                    # Domain Layer
+│   └── Entities/
+│       ├── User.cs
+│       ├── Product.cs
+│       ├── ProductVariant.cs
+│       ├── Order.cs
+│       ├── Cart.cs
+│       ├── Wishlist.cs
+│       ├── Payment.cs
+│       └── ...
+│
+├── PickleBall.Application/               # Application Layer
+│   ├── DTOs/
+│   │   ├── Auth/
+│   │   ├── Products/
+│   │   ├── Orders/
+│   │   ├── Payments/
+│   │   └── ...
+│   ├── Interfaces/
+│   │   ├── IAuthService.cs
+│   │   ├── IProductService.cs
+│   │   └── ...
+│   ├── Mapping/
+│   │   └── MappingProfile.cs
+│   └── Validators/
+│
+├── PickleBall.Infrastructure/            # Infrastructure Layer
+│   ├── Data/
+│   │   ├── ApplicationDbContext.cs
+│   │   ├── Configurations/
+│   │   ├── Migrations/
+│   │   └── SeedData.cs
+│   ├── Services/
+│   │   ├── AuthService.cs
+│   │   ├── ProductService.cs
+│   │   ├── OrderService.cs
+│   │   ├── EmailService.cs
+│   │   ├── MoMoPaymentService.cs
+│   │   └── ...
+│   └── Middleware/
+│       └── ErrorHandlingMiddleware.cs
+│
+├── Controllers/                          # Presentation Layer
+│   ├── AuthController.cs
+│   ├── ProductsController.cs
+│   ├── OrdersController.cs
+│   ├── CartController.cs
+│   ├── WishlistController.cs
+│   ├── PaymentsController.cs
+│   └── Admin/
+│       ├── AdminProductsController.cs
+│       ├── AdminOrdersController.cs
+│       └── ...
+│
+├── Program.cs                            # Startup configuration
+├── appsettings.json                      # Configuration
+├── Dockerfile                            # Docker configuration
+└── render.yaml                           # Render.com deployment config
 ```
 
-## Setup Instructions
+---
 
-### 1. Prerequisites
+## 🚀 Cài Đặt & Chạy Project
+
+### Yêu Cầu Hệ Thống
 
 - .NET 8.0 SDK
-- Supabase PostgreSQL database
-- PostgreSQL client tools (for migrations)
+- PostgreSQL 12+ (hoặc database server tương thích)
+- Git
 
-### 2. Database Configuration
+### Bước 1: Clone Repository
 
-1. Create a Supabase project at https://supabase.com
-2. Get your PostgreSQL connection string from Supabase dashboard
-3. Update `appsettings.json` with your connection string:
+```bash
+git clone <repository-url>
+cd PickleBallShop_backend/PickleBallShop/PickleBall
+```
+
+### Bước 2: Cấu Hình Database
+
+Cập nhật `appsettings.json` hoặc `appsettings.Development.json`:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=your-project.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=your-password;SSL Mode=Require;Trust Server Certificate=true"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=PickleBallShop;Username=postgres;Password=your_password"
   }
 }
 ```
 
-### 3. JWT Configuration
+### Bước 3: Cấu Hình JWT
 
-Update the JWT settings in `appsettings.json`:
+Thêm JWT settings vào `appsettings.json`:
 
 ```json
 {
   "Jwt": {
-    "SecretKey": "YourSuperSecretKeyForJWTTokenGenerationMustBeAtLeast32CharactersLong!",
+    "SecretKey": "your-secret-key-minimum-32-characters-long",
     "Issuer": "PickleBallShop",
     "Audience": "PickleBallShop",
-    "ExpiryMinutes": "60"
+    "ExpiryMinutes": 60
   }
 }
 ```
 
-**Important**: In production, store the JWT secret key in environment variables or user secrets, not in appsettings.json.
-
-### 4. Payment Gateway Configuration
-
-#### MoMo Payment
-
-Update MoMo settings in `appsettings.json`:
+### Bước 4: Cấu Hình Email (Optional)
 
 ```json
 {
-  "Payment": {
-    "MoMo": {
-      "PartnerCode": "YOUR_MOMO_PARTNER_CODE",
-      "AccessKey": "YOUR_MOMO_ACCESS_KEY",
-      "SecretKey": "YOUR_MOMO_SECRET_KEY",
-      "Endpoint": "https://test-payment.momo.vn/v2/gateway/api/create",
-      "ReturnUrl": "https://your-domain.com/api/payments/momo/return",
-      "IpnUrl": "https://your-domain.com/api/payments/momo/ipn"
-    }
+  "Email": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "SmtpUsername": "your-email@gmail.com",
+    "SmtpPassword": "your-app-password",
+    "FromEmail": "your-email@gmail.com",
+    "FromName": "IKA PickleBall Shop",
+    "EnableSsl": true,
+    "FrontendUrl": "http://localhost:3000"
   }
 }
 ```
 
-Get MoMo test credentials from: https://developers.momo.vn/
+### Bước 5: Cấu Hình Payment Gateways (Optional)
 
-#### VNPay Payment
+Thêm payment settings vào `appsettings.json` (xem `render.yaml` để biết các keys cần thiết).
 
-Update VNPay settings in `appsettings.json`:
-
-```json
-{
-  "Payment": {
-    "VNPay": {
-      "TmnCode": "YOUR_VNPAY_TMN_CODE",
-      "HashSecret": "YOUR_VNPAY_HASH_SECRET",
-      "Endpoint": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
-      "ReturnUrl": "https://your-domain.com/api/payments/vnpay/return",
-      "IpnUrl": "https://your-domain.com/api/payments/vnpay/ipn"
-    }
-  }
-}
-```
-
-Get VNPay test credentials from: https://sandbox.vnpayment.vn/
-
-### 5. Run Migrations
-
-Apply database migrations to create the schema:
+### Bước 6: Chạy Database Migrations
 
 ```bash
-# From the solution root directory
+# Tạo migration (nếu cần)
+dotnet ef migrations add InitialCreate --project PickleBall.Infrastructure --startup-project PickleBall
+
+# Áp dụng migrations
 dotnet ef database update --project PickleBall.Infrastructure --startup-project PickleBall
 ```
 
-Or create a new migration:
+Hoặc sử dụng PowerShell script:
 
-```bash
-dotnet ef migrations add MigrationName --project PickleBall.Infrastructure --startup-project PickleBall
+```powershell
+.\run_product_variants_migration.ps1
 ```
 
-### 6. Seed Data (Optional)
-
-The seed data method is included in `PickleBall.Infrastructure.Data.SeedData`. To seed the database:
-
-1. Uncomment the seed data call in `Program.cs` (or create a separate seeding script)
-2. Run the application once to seed initial data
-
-Default admin credentials:
-- Email: `admin@pickleballshop.com`
-- Password: `Admin@123`
-
-**Important**: Change the admin password after first login!
-
-### 7. Run the Application
+### Bước 7: Chạy Application
 
 ```bash
+dotnet restore
+dotnet build
 dotnet run --project PickleBall
 ```
 
-The API will be available at:
-- HTTP: `http://localhost:5000`
-- HTTPS: `https://localhost:5001`
-- Swagger UI: `http://localhost:5000` (configured as root)
+Application sẽ chạy tại: `https://localhost:5001` hoặc `http://localhost:5000`
 
-## API Endpoints
+### Bước 8: Truy Cập Swagger Documentation
 
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login and get access token
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/logout` - Logout (revoke refresh token)
+Mở browser và truy cập: `https://localhost:5001/swagger`
 
-### Products
-- `GET /api/products` - Get products with filtering, sorting, pagination
-- `GET /api/products/{id}` - Get product by ID
-- `GET /api/products/slug/{slug}` - Get product by slug
-- `GET /api/products/featured` - Get featured products
-- `GET /api/products/search?q={term}` - Search products
+---
 
-### Categories
-- `GET /api/categories` - Get all categories
-- `GET /api/categories/{id}` - Get category by ID
-- `GET /api/categories/slug/{slug}` - Get category by slug
+## 📚 API Documentation
 
-### Cart (Authenticated)
-- `GET /api/cart` - Get user's cart
-- `POST /api/cart/items` - Add item to cart
-- `PUT /api/cart/items/{id}` - Update cart item quantity
-- `DELETE /api/cart/items/{id}` - Remove cart item
-- `DELETE /api/cart` - Clear cart
+### Authentication Endpoints
 
-### Orders (Authenticated)
-- `POST /api/orders` - Create order from cart
-- `GET /api/orders/my` - Get user's orders
-- `GET /api/orders/{id}` - Get order details
-- `POST /api/orders/{id}/payment` - Initiate payment for order
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/auth/register` | Đăng ký tài khoản mới | ❌ |
+| POST | `/api/auth/login` | Đăng nhập | ❌ |
+| POST | `/api/auth/google-login` | Đăng nhập bằng Google | ❌ |
+| POST | `/api/auth/refresh-token` | Refresh access token | ❌ |
+| POST | `/api/auth/verify-email` | Xác thực email | ❌ |
+| POST | `/api/auth/forgot-password` | Quên mật khẩu | ❌ |
+| POST | `/api/auth/change-password` | Đổi mật khẩu | ✅ |
 
-### Payments
-- `GET /api/payments/momo/return` - MoMo payment return callback
-- `POST /api/payments/momo/ipn` - MoMo payment IPN callback
-- `GET /api/payments/vnpay/return` - VNPay payment return callback
-- `POST /api/payments/vnpay/ipn` - VNPay payment IPN callback
+### Product Endpoints
 
-### Admin (Requires Admin Role)
-- `POST /api/admin/products` - Create product
-- `PUT /api/admin/products/{id}` - Update product
-- `DELETE /api/admin/products/{id}` - Delete product
-- `POST /api/admin/categories` - Create category
-- `PUT /api/admin/categories/{id}` - Update category
-- `DELETE /api/admin/categories/{id}` - Delete category
-- `GET /api/admin/orders` - Get all orders (with filters)
-- `PUT /api/admin/orders/{id}/status` - Update order status
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/products` | Lấy danh sách sản phẩm (có pagination, filter) | ❌ |
+| GET | `/api/products/{id}` | Lấy chi tiết sản phẩm | ❌ |
+| GET | `/api/products/featured` | Lấy sản phẩm nổi bật | ❌ |
+| GET | `/api/products/search?q={term}` | Tìm kiếm sản phẩm | ❌ |
 
-## Testing with Swagger
+### Cart Endpoints
 
-1. Start the application
-2. Navigate to `http://localhost:5000` (Swagger UI)
-3. Use the "Authorize" button to authenticate with a JWT token
-4. Test endpoints directly from Swagger UI
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/cart` | Lấy giỏ hàng | ✅ |
+| POST | `/api/cart/items` | Thêm sản phẩm vào giỏ | ✅ |
+| PUT | `/api/cart/items/{id}` | Cập nhật số lượng | ✅ |
+| DELETE | `/api/cart/items/{id}` | Xóa sản phẩm khỏi giỏ | ✅ |
+| DELETE | `/api/cart` | Xóa toàn bộ giỏ hàng | ✅ |
 
-## Security Notes
+### Wishlist Endpoints
 
-- Always use HTTPS in production
-- Store sensitive configuration (JWT secret, payment keys) in environment variables or Azure Key Vault
-- Regularly rotate JWT secret keys
-- Implement rate limiting for production
-- Use CORS policies appropriate for your frontend domain
-- Enable SQL injection protection (already handled by EF Core parameterized queries)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/wishlist` | Lấy danh sách yêu thích | ✅ |
+| POST | `/api/wishlist/{productId}` | Thêm vào wishlist | ✅ |
+| DELETE | `/api/wishlist/{productId}` | Xóa khỏi wishlist | ✅ |
+| GET | `/api/wishlist/{productId}/check` | Kiểm tra có trong wishlist | ✅ |
 
-## License
+### Order Endpoints
 
-This project is proprietary and confidential.
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/orders` | Tạo đơn hàng mới | ✅ |
+| GET | `/api/orders` | Lấy danh sách đơn hàng của user | ✅ |
+| GET | `/api/orders/{id}` | Lấy chi tiết đơn hàng | ✅ |
+
+### Payment Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| GET | `/api/payments/momo/return` | MoMo payment callback | ❌ |
+| GET | `/api/payments/vnpay/return` | VNPay payment callback | ❌ |
+| POST | `/api/payments/payos/webhook` | PayOS webhook | ❌ |
+
+### Admin Endpoints
+
+Tất cả admin endpoints yêu cầu role `Admin`:
+
+- `/api/admin/products` - Quản lý sản phẩm
+- `/api/admin/orders` - Quản lý đơn hàng
+- `/api/admin/users` - Quản lý người dùng
+- `/api/admin/categories` - Quản lý danh mục
+
+**Xem đầy đủ API documentation tại:** `https://your-api-url/swagger`
+
+---
+
+## 🗄️ Database Schema
+
+### Core Entities
+
+- **Users** - Thông tin người dùng (Customer/Admin)
+- **Products** - Sản phẩm
+- **ProductVariants** - Biến thể sản phẩm (màu, size, specs)
+- **ProductImages** - Hình ảnh sản phẩm
+- **ProductCategories** - Danh mục sản phẩm
+- **ProductReviews** - Đánh giá sản phẩm
+- **Carts** - Giỏ hàng
+- **CartItems** - Sản phẩm trong giỏ hàng
+- **Wishlists** - Danh sách yêu thích
+- **Orders** - Đơn hàng
+- **OrderItems** - Sản phẩm trong đơn hàng
+- **Payments** - Thanh toán
+- **InventoryTransactions** - Lịch sử nhập/xuất kho
+- **RefreshTokens** - JWT refresh tokens
+- **EmailVerificationTokens** - Email verification tokens
+
+### Relationships
+
+- User 1 → N Orders
+- User 1 → N Wishlists
+- User 1 → 1 Cart (1 → N CartItems)
+- Product 1 → N ProductVariants
+- Product 1 → N ProductImages
+- Product 1 → N CartItems
+- Order 1 → N OrderItems
+- Order 1 → 1 Payment
+
+---
+
+## 🔐 Authentication & Authorization
+
+### JWT Token Flow
+
+1. User đăng nhập với email/password
+2. Server trả về:
+   - `accessToken` (JWT, expire sau 60 phút)
+   - `refreshToken` (expire sau 7 ngày)
+   - `expiresAt`
+3. Client gửi `accessToken` trong header mỗi request: `Authorization: Bearer {token}`
+4. Khi `accessToken` hết hạn, dùng `refreshToken` để lấy token mới
+
+### Roles
+
+- **Customer** - Người dùng thông thường
+- **Admin** - Quản trị viên (có quyền truy cập admin endpoints)
+
+### Protected Endpoints
+
+Tất cả endpoints (trừ auth và public) yêu cầu JWT token trong header:
+```
+Authorization: Bearer {your-access-token}
+```
+
+---
+
+## 🐳 Deployment
+
+### Docker Deployment
+
+Build Docker image:
+
+```bash
+docker build -t pickleball-shop-api .
+```
+
+Run container:
+
+```bash
+docker run -p 8080:8080 \
+  -e ConnectionStrings__DefaultConnection="your-connection-string" \
+  -e Jwt__SecretKey="your-secret-key" \
+  pickleball-shop-api
+```
+
+### Render.com Deployment
+
+Project đã được cấu hình sẵn với `render.yaml`. Chỉ cần:
+
+1. Kết nối GitHub repository với Render
+2. Render sẽ tự động detect `render.yaml` và deploy
+3. Cấu hình environment variables trong Render dashboard
+
+### Environment Variables
+
+Các biến môi trường cần thiết (xem `render.yaml` để biết chi tiết):
+
+- `ConnectionStrings__DefaultConnection`
+- `Jwt__SecretKey`
+- `Email__SmtpUsername`, `Email__SmtpPassword`
+- `Payment__MoMo__*`
+- `Payment__VNPay__*`
+- `Payment__PayOS__*`
+- `Google__ClientId`, `Google__ClientSecret`
+
+---
+
+## 🎨 Best Practices Đã Áp Dụng
+
+- ✅ **Clean Architecture** - Tách biệt layers rõ ràng
+- ✅ **Dependency Injection** - Sử dụng DI container
+- ✅ **Repository Pattern** - Qua Entity Framework Core
+- ✅ **DTO Pattern** - Tách biệt API contracts và domain models
+- ✅ **AutoMapper** - Mapping tự động giữa entities và DTOs
+- ✅ **FluentValidation** - Input validation
+- ✅ **Async/Await** - Non-blocking operations
+- ✅ **Error Handling** - Global error handling middleware
+- ✅ **Logging** - Structured logging
+- ✅ **Database Migrations** - Version control cho database schema
+- ✅ **CORS** - Cross-origin resource sharing
+- ✅ **Swagger Documentation** - API documentation tự động
+
+---
+
+## 📝 License
+
+This project is private and proprietary.
+
+---
+
+## 👨‍💻 Author
+
+**Your Name**
+- Email: your.email@example.com
+- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
+- GitHub: [@yourusername](https://github.com/yourusername)
+
+---
+
+## 🙏 Acknowledgments
+
+- ASP.NET Core team
+- Entity Framework Core team
+- All open-source contributors
+
+---
+
+**Made with ❤️ using .NET 8**
 
