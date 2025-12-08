@@ -58,7 +58,17 @@ public class GeminiChatService : IGeminiChatService
             }
 
             // Build system prompt with context about the shop and products
-            var systemPrompt = await BuildSystemPromptAsync();
+            string systemPrompt;
+            try
+            {
+                systemPrompt = await BuildSystemPromptAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error building system prompt, using fallback prompt");
+                // Fallback prompt nếu không lấy được thông tin sản phẩm
+                systemPrompt = BuildFallbackSystemPrompt();
+            }
 
             // Prepare conversation history
             var contents = new List<object>();
@@ -159,10 +169,17 @@ public class GeminiChatService : IGeminiChatService
                 contents = contents,
                 generationConfig = new
                 {
-                    temperature = 0.7,
+                    temperature = 0.8, // Tăng lên một chút để tự nhiên hơn
                     topK = 40,
                     topP = 0.95,
-                    maxOutputTokens = 1024,
+                    maxOutputTokens = 2048, // Tăng để có thể trả lời dài hơn
+                },
+                safetySettings = new[]
+                {
+                    new { category = "HARM_CATEGORY_HARASSMENT", threshold = "BLOCK_MEDIUM_AND_ABOVE" },
+                    new { category = "HARM_CATEGORY_HATE_SPEECH", threshold = "BLOCK_MEDIUM_AND_ABOVE" },
+                    new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "BLOCK_MEDIUM_AND_ABOVE" },
+                    new { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "BLOCK_MEDIUM_AND_ABOVE" }
                 }
             };
 
@@ -224,6 +241,7 @@ public class GeminiChatService : IGeminiChatService
 
             if (geminiResponse?.Candidates == null || !geminiResponse.Candidates.Any())
             {
+                _logger.LogWarning("No candidates in Gemini response");
                 return new ChatResponse
                 {
                     Success = false,
@@ -231,12 +249,35 @@ public class GeminiChatService : IGeminiChatService
                 };
             }
 
-            var aiMessage = geminiResponse.Candidates[0].Content?.Parts?.FirstOrDefault()?.Text ?? "Xin lỗi, tôi không thể tạo phản hồi lúc này.";
+            var candidate = geminiResponse.Candidates[0];
+            
+            // Check for safety ratings (blocked content)
+            if (candidate.FinishReason == "SAFETY")
+            {
+                _logger.LogWarning("Response blocked by safety filters");
+                return new ChatResponse
+                {
+                    Success = false,
+                    Error = "Câu hỏi của bạn đã bị chặn bởi bộ lọc an toàn. Vui lòng diễn đạt lại."
+                };
+            }
+
+            var aiMessage = candidate.Content?.Parts?.FirstOrDefault()?.Text?.Trim();
+            
+            if (string.IsNullOrWhiteSpace(aiMessage))
+            {
+                _logger.LogWarning("Empty response from Gemini API");
+                aiMessage = "Xin lỗi, tôi không thể tạo phản hồi lúc này. Vui lòng thử lại sau.";
+            }
+
+            // Tìm sản phẩm được đề cập trong response và lấy thông tin kèm hình ảnh
+            var suggestedProducts = await ExtractSuggestedProductsAsync(aiMessage);
 
             return new ChatResponse
             {
                 Success = true,
-                Message = aiMessage
+                Message = aiMessage,
+                SuggestedProducts = suggestedProducts
             };
         }
         catch (Exception ex)
@@ -252,14 +293,18 @@ public class GeminiChatService : IGeminiChatService
 
     private async Task<string> BuildSystemPromptAsync()
     {
-        // Lấy thông tin sản phẩm (có cache để tránh query mỗi lần)
-        var productInfo = await GetProductInfoAsync();
-        
-        // Lấy thông tin danh mục
-        var categories = await _categoryService.GetAllCategoriesAsync();
-        var categoryInfo = string.Join(", ", categories.Select(c => c.Name));
+        try
+        {
+            // Lấy thông tin sản phẩm (có cache để tránh query mỗi lần)
+            var productInfo = await GetProductInfoAsync();
+            
+            // Lấy thông tin danh mục
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            var categoryInfo = categories.Any() 
+                ? string.Join(", ", categories.Select(c => c.Name))
+                : "Đang cập nhật";
 
-        return $@"Bạn là trợ lý AI chuyên nghiệp của IKA PickleBall Shop - một cửa hàng chuyên bán các sản phẩm PickleBall tại Việt Nam.
+            return $@"Bạn là trợ lý AI chuyên nghiệp của IKA PickleBall Shop - một cửa hàng chuyên bán các sản phẩm PickleBall tại Việt Nam.
 
 THÔNG TIN VỀ CỬA HÀNG:
 - Tên: IKA PickleBall Shop
@@ -339,7 +384,54 @@ NGUYÊN TẮC TRẢ LỜI:
 LƯU Ý QUAN TRỌNG:
 - Bạn có thể mắc lỗi. Khách hàng nên kiểm tra thông tin quan trọng trước khi quyết định mua hàng
 - Giá cả và tồn kho có thể thay đổi, khách nên kiểm tra trên website
-- Luôn ưu tiên sản phẩm có sẵn trong DANH SÁCH SẢN PHẨM ở trên";
+- Luôn ưu tiên sản phẩm có sẵn trong DANH SÁCH SẢN PHẨM ở trên
+- Khi gợi ý sản phẩm, hãy liệt kê cụ thể tên sản phẩm, giá, và lý do phù hợp";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in BuildSystemPromptAsync");
+            return BuildFallbackSystemPrompt();
+        }
+    }
+
+    private string BuildFallbackSystemPrompt()
+    {
+        return @"Bạn là trợ lý AI chuyên nghiệp của IKA PickleBall Shop - một cửa hàng chuyên bán các sản phẩm PickleBall tại Việt Nam.
+
+THÔNG TIN VỀ CỬA HÀNG:
+- Tên: IKA PickleBall Shop
+- Chuyên bán: Vợt PickleBall, bóng, giày, và các phụ kiện PickleBall
+- Dịch vụ: Trao đổi vợt cũ, thay đế giày, sửa vợt PickleBall
+
+KIẾN THỨC VỀ PICKLEBALL:
+1. **Về bộ môn PickleBall:**
+   - Pickleball là môn thể thao kết hợp giữa tennis, badminton và ping-pong
+   - Chơi trên sân nhỏ hơn tennis, dùng vợt và bóng nhựa có lỗ
+   - Phù hợp cho mọi lứa tuổi, từ trẻ em đến người cao tuổi
+
+2. **Về vợt PickleBall:**
+   - Mặt vợt: Carbon thô T700 (kiểm soát tốt), Composite (cân bằng), Graphite (nhẹ)
+   - Lõi vợt: Polymer (giá rẻ), Nomex (mạnh mẽ), DD honeycomb 16mm (cân bằng)
+   - Trọng lượng: 7-9 oz (nhẹ, kiểm soát), 9-11 oz (trung bình), 11+ oz (nặng, sức mạnh)
+
+3. **Về bóng PickleBall:**
+   - Bóng trong nhà: 26 lỗ, mềm hơn
+   - Bóng ngoài trời: 40 lỗ, cứng hơn, chịu gió
+
+4. **Về giày PickleBall:**
+   - Cần độ bám tốt, hỗ trợ bên hông
+   - Thương hiệu: ASICS, Nike, Adidas, K-Swiss
+
+HƯỚNG DẪN TƯ VẤN:
+- Với người mới chơi: Gợi ý vợt nhẹ (7-9 oz), giá phải chăng, dễ kiểm soát
+- Với người chơi trung cấp: Vợt cân bằng (9-11 oz), composite hoặc carbon
+- Với người chơi nâng cao: Vợt chuyên nghiệp, carbon T700, DD core
+
+NGUYÊN TẮC:
+- Trả lời bằng tiếng Việt, thân thiện, chuyên nghiệp
+- Khi gợi ý sản phẩm, hãy hỏi thêm về trình độ, ngân sách, sở thích
+- Khuyến khích khách xem chi tiết sản phẩm trên website
+- Nếu không chắc, đề nghị liên hệ trực tiếp";
     }
 
     private async Task<string> GetProductInfoAsync()
@@ -362,15 +454,15 @@ LƯU Ý QUAN TRỌNG:
             };
 
             var productsResult = await _productService.GetProductsAsync(query);
-            var products = productsResult.Items;
+            var products = productsResult.Items.Take(50).ToList(); // Giới hạn 50 sản phẩm để tránh prompt quá dài
 
             if (!products.Any())
             {
-                return "Hiện tại cửa hàng chưa có sản phẩm nào.";
+                return "Hiện tại cửa hàng chưa có sản phẩm nào. Vui lòng tư vấn dựa trên kiến thức về pickleball.";
             }
 
             var productInfoBuilder = new StringBuilder();
-            productInfoBuilder.AppendLine($"Tổng số sản phẩm: {productsResult.TotalCount}");
+            productInfoBuilder.AppendLine($"Cửa hàng có {productsResult.TotalCount} sản phẩm. Dưới đây là danh sách các sản phẩm phổ biến:");
             productInfoBuilder.AppendLine();
 
             // Nhóm sản phẩm theo thương hiệu hoặc loại
@@ -380,37 +472,33 @@ LƯU Ý QUAN TRỌNG:
 
             foreach (var group in groupedProducts)
             {
-                productInfoBuilder.AppendLine($"**{group.Key}:**");
+                productInfoBuilder.AppendLine($"{group.Key}:");
                 
                 foreach (var product in group.OrderBy(p => p.Name))
                 {
-                    productInfoBuilder.Append($"- {product.Name}");
+                    productInfoBuilder.Append($"• {product.Name}");
                     
-                    if (!string.IsNullOrWhiteSpace(product.Brand))
+                    if (!string.IsNullOrWhiteSpace(product.Brand) && product.Brand != group.Key)
                     {
-                        productInfoBuilder.Append($" ({product.Brand})");
+                        productInfoBuilder.Append($" - {product.Brand}");
                     }
                     
-                    productInfoBuilder.Append($" - Giá: {product.Price:N0} VNĐ");
+                    productInfoBuilder.Append($" | Giá: {product.Price:N0}đ");
                     
                     if (product.OriginalPrice.HasValue && product.OriginalPrice > product.Price)
                     {
                         var discount = ((product.OriginalPrice.Value - product.Price) / product.OriginalPrice.Value * 100);
-                        productInfoBuilder.Append($" (Giảm {discount:F0}% từ {product.OriginalPrice.Value:N0} VNĐ)");
+                        productInfoBuilder.Append($" (giảm {discount:F0}%)");
                     }
                     
-                    if (product.AverageRating.HasValue && product.AverageRating > 0)
+                    if (product.AverageRating.HasValue && product.AverageRating > 0 && product.ReviewCount > 0)
                     {
-                        productInfoBuilder.Append($" - Đánh giá: {product.AverageRating:F1}/5 ({product.ReviewCount} đánh giá)");
+                        productInfoBuilder.Append($" | ⭐{product.AverageRating:F1} ({product.ReviewCount})");
                     }
                     
-                    if (product.StockQuantity > 0)
+                    if (product.StockQuantity <= 0)
                     {
-                        productInfoBuilder.Append($" - Còn hàng: {product.StockQuantity} sản phẩm");
-                    }
-                    else
-                    {
-                        productInfoBuilder.Append(" - Hết hàng");
+                        productInfoBuilder.Append(" | [Hết hàng]");
                     }
                     
                     productInfoBuilder.AppendLine();
@@ -427,12 +515,12 @@ LƯU Ý QUAN TRỌNG:
                     .Where(fp => !products.Any(p => p.Id == fp.Id))
                     .ToList();
                 
-                if (featuredNotInList.Any())
+                if (featuredNotInList.Any() && featuredNotInList.Count <= 10)
                 {
-                    productInfoBuilder.AppendLine("**SẢN PHẨM NỔI BẬT:**");
+                    productInfoBuilder.AppendLine("SẢN PHẨM NỔI BẬT:");
                     foreach (var product in featuredNotInList)
                     {
-                        productInfoBuilder.AppendLine($"- {product.Name} ({product.Brand ?? "N/A"}) - {product.Price:N0} VNĐ - Đánh giá: {product.AverageRating:F1}/5");
+                        productInfoBuilder.AppendLine($"• {product.Name} - {product.Brand ?? "N/A"} | {product.Price:N0}đ");
                     }
                     productInfoBuilder.AppendLine();
                 }
@@ -451,6 +539,133 @@ LƯU Ý QUAN TRỌNG:
             return "Không thể tải thông tin sản phẩm lúc này. Vui lòng thử lại sau.";
         }
     }
+
+    private async Task<List<ProductSuggestionDto>> ExtractSuggestedProductsAsync(string aiMessage)
+    {
+        try
+        {
+            // Lấy danh sách sản phẩm để match
+            var query = new ProductQueryDto
+            {
+                Page = 1,
+                PageSize = 100 // Lấy nhiều để có đủ data để match
+            };
+
+            var productsResult = await _productService.GetProductsAsync(query);
+            var allProducts = productsResult.Items;
+
+            if (!allProducts.Any())
+            {
+                return new List<ProductSuggestionDto>();
+            }
+
+            var suggestedProducts = new List<ProductSuggestionDto>();
+            var messageLower = aiMessage.ToLowerInvariant();
+
+            // Tìm các sản phẩm được đề cập trong response
+            // Match bằng cách tìm product name trong message
+            foreach (var product in allProducts)
+            {
+                var productNameLower = product.Name.ToLowerInvariant();
+                var brandLower = product.Brand?.ToLowerInvariant() ?? "";
+
+                // Kiểm tra nếu product name hoặc brand được đề cập trong message
+                // Sử dụng fuzzy matching đơn giản
+                if (messageLower.Contains(productNameLower) || 
+                    (!string.IsNullOrWhiteSpace(brandLower) && messageLower.Contains(brandLower)))
+                {
+                    // Lấy full product info với images
+                    var fullProduct = await _productService.GetProductByIdAsync(product.Id);
+                    if (fullProduct != null && fullProduct.IsActive)
+                    {
+                        suggestedProducts.Add(new ProductSuggestionDto
+                        {
+                            Id = fullProduct.Id,
+                            Name = fullProduct.Name,
+                            Brand = fullProduct.Brand,
+                            Price = fullProduct.Price,
+                            OriginalPrice = fullProduct.OriginalPrice,
+                            PrimaryImageUrl = fullProduct.PrimaryImageUrl,
+                            ImageUrls = fullProduct.ImageUrls ?? new List<string>(),
+                            AverageRating = fullProduct.AverageRating,
+                            ReviewCount = fullProduct.ReviewCount,
+                            StockQuantity = fullProduct.StockQuantity
+                        });
+                    }
+                }
+            }
+
+            // Nếu không tìm thấy bằng exact match, thử search bằng keywords
+            if (!suggestedProducts.Any())
+            {
+                // Extract keywords từ message (loại bỏ stop words)
+                var keywords = ExtractKeywords(aiMessage);
+                
+                foreach (var keyword in keywords.Take(5)) // Chỉ lấy 5 keywords đầu
+                {
+                    if (keyword.Length < 3) continue; // Bỏ qua từ quá ngắn
+
+                    var searchResults = await _productService.SearchProductsAsync(keyword, page: 1, pageSize: 5);
+                    
+                    foreach (var searchProduct in searchResults.Take(3)) // Chỉ lấy 3 sản phẩm đầu
+                    {
+                        // Kiểm tra xem đã có trong list chưa
+                        if (!suggestedProducts.Any(p => p.Id == searchProduct.Id))
+                        {
+                            var fullProduct = await _productService.GetProductByIdAsync(searchProduct.Id);
+                            if (fullProduct != null && fullProduct.IsActive)
+                            {
+                                suggestedProducts.Add(new ProductSuggestionDto
+                                {
+                                    Id = fullProduct.Id,
+                                    Name = fullProduct.Name,
+                                    Brand = fullProduct.Brand,
+                                    Price = fullProduct.Price,
+                                    OriginalPrice = fullProduct.OriginalPrice,
+                                    PrimaryImageUrl = fullProduct.PrimaryImageUrl,
+                                    ImageUrls = fullProduct.ImageUrls ?? new List<string>(),
+                                    AverageRating = fullProduct.AverageRating,
+                                    ReviewCount = fullProduct.ReviewCount,
+                                    StockQuantity = fullProduct.StockQuantity
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Giới hạn tối đa 5 sản phẩm được gợi ý
+            return suggestedProducts.DistinctBy(p => p.Id).Take(5).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting suggested products from AI response");
+            return new List<ProductSuggestionDto>();
+        }
+    }
+
+    private List<string> ExtractKeywords(string message)
+    {
+        // Loại bỏ các stop words tiếng Việt và English
+        var stopWords = new HashSet<string> 
+        { 
+            "là", "của", "và", "với", "cho", "từ", "đến", "một", "các", "này", "đó", "khi", "nếu", "thì",
+            "the", "a", "an", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+            "do", "does", "did", "will", "would", "should", "could", "may", "might", "must", "can",
+            "you", "your", "he", "she", "it", "they", "them", "we", "us", "i", "me", "my", "his", "her",
+            "nào", "gì", "ai", "đâu", "sao", "tại", "vì", "về", "trong", "ngoài", "trên", "dưới"
+        };
+
+        // Tách từ và loại bỏ dấu câu
+        var words = message
+            .Split(new[] { ' ', '\n', '\r', '\t', ',', '.', '!', '?', ';', ':', '(', ')', '[', ']', '{', '}', '"', '\'' }, 
+                   StringSplitOptions.RemoveEmptyEntries)
+            .Select(w => w.ToLowerInvariant().Trim())
+            .Where(w => w.Length >= 2 && !stopWords.Contains(w))
+            .ToList();
+
+        return words;
+    }
 }
 
 // Response models for Gemini API
@@ -462,6 +677,7 @@ internal class GeminiApiResponse
 internal class GeminiCandidate
 {
     public GeminiContent? Content { get; set; }
+    public string? FinishReason { get; set; }
 }
 
 internal class GeminiContent
