@@ -207,6 +207,10 @@ public class Program
         builder.Services.AddScoped<IMoMoPaymentService, MoMoPaymentService>();
         builder.Services.AddScoped<IVnPayPaymentService, VnPayPaymentService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        
+        // Register HttpClient Factory and Gemini Chat Service
+        builder.Services.AddHttpClient();
+        builder.Services.AddScoped<IGeminiChatService, GeminiChatService>();
 
         var app = builder.Build();
 

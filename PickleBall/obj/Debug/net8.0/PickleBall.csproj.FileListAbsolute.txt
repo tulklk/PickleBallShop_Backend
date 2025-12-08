@@ -1,8 +1,6 @@
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\appsettings.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\PickleBall.Application.csproj.nuget.dgspec.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\project.assets.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\bin\Debug\net8.0\PickleBall.Domain.deps.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\Debug\net8.0\PickleBall.Domain.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\PickleBall.Domain.csproj.nuget.dgspec.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\project.assets.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\PickleBall.Infrastructure.csproj.nuget.dgspec.json
@@ -147,6 +145,8 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleB
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\ref\PickleBall.dll
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\bin\Debug\net8.0\PickleBall.Application.deps.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Application\obj\Debug\net8.0\PickleBall.Application.sourcelink.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\bin\Debug\net8.0\PickleBall.Domain.deps.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Domain\obj\Debug\net8.0\PickleBall.Domain.sourcelink.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.deps.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.runtimeconfig.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\Debug\net8.0\PickleBall.Infrastructure.sourcelink.json

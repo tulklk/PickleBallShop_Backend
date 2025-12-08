@@ -862,6 +862,52 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.ChatController",
+    "Method": "HealthCheck",
+    "RelativePath": "api/Chat/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.ChatController",
+    "Method": "SendMessage",
+    "RelativePath": "api/Chat/message",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Chat.ChatRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Chat.ChatResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.ChatController",
+    "Method": "TestConfiguration",
+    "RelativePath": "api/Chat/test",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "PickleBall.Controllers.HealthController",
     "Method": "Get",
     "RelativePath": "api/Health",
