@@ -4,6 +4,7 @@ using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
+using PickleBall.Infrastructure.Helpers;
 
 namespace PickleBall.Infrastructure.Services;
 
@@ -96,6 +97,18 @@ public class ProductService : IProductService
         return product != null ? _mapper.Map<ProductDto>(product) : null;
     }
 
+    public async Task<ProductDto?> GetProductBySlugAsync(string slug)
+    {
+        var product = await _context.Products
+            .Include(p => p.Images)
+            .Include(p => p.Reviews)
+            .Include(p => p.Category)
+            .Include(p => p.Variants.Where(v => v.IsActive))
+            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+
+        return product != null ? _mapper.Map<ProductDto>(product) : null;
+    }
+
     public async Task<List<ProductListDto>> GetFeaturedProductsAsync(int count = 10)
     {
         var products = await _context.Products
@@ -133,9 +146,17 @@ public class ProductService : IProductService
             throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
         }
 
+        // Generate slug from product name
+        var baseSlug = SlugHelper.GenerateSlug(request.Name);
+        var slug = await SlugHelper.GenerateUniqueSlugAsync(baseSlug, async (s) =>
+        {
+            return await _context.Products.AnyAsync(p => p.Slug == s);
+        });
+
         var product = new Product
         {
             Name = request.Name,
+            Slug = slug,
             Description = request.Description,
             CategoryId = request.CategoryId,
             Price = request.Price,
@@ -190,6 +211,16 @@ public class ProductService : IProductService
         if (existingSku != null)
         {
             throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
+        }
+
+        // Generate slug from product name if name changed
+        if (product.Name != request.Name)
+        {
+            var baseSlug = SlugHelper.GenerateSlug(request.Name);
+            product.Slug = await SlugHelper.GenerateUniqueSlugAsync(baseSlug, async (s) =>
+            {
+                return await _context.Products.AnyAsync(p => p.Slug == s && p.Id != id);
+            });
         }
 
         // Update product properties

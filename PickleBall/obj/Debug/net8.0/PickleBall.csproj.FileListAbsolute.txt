@@ -150,4 +150,3 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleB
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.deps.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\bin\Debug\net8.0\PickleBall.Infrastructure.runtimeconfig.json
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Infrastructure\obj\Debug\net8.0\PickleBall.Infrastructure.sourcelink.json
-E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

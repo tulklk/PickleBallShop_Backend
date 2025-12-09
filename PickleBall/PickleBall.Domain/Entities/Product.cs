@@ -5,6 +5,7 @@ namespace PickleBall.Domain.Entities;
 public class Product : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty; // SEO-friendly URL slug
     public string? Description { get; set; }
     public Guid CategoryId { get; set; }
     public decimal Price { get; set; }

@@ -23,15 +23,38 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ProductDto>> GetProduct(Guid id)
+    /// <summary>
+    /// Get product by ID or slug (SEO-friendly)
+    /// Supports both:
+    /// - GET /api/products/{guid} (e.g., /api/products/123e4567-e89b-12d3-a456-426614174000)
+    /// - GET /api/products/{slug} (e.g., /api/products/ao-polo-pickleball-performance)
+    /// </summary>
+    [HttpGet("{idOrSlug}")]
+    public async Task<ActionResult<ProductDto>> GetProduct(string idOrSlug)
     {
-        var product = await _productService.GetProductByIdAsync(id);
-        if (product == null)
+        if (string.IsNullOrWhiteSpace(idOrSlug))
         {
-            return NotFound();
+            return BadRequest(new { message = "Product ID or slug is required" });
         }
-        return Ok(product);
+
+        // Try to parse as Guid first (backward compatibility)
+        if (Guid.TryParse(idOrSlug, out var id))
+        {
+            var productById = await _productService.GetProductByIdAsync(id);
+            if (productById != null)
+            {
+                return Ok(productById);
+            }
+        }
+
+        // If not a valid Guid or not found by ID, try slug
+        var productBySlug = await _productService.GetProductBySlugAsync(idOrSlug);
+        if (productBySlug != null)
+        {
+            return Ok(productBySlug);
+        }
+
+        return NotFound(new { message = "Product not found" });
     }
 
     [HttpGet("featured")]
