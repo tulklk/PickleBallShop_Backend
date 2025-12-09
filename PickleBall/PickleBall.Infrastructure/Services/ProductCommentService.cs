@@ -46,6 +46,21 @@ public class ProductCommentService : IProductCommentService
         };
     }
 
+    public async Task<CommentsResponseDto> GetProductCommentsBySlugAsync(string slug)
+    {
+        // Find product by slug
+        var product = await _context.Products
+            .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+
+        if (product == null)
+        {
+            throw new KeyNotFoundException("Product not found");
+        }
+
+        // Use existing method with productId
+        return await GetProductCommentsAsync(product.Id);
+    }
+
     public async Task<CommentDto> CreateCommentAsync(Guid userId, Guid productId, CreateCommentRequest request)
     {
         // Verify product exists
@@ -87,6 +102,19 @@ public class ProductCommentService : IProductCommentService
             .FirstOrDefaultAsync(c => c.Id == comment.Id);
 
         return MapToDto(createdComment!);
+    }
+
+    public async Task<CommentDto> CreateCommentBySlugAsync(Guid userId, string slug, CreateCommentRequest request)
+    {
+        // Find product by slug
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+        if (product == null)
+        {
+            throw new KeyNotFoundException("Product not found");
+        }
+
+        // Use existing method with productId
+        return await CreateCommentAsync(userId, product.Id, request);
     }
 
     public async Task<CommentDto> ReplyToCommentAsync(Guid userId, Guid productId, Guid parentCommentId, ReplyCommentRequest request)
@@ -138,6 +166,19 @@ public class ProductCommentService : IProductCommentService
             .FirstOrDefaultAsync(c => c.Id == reply.Id);
 
         return MapToDto(createdReply!);
+    }
+
+    public async Task<CommentDto> ReplyToCommentBySlugAsync(Guid userId, string slug, Guid parentCommentId, ReplyCommentRequest request)
+    {
+        // Find product by slug
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
+        if (product == null)
+        {
+            throw new KeyNotFoundException("Product not found");
+        }
+
+        // Use existing method with productId
+        return await ReplyToCommentAsync(userId, product.Id, parentCommentId, request);
     }
 
     public async Task<bool> UpdateCommentAsync(Guid userId, Guid commentId, CreateCommentRequest request)

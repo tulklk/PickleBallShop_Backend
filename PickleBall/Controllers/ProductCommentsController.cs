@@ -29,7 +29,7 @@ public class ProductCommentsController : ControllerBase
     }
 
     /// <summary>
-    /// Get all comments for a product (public endpoint)
+    /// Get all comments for a product by ID (public endpoint)
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<CommentsResponseDto>> GetProductComments(Guid productId)
