@@ -12,7 +12,6 @@ using PickleBall.Application.Mapping;
 using PickleBall.Application.Validators;
 using PickleBall.Infrastructure.Data;
 using PickleBall.Infrastructure.Services;
-using ApplicationDbContext = PickleBall.Infrastructure.Data.ApplicationDbContext;
 
 namespace PickleBall;
 
@@ -203,6 +202,7 @@ public class Program
         builder.Services.AddScoped<ICategoryService, CategoryService>();
         builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IWishlistService, WishlistService>();
+        builder.Services.AddScoped<IProductCommentService, ProductCommentService>();
         builder.Services.AddScoped<IOrderService, OrderService>();
         builder.Services.AddScoped<IMoMoPaymentService, MoMoPaymentService>();
         builder.Services.AddScoped<IVnPayPaymentService, VnPayPaymentService>();

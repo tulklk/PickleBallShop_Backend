@@ -24,6 +24,7 @@ public class Product : BaseEntity
     public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<ProductReview> Reviews { get; set; } = new List<ProductReview>();
+    public ICollection<ProductComment> Comments { get; set; } = new List<ProductComment>();
     public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
     public ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
 }

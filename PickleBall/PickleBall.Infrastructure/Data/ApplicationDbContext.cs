@@ -22,6 +22,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProductVariant> ProductVariants { get; set; }
     public DbSet<ProductImage> ProductImages { get; set; }
     public DbSet<ProductReview> ProductReviews { get; set; }
+    public DbSet<ProductComment> ProductComments { get; set; }
     public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
     // Cart related
@@ -49,6 +50,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
         modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
         modelBuilder.ApplyConfiguration(new ProductReviewConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductCommentConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryTransactionConfiguration());
         modelBuilder.ApplyConfiguration(new CartConfiguration());
         modelBuilder.ApplyConfiguration(new CartItemConfiguration());
