@@ -71,7 +71,7 @@ public class ProductCommentsBySlugController : ControllerBase
     }
 
     /// <summary>
-    /// Reply to a comment by product slug (requires authentication - Admin or User can reply)
+    /// Reply to a comment by product slug (requires authentication - Any authenticated user can reply)
     /// Example: POST /api/products/slug/ao-polo-pickleball-performance/comments/{parentCommentId}/reply
     /// </summary>
     [HttpPost("{parentCommentId}/reply")]

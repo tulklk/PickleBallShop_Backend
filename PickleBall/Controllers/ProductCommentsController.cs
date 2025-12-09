@@ -69,7 +69,7 @@ public class ProductCommentsController : ControllerBase
     }
 
     /// <summary>
-    /// Reply to a comment (requires authentication - Admin or User can reply)
+    /// Reply to a comment (requires authentication - Any authenticated user can reply)
     /// </summary>
     [HttpPost("{parentCommentId}/reply")]
     [Authorize]
