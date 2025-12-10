@@ -84,7 +84,7 @@ public class ProductsController : ControllerBase
         try
         {
             var product = await _productService.CreateProductAsync(request);
-            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetProduct), new { idOrSlug = product.Id }, product);
         }
         catch (KeyNotFoundException ex)
         {
