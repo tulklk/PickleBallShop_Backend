@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
+using PickleBall.Infrastructure.Helpers;
 
 namespace PickleBall.Controllers.Admin;
 
@@ -91,6 +92,13 @@ public class AdminProductsController : ControllerBase
             }
         }
 
+        // Generate unique slug from product name
+        var baseSlug = SlugHelper.GenerateSlug(request.Name);
+        var slug = await SlugHelper.GenerateUniqueSlugAsync(baseSlug, async (s) =>
+        {
+            return await _context.Products.AnyAsync(p => p.Slug == s);
+        });
+
         var product = new Product
         {
             Id = Guid.NewGuid(),
@@ -104,6 +112,7 @@ public class AdminProductsController : ControllerBase
             Brand = request.Brand,
             IsActive = request.IsActive,
             HasVariants = hasVariants,
+            Slug = slug,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -246,6 +255,16 @@ public class AdminProductsController : ControllerBase
                     return BadRequest(new { message = "Variant SKU is required" });
                 }
             }
+        }
+
+        // Generate slug from product name if name changed
+        if (product.Name != request.Name)
+        {
+            var baseSlug = SlugHelper.GenerateSlug(request.Name);
+            product.Slug = await SlugHelper.GenerateUniqueSlugAsync(baseSlug, async (s) =>
+            {
+                return await _context.Products.AnyAsync(p => p.Slug == s && p.Id != id);
+            });
         }
 
         // Update product properties
