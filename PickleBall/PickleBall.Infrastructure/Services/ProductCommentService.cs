@@ -27,17 +27,20 @@ public class ProductCommentService : IProductCommentService
             throw new KeyNotFoundException("Product not found");
         }
 
-        // Get all parent comments (where ParentCommentId is null) with user info
-        var parentComments = await _context.ProductComments
+        // Load ALL comments for this product (including all nested replies)
+        var allComments = await _context.ProductComments
             .Include(c => c.User)
-            .Include(c => c.Replies)
-                .ThenInclude(r => r.User)
-            .Where(c => c.ProductId == productId && c.ParentCommentId == null)
-            .OrderByDescending(c => c.CreatedAt)
+            .Where(c => c.ProductId == productId)
             .ToListAsync();
 
-        // Map to DTOs
-        var commentDtos = parentComments.Select(c => MapToDto(c)).ToList();
+        // Get only parent comments (where ParentCommentId is null)
+        var parentComments = allComments
+            .Where(c => c.ParentCommentId == null)
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+        // Build comment tree recursively
+        var commentDtos = parentComments.Select(c => MapToDtoRecursive(c, allComments)).ToList();
 
         return new CommentsResponseDto
         {
@@ -127,6 +130,8 @@ public class ProductCommentService : IProductCommentService
         }
 
         // Verify parent comment exists and belongs to the product
+        // Note: Parent comment can be either a top-level comment or a nested reply
+        // This allows unlimited nesting levels (reply to reply to reply...)
         var parentComment = await _context.ProductComments
             .FirstOrDefaultAsync(c => c.Id == parentCommentId && c.ProductId == productId);
         if (parentComment == null)
@@ -249,6 +254,34 @@ public class ProductCommentService : IProductCommentService
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             Replies = comment.Replies?.Select(r => MapToDto(r)).OrderBy(r => r.CreatedAt).ToList() ?? new List<CommentDto>()
+        };
+
+        return dto;
+    }
+
+    /// <summary>
+    /// Recursively map comment to DTO, including all nested replies
+    /// </summary>
+    private CommentDto MapToDtoRecursive(ProductComment comment, List<ProductComment> allComments)
+    {
+        var dto = new CommentDto
+        {
+            Id = comment.Id,
+            ProductId = comment.ProductId,
+            UserId = comment.UserId,
+            UserName = comment.User.FullName,
+            UserAvatar = comment.User.Avatar,
+            IsAdmin = comment.User.Role == Role.Admin,
+            ParentCommentId = comment.ParentCommentId,
+            Content = comment.Content,
+            IsEdited = comment.IsEdited,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            Replies = allComments
+                .Where(c => c.ParentCommentId == comment.Id)
+                .OrderBy(c => c.CreatedAt)
+                .Select(reply => MapToDtoRecursive(reply, allComments))
+                .ToList()
         };
 
         return dto;
