@@ -335,7 +335,7 @@ public class PaymentsController : ControllerBase
             if (returnData.Cancel || returnData.Status == "CANCELLED")
             {
                 _logger.LogInformation("PayOS payment cancelled for orderCode: {OrderCode}", returnData.OrderCode);
-                return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&cancel=true");
+                return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&cancel=true&paymentStatus=cancelled");
             }
 
             // Check if payment was successful
@@ -419,7 +419,8 @@ public class PaymentsController : ControllerBase
                     }
 
                     // Redirect to success page with order info (regardless of whether already paid or not)
-                    return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}");
+                    // Send orderId in multiple param names to ensure frontend can get it
+                    return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}&savedOrderId={order.Id}");
                 }
                 else
                 {
@@ -430,12 +431,12 @@ public class PaymentsController : ControllerBase
             // Payment failed or order not found
             _logger.LogWarning("PayOS payment failed or order not found: code={Code}, status={Status}, orderCode={OrderCode}", 
                 returnData.Code, returnData.Status, returnData.OrderCode);
-            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}");
+            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&paymentStatus=failed");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing PayOS return");
-            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=99&status=ERROR&orderCode={returnData.OrderCode}");
+            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=99&status=ERROR&orderCode={returnData.OrderCode}&paymentStatus=error&message={Uri.EscapeDataString(ex.Message)}");
         }
     }
 
@@ -601,7 +602,7 @@ public class PaymentsController : ControllerBase
                 {
                     _logger.LogWarning("Order not found for PayOS confirm. OrderCode: {OrderCode}, OrderId: {OrderId}", 
                         request.OrderCode, request.OrderId);
-                    return NotFound(new { success = false, message = "Order not found" });
+                    return NotFound(new { success = false, message = "Order not found", orderCode = request.OrderCode });
                 }
 
                 // Check if order is already paid - if so, just return success
@@ -697,12 +698,12 @@ public class PaymentsController : ControllerBase
                 return Ok(new { success = true, message = "Payment confirmed", orderId = order.Id });
             }
 
-            return Ok(new { success = false, message = "Payment not successful" });
+            return Ok(new { success = false, message = "Payment not successful", code = request.Code, status = request.Status, orderCode = request.OrderCode });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing PayOS confirm");
-            return StatusCode(500, new { success = false, message = "Error processing payment confirmation" });
+            _logger.LogError(ex, "Error processing PayOS confirm. OrderCode: {OrderCode}, Error: {Error}", request?.OrderCode, ex.Message);
+            return StatusCode(500, new { success = false, message = "Error processing payment confirmation", error = ex.Message, orderCode = request?.OrderCode });
         }
     }
 
