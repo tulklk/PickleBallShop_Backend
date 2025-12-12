@@ -1071,6 +1071,42 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.PaymentsController",
+    "Method": "PayOSReturn",
+    "RelativePath": "api/payments/payos/return",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Code",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Id",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Cancel",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "Status",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "OrderCode",
+        "Type": "System.Int64",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.PaymentsController",
     "Method": "PayOSWebhook",
     "RelativePath": "api/payments/payos/webhook",
     "HttpMethod": "POST",

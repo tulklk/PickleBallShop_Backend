@@ -320,6 +320,91 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
+    /// PayOS return URL handler - redirects user after payment
+    /// </summary>
+    [HttpGet("payos/return")]
+    public async Task<IActionResult> PayOSReturn([FromQuery] PayOSReturnRequest returnData)
+    {
+        try
+        {
+            _logger.LogInformation("PayOS return: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}", 
+                returnData.Code, returnData.Status, returnData.OrderCode, returnData.Cancel);
+
+            // Check if payment was cancelled
+            if (returnData.Cancel || returnData.Status == "CANCELLED")
+            {
+                _logger.LogInformation("PayOS payment cancelled for orderCode: {OrderCode}", returnData.OrderCode);
+                return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&cancel=true");
+            }
+
+            // Check if payment was successful
+            if (returnData.Code == "00" && returnData.Status == "PAID")
+            {
+                // Find order by orderCode
+                var order = await _context.Orders
+                    .FirstOrDefaultAsync(o => o.OrderNumber.Contains(returnData.OrderCode.ToString()));
+
+                if (order != null)
+                {
+                    var transactionId = returnData.Id ?? returnData.OrderCode.ToString();
+                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                    // Update order payment status - this will also send email
+                    try
+                    {
+                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, true, clientIp);
+                        _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
+                            order.Id, transactionId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                        // Continue to save payment record even if update fails
+                    }
+
+                    // Create payment record if not exists
+                    var existingPayment = await _context.Payments
+                        .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
+
+                    if (existingPayment == null)
+                    {
+                        var payment = new Payment
+                        {
+                            OrderId = order.Id,
+                            UserId = order.UserId,
+                            PaymentGateway = PaymentMethod.BankTransfer,
+                            Amount = order.TotalAmount,
+                            Currency = "VND",
+                            TransactionId = transactionId,
+                            Status = PaymentStatus.Paid,
+                            RawResponse = System.Text.Json.JsonSerializer.Serialize(returnData)
+                        };
+                        _context.Payments.Add(payment);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Redirect to success page with order info
+                    return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}");
+                }
+                else
+                {
+                    _logger.LogWarning("Order not found for PayOS orderCode: {OrderCode}", returnData.OrderCode);
+                }
+            }
+
+            // Payment failed or order not found
+            _logger.LogWarning("PayOS payment failed or order not found: code={Code}, status={Status}, orderCode={OrderCode}", 
+                returnData.Code, returnData.Status, returnData.OrderCode);
+            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing PayOS return");
+            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=99&status=ERROR&orderCode={returnData.OrderCode}");
+        }
+    }
+
+    /// <summary>
     /// PayOS webhook endpoint to receive payment notifications
     /// </summary>
     [HttpPost("payos/webhook")]
@@ -559,6 +644,23 @@ public class PaymentsController : ControllerBase
             return StatusCode(500, new { success = false, message = "Error processing payment confirmation" });
         }
     }
+
+    private string GetFrontendUrl()
+    {
+        // Get from configuration or use default
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") 
+            ?? "https://pickleball-shop-frontend.vercel.app";
+        return frontendUrl.TrimEnd('/');
+    }
+}
+
+public class PayOSReturnRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string? Id { get; set; }
+    public bool Cancel { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public long OrderCode { get; set; }
 }
 
 public class PayOSConfirmRequest
