@@ -7,6 +7,7 @@ using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
+using PickleBall.Infrastructure.Services;
 
 namespace PickleBall.Controllers;
 
@@ -340,55 +341,89 @@ public class PaymentsController : ControllerBase
             // Check if payment was successful
             if (returnData.Code == "00" && returnData.Status == "PAID")
             {
-                // Find order by orderCode
-                var order = await _context.Orders
-                    .FirstOrDefaultAsync(o => o.OrderNumber.Contains(returnData.OrderCode.ToString()));
+                // Try to find order by orderCode from cache first
+                Guid? orderId = PayOSService.GetOrderIdFromOrderCode(returnData.OrderCode);
+                
+                Order? order = null;
+                
+                // If found in cache, get order by ID
+                if (orderId.HasValue)
+                {
+                    order = await _context.Orders
+                        .Include(o => o.User)
+                        .Include(o => o.Items)
+                            .ThenInclude(oi => oi.Product)
+                                .ThenInclude(p => p.Images)
+                        .FirstOrDefaultAsync(o => o.Id == orderId.Value);
+                }
+                
+                // If not found in cache or by ID, try to find by orderCode in OrderNumber
+                if (order == null)
+                {
+                    var orderCodeStr = returnData.OrderCode.ToString();
+                    _logger.LogInformation("OrderId not found in cache, searching database for orderCode: {OrderCode}", returnData.OrderCode);
+                    
+                    order = await _context.Orders
+                        .Include(o => o.User)
+                        .Include(o => o.Items)
+                            .ThenInclude(oi => oi.Product)
+                                .ThenInclude(p => p.Images)
+                        .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCodeStr));
+                }
 
                 if (order != null)
                 {
                     var transactionId = returnData.Id ?? returnData.OrderCode.ToString();
                     var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-                    // Update order payment status - this will also send email
-                    try
+                    // Check if order is already paid
+                    if (order.PaymentStatus != PaymentStatus.Paid)
                     {
-                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, true, clientIp);
-                        _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
-                            order.Id, transactionId);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        // Continue to save payment record even if update fails
-                    }
-
-                    // Create payment record if not exists
-                    var existingPayment = await _context.Payments
-                        .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                    if (existingPayment == null)
-                    {
-                        var payment = new Payment
+                        // Update order payment status - this will also send email
+                        try
                         {
-                            OrderId = order.Id,
-                            UserId = order.UserId,
-                            PaymentGateway = PaymentMethod.BankTransfer,
-                            Amount = order.TotalAmount,
-                            Currency = "VND",
-                            TransactionId = transactionId,
-                            Status = PaymentStatus.Paid,
-                            RawResponse = System.Text.Json.JsonSerializer.Serialize(returnData)
-                        };
-                        _context.Payments.Add(payment);
-                        await _context.SaveChangesAsync();
+                            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, true, clientIp);
+                            _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
+                                order.Id, transactionId);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
+                            // Continue to save payment record even if update fails
+                        }
+
+                        // Create payment record if not exists
+                        var existingPayment = await _context.Payments
+                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
+
+                        if (existingPayment == null)
+                        {
+                            var payment = new Payment
+                            {
+                                OrderId = order.Id,
+                                UserId = order.UserId,
+                                PaymentGateway = PaymentMethod.BankTransfer,
+                                Amount = order.TotalAmount,
+                                Currency = "VND",
+                                TransactionId = transactionId,
+                                Status = PaymentStatus.Paid,
+                                RawResponse = System.Text.Json.JsonSerializer.Serialize(returnData)
+                            };
+                            _context.Payments.Add(payment);
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Order {OrderId} is already paid. Redirecting to success page.", order.Id);
                     }
 
-                    // Redirect to success page with order info
+                    // Redirect to success page with order info (regardless of whether already paid or not)
                     return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}");
                 }
                 else
                 {
-                    _logger.LogWarning("Order not found for PayOS orderCode: {OrderCode}", returnData.OrderCode);
+                    _logger.LogWarning("Order not found in database for PayOS orderCode: {OrderCode}", returnData.OrderCode);
                 }
             }
 
@@ -431,15 +466,22 @@ public class PaymentsController : ControllerBase
                 return Ok(new { success = true, message = "Webhook processed" });
             }
 
-            // Find order by order code
+            // Find order by order code using cache
             var orderCode = verifiedData.OrderCode;
+            Guid? orderId = PayOSService.GetOrderIdFromOrderCode(orderCode);
+            
+            if (orderId == null)
+            {
+                _logger.LogWarning("OrderId not found in cache for PayOS orderCode: {OrderCode}", orderCode);
+                return Ok(new { message = "Order not found in cache" });
+            }
+            
             var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCode.ToString().Substring(0, 8)));
+                .FirstOrDefaultAsync(o => o.Id == orderId.Value);
 
             if (order == null)
             {
-                // Try to find by matching description
-                _logger.LogWarning("Order not found for PayOS orderCode: {OrderCode}", orderCode);
+                _logger.LogWarning("Order not found in database for OrderId: {OrderId}", orderId.Value);
                 return Ok(new { message = "Order not found" });
             }
 
@@ -525,7 +567,19 @@ public class PaymentsController : ControllerBase
                         .FirstOrDefaultAsync(o => o.Id == request.OrderId.Value);
                 }
                 
-                // If not found by ID, try to find the most recent pending BankTransfer order for the user
+                // If not found by ID, try to find by orderCode
+                if (order == null && request.OrderCode > 0)
+                {
+                    var orderCodeStr = request.OrderCode.ToString();
+                    order = await _context.Orders
+                        .Include(o => o.User)
+                        .Include(o => o.Items)
+                            .ThenInclude(oi => oi.Product)
+                                .ThenInclude(p => p.Images)
+                        .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCodeStr));
+                }
+                
+                // If still not found, try to find the most recent BankTransfer order for the user
                 if (order == null)
                 {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -537,8 +591,7 @@ public class PaymentsController : ControllerBase
                                 .ThenInclude(oi => oi.Product)
                                     .ThenInclude(p => p.Images)
                             .Where(o => o.UserId == userGuid && 
-                                       o.PaymentMethod == PaymentMethod.BankTransfer && 
-                                       o.PaymentStatus == PaymentStatus.Pending)
+                                       o.PaymentMethod == PaymentMethod.BankTransfer)
                             .OrderByDescending(o => o.CreatedAt)
                             .FirstOrDefaultAsync();
                     }
@@ -546,8 +599,16 @@ public class PaymentsController : ControllerBase
 
                 if (order == null)
                 {
-                    _logger.LogWarning("Order not found for PayOS confirm");
+                    _logger.LogWarning("Order not found for PayOS confirm. OrderCode: {OrderCode}, OrderId: {OrderId}", 
+                        request.OrderCode, request.OrderId);
                     return NotFound(new { success = false, message = "Order not found" });
+                }
+
+                // Check if order is already paid - if so, just return success
+                if (order.PaymentStatus == PaymentStatus.Paid)
+                {
+                    _logger.LogInformation("Order {OrderId} is already paid. Returning success.", order.Id);
+                    return Ok(new { success = true, message = "Payment already confirmed", orderId = order.Id });
                 }
 
                 // Validate order has user with email before updating

@@ -16,6 +16,12 @@ public class PayOSService : IPayOSService
     private readonly PayOSSettings _settings;
     private readonly ILogger<PayOSService> _logger;
     private const string PAYOS_API_URL = "https://api-merchant.payos.vn/v2/payment-requests";
+    
+    // Static cache to store orderCode -> OrderId mapping
+    // Key: PayOS orderCode, Value: (OrderId, Timestamp)
+    private static readonly Dictionary<long, (Guid OrderId, DateTime Timestamp)> _orderCodeCache = new();
+    private static readonly object _cacheLock = new();
+    private static readonly TimeSpan CacheExpiration = TimeSpan.FromHours(2);
 
     public PayOSService(
         HttpClient httpClient,
@@ -32,6 +38,16 @@ public class PayOSService : IPayOSService
         try
         {
             var orderCode = GenerateOrderCode(order.OrderNumber);
+            
+            // Cache the orderCode -> OrderId mapping
+            lock (_cacheLock)
+            {
+                _orderCodeCache[orderCode] = (order.Id, DateTime.UtcNow);
+                CleanupExpiredCache();
+            }
+            
+            _logger.LogInformation("Cached PayOS orderCode {OrderCode} for Order {OrderId}", orderCode, order.Id);
+            
             var amount = (int)order.TotalAmount;
             var description = $"DH{order.OrderNumber.Replace("ORD-", "").Replace("-", "")}";
             
@@ -139,6 +155,35 @@ public class PayOSService : IPayOSService
         {
             _logger.LogError(ex, "Error verifying PayOS webhook");
             return Task.FromResult<PayOSWebhookData?>(null);
+        }
+    }
+
+    public static Guid? GetOrderIdFromOrderCode(long orderCode)
+    {
+        lock (_cacheLock)
+        {
+            CleanupExpiredCache();
+            
+            if (_orderCodeCache.TryGetValue(orderCode, out var cached))
+            {
+                return cached.OrderId;
+            }
+            
+            return null;
+        }
+    }
+
+    private static void CleanupExpiredCache()
+    {
+        var now = DateTime.UtcNow;
+        var expiredKeys = _orderCodeCache
+            .Where(kvp => now - kvp.Value.Timestamp > CacheExpiration)
+            .Select(kvp => kvp.Key)
+            .ToList();
+        
+        foreach (var key in expiredKeys)
+        {
+            _orderCodeCache.Remove(key);
         }
     }
 
