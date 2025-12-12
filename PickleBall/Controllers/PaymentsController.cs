@@ -379,20 +379,22 @@ public class PaymentsController : ControllerBase
                     var transactionId = returnData.Id ?? returnData.OrderCode.ToString();
                     var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-                    // Check if order is already paid
+                    // Update order payment status if not already paid
                     if (order.PaymentStatus != PaymentStatus.Paid)
                     {
-                        // Update order payment status - this will also send email
                         try
                         {
-                            await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, true, clientIp);
+                            order.PaymentTransactionId = transactionId;
+                            order.PaymentStatus = PaymentStatus.Paid;
+                            order.OrderStatus = OrderStatus.Confirmed;
+                            await _context.SaveChangesAsync();
+                            
                             _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
                                 order.Id, transactionId);
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                            // Continue to save payment record even if update fails
                         }
 
                         // Create payment record if not exists
@@ -418,39 +420,44 @@ public class PaymentsController : ControllerBase
                     }
                     else
                     {
-                        _logger.LogInformation("Order {OrderId} is already paid (webhook processed first). Sending email confirmation to user.", order.Id);
-                        
-                        // Order was already paid (webhook processed first), but user just returned from payment
-                        // We should still send confirmation email since this is their success redirect
-                        try
-                        {
-                            // Reload order with all details needed for email
-                            var orderForEmail = await _context.Orders
-                                .AsNoTracking()
-                                .Include(o => o.User)
-                                .Include(o => o.Items)
-                                    .ThenInclude(oi => oi.Product)
-                                        .ThenInclude(p => p.Images)
-                                .Include(o => o.Items)
-                                    .ThenInclude(oi => oi.ProductVariant)
-                                .FirstOrDefaultAsync(o => o.Id == order.Id);
-
-                            if (orderForEmail?.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
-                            {
-                                _logger.LogInformation("Sending confirmation email for already-paid order {OrderId} to {Email}", 
-                                    order.Id, orderForEmail.User.Email);
-                                await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
-                                _logger.LogInformation("Confirmation email sent successfully for order {OrderId}", order.Id);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error sending confirmation email for already-paid order {OrderId}", order.Id);
-                            // Don't fail the redirect just because email failed
-                        }
+                        _logger.LogInformation("Order {OrderId} is already paid (webhook processed first)", order.Id);
                     }
 
-                    // Redirect to success page with order info (regardless of whether already paid or not)
+                    // ALWAYS send confirmation email when user returns from payment, regardless of order status
+                    // This is similar to COD orders - always send email on success
+                    try
+                    {
+                        _logger.LogInformation("Sending confirmation email for PayOS order {OrderId}", order.Id);
+                        
+                        // Reload order with all details needed for email
+                        var orderForEmail = await _context.Orders
+                            .AsNoTracking()
+                            .Include(o => o.User)
+                            .Include(o => o.Items)
+                                .ThenInclude(oi => oi.Product)
+                                    .ThenInclude(p => p.Images)
+                            .Include(o => o.Items)
+                                .ThenInclude(oi => oi.ProductVariant)
+                            .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                        if (orderForEmail?.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+                        {
+                            await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
+                            _logger.LogInformation("Confirmation email sent successfully to {Email} for order {OrderId}", 
+                                orderForEmail.User.Email, order.Id);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Cannot send email for order {OrderId}: User or email is null", order.Id);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error sending confirmation email for order {OrderId}", order.Id);
+                        // Don't fail the redirect just because email failed
+                    }
+
+                    // Redirect to success page with order info
                     // Send orderId in multiple param names to ensure frontend can get it
                     return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}&savedOrderId={order.Id}");
                 }
