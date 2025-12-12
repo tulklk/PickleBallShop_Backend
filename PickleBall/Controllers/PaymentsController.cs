@@ -20,6 +20,7 @@ public class PaymentsController : ControllerBase
     private readonly IVnPayPaymentService _vnPayService;
     private readonly IPayOSService _payOSService;
     private readonly IOrderService _orderService;
+    private readonly IEmailService _emailService;
     private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
@@ -28,6 +29,7 @@ public class PaymentsController : ControllerBase
         IVnPayPaymentService vnPayService,
         IPayOSService payOSService,
         IOrderService orderService,
+        IEmailService emailService,
         ILogger<PaymentsController> logger)
     {
         _context = context;
@@ -35,6 +37,7 @@ public class PaymentsController : ControllerBase
         _vnPayService = vnPayService;
         _payOSService = payOSService;
         _orderService = orderService;
+        _emailService = emailService;
         _logger = logger;
     }
 
@@ -415,7 +418,36 @@ public class PaymentsController : ControllerBase
                     }
                     else
                     {
-                        _logger.LogInformation("Order {OrderId} is already paid. Redirecting to success page.", order.Id);
+                        _logger.LogInformation("Order {OrderId} is already paid (webhook processed first). Sending email confirmation to user.", order.Id);
+                        
+                        // Order was already paid (webhook processed first), but user just returned from payment
+                        // We should still send confirmation email since this is their success redirect
+                        try
+                        {
+                            // Reload order with all details needed for email
+                            var orderForEmail = await _context.Orders
+                                .AsNoTracking()
+                                .Include(o => o.User)
+                                .Include(o => o.Items)
+                                    .ThenInclude(oi => oi.Product)
+                                        .ThenInclude(p => p.Images)
+                                .Include(o => o.Items)
+                                    .ThenInclude(oi => oi.ProductVariant)
+                                .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                            if (orderForEmail?.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+                            {
+                                _logger.LogInformation("Sending confirmation email for already-paid order {OrderId} to {Email}", 
+                                    order.Id, orderForEmail.User.Email);
+                                await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
+                                _logger.LogInformation("Confirmation email sent successfully for order {OrderId}", order.Id);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error sending confirmation email for already-paid order {OrderId}", order.Id);
+                            // Don't fail the redirect just because email failed
+                        }
                     }
 
                     // Redirect to success page with order info (regardless of whether already paid or not)
