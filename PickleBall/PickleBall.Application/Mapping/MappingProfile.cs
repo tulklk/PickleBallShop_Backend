@@ -4,6 +4,7 @@ using PickleBall.Application.DTOs.Cart;
 using PickleBall.Application.DTOs.Categories;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Products;
+using PickleBall.Application.DTOs.Reviews;
 using PickleBall.Application.DTOs.Users;
 using PickleBall.Application.DTOs.Wishlist;
 using PickleBall.Domain.Entities;
@@ -114,5 +115,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Product.IsActive))
             .ForMember(dest => dest.HasVariants, opt => opt.MapFrom(src => src.Product.HasVariants))
             .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(src => src.CreatedAt));
+
+        // ProductReview mapping
+        CreateMap<ProductReview, ReviewDto>();
     }
 }

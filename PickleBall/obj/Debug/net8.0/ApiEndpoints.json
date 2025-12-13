@@ -1454,6 +1454,63 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.ProductReviewsController",
+    "Method": "GetProductReviews",
+    "RelativePath": "api/products/{productIdOrSlug}/reviews",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productIdOrSlug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Reviews.ReviewsResponseDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.ProductReviewsController",
+    "Method": "CreateReview",
+    "RelativePath": "api/products/{productIdOrSlug}/reviews",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productIdOrSlug",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Reviews.CreateReviewRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Reviews.ReviewDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "PickleBall.Controllers.ProductsController",
     "Method": "GetFeaturedProducts",
     "RelativePath": "api/Products/featured",
