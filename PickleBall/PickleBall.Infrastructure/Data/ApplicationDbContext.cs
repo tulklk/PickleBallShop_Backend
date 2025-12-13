@@ -37,6 +37,9 @@ public class ApplicationDbContext : DbContext
     // Wishlist
     public DbSet<Wishlist> Wishlists { get; set; }
 
+    // News
+    public DbSet<NewsPost> NewsPosts { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -58,6 +61,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());
         modelBuilder.ApplyConfiguration(new WishlistConfiguration());
+        modelBuilder.ApplyConfiguration(new NewsPostConfiguration());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

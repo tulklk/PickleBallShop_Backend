@@ -2,6 +2,7 @@ using AutoMapper;
 using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.DTOs.Cart;
 using PickleBall.Application.DTOs.Categories;
+using PickleBall.Application.DTOs.News;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.DTOs.Reviews;
@@ -118,5 +119,12 @@ public class MappingProfile : Profile
 
         // ProductReview mapping
         CreateMap<ProductReview, ReviewDto>();
+
+        // News mapping
+        CreateMap<NewsPost, NewsDto>()
+            .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.FullName));
+        
+        CreateMap<NewsPost, NewsListDto>()
+            .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.FullName));
     }
 }
