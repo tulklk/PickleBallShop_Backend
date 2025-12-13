@@ -17,12 +17,7 @@ public class ProductReviewConfiguration : IEntityTypeConfiguration<ProductReview
         builder.Property(pr => pr.Email).HasMaxLength(256);
         builder.Property(pr => pr.ReviewImageUrl).HasMaxLength(1000);
 
-        // Configure relationship with User (optional)
-        builder.HasOne(pr => pr.User)
-            .WithMany()
-            .HasForeignKey(pr => pr.UserId)
-            .OnDelete(DeleteBehavior.SetNull)
-            .IsRequired(false);
+        // Relationship with User is configured in UserConfiguration
 
         // Index chỉ áp dụng khi có UserId (để tránh user đánh giá nhiều lần)
         // Với anonymous reviews, không có unique constraint

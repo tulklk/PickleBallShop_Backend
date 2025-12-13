@@ -98,7 +98,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Bookmark",
@@ -121,6 +121,10 @@
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "PickleBall.csproj",
@@ -128,7 +132,7 @@
               "RelativeDocumentMoniker": "PickleBall\\PickleBall.csproj",
               "ToolTip": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.csproj",
               "RelativeToolTip": "PickleBall\\PickleBall.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2025-12-13T17:54:32.068Z",
               "EditorCaption": ""

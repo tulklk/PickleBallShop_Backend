@@ -36,7 +36,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.ProductReviews)
             .WithOne(pr => pr.User)
             .HasForeignKey(pr => pr.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(u => u.Wishlists)
             .WithOne(w => w.User)
