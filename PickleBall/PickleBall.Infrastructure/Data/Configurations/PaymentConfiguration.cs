@@ -16,13 +16,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Status).HasConversion<int>().IsRequired();
         builder.Property(p => p.RawResponse).HasMaxLength(5000);
 
-        builder.HasOne(p => p.User)
-            .WithMany()
-            .HasForeignKey(p => p.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasIndex(p => p.OrderId);
-        builder.HasIndex(p => p.UserId);
         builder.HasIndex(p => p.TransactionId);
     }
 }

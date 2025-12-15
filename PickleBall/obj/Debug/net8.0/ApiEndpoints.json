@@ -1058,6 +1058,110 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "PickleBall.Controllers.GuestOrdersController",
+    "Method": "CreateGuestOrder",
+    "RelativePath": "api/guest/orders",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Orders.CreateGuestOrderRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.GuestOrdersController",
+    "Method": "GetGuestOrder",
+    "RelativePath": "api/guest/orders/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Orders.OrderDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.GuestOrdersController",
+    "Method": "InitiateGuestPayment",
+    "RelativePath": "api/guest/orders/{id}/payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Payments.CreatePaymentResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.GuestOrdersController",
+    "Method": "LookupGuestOrders",
+    "RelativePath": "api/guest/orders/lookup",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "PickleBall.Controllers.HealthController",
     "Method": "Get",
     "RelativePath": "api/Health",

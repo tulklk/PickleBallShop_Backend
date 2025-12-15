@@ -31,6 +31,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(u => u.Orders)
             .WithOne(o => o.User)
             .HasForeignKey(o => o.UserId)
+            .IsRequired(false) // Allow guest checkout (UserId can be null)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(u => u.ProductReviews)

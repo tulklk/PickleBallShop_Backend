@@ -2093,6 +2093,190 @@
         }
       }
     },
+    "/api/guest/orders": {
+      "post": {
+        "tags": [
+          "GuestOrders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateGuestOrderRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateGuestOrderRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.CreateGuestOrderRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/guest/orders/{id}": {
+      "get": {
+        "tags": [
+          "GuestOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/guest/orders/lookup": {
+      "get": {
+        "tags": [
+          "GuestOrders"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/guest/orders/{id}/payment": {
+      "post": {
+        "tags": [
+          "GuestOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Payments.CreatePaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Health": {
       "get": {
         "tags": [
@@ -4818,7 +5002,8 @@
           },
           "userId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "user": {
             "allOf": [
@@ -4827,6 +5012,18 @@
               }
             ],
             "nullable": true
+          },
+          "guestEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "guestFullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "isGuestOrder": {
+            "type": "boolean",
+            "readOnly": true
           },
           "totalAmount": {
             "type": "number",
@@ -4870,6 +5067,38 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Orders.CreateGuestOrderRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "shippingAddress": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.ShippingAddressDto"
+              }
+            ]
+          },
+          "paymentMethod": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.PaymentMethod"
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.GuestCartItemDto"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Orders.CreateOrderRequest": {
         "type": "object",
         "properties": {
@@ -4890,6 +5119,25 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Orders.GuestCartItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productVariantId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "quantity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Orders.OrderDto": {
         "type": "object",
         "properties": {
@@ -4902,7 +5150,8 @@
           },
           "userId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "totalAmount": {
             "type": "number",
@@ -4915,6 +5164,14 @@
             "type": "string"
           },
           "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "guestEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "guestFullName": {
             "type": "string",
             "nullable": true
           },
@@ -6038,7 +6295,8 @@
           },
           "userId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "totalAmount": {
             "type": "number",
@@ -6070,6 +6328,14 @@
             "type": "string",
             "nullable": true
           },
+          "guestEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "guestFullName": {
+            "type": "string",
+            "nullable": true
+          },
           "shippingFullName": {
             "type": "string"
           },
@@ -6096,7 +6362,8 @@
               {
                 "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
               }
-            ]
+            ],
+            "nullable": true
           },
           "items": {
             "type": "array",
@@ -6215,10 +6482,6 @@
             "type": "string",
             "format": "uuid"
           },
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "paymentGateway": {
             "allOf": [
               {
@@ -6252,13 +6515,6 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/PickleBall.Domain.Entities.Order"
-              }
-            ]
-          },
-          "user": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
               }
             ]
           }

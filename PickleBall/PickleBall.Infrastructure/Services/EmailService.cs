@@ -341,6 +341,210 @@ public class EmailService : IEmailService
         }
     }
 
+    public async Task SendGuestOrderConfirmationEmailAsync(Order order, string? clientIpAddress = null)
+    {
+        var orderDetailUrl = $"{_emailSettings.FrontendUrl}/guest/orders/{order.Id}?email={Uri.EscapeDataString(order.GuestEmail ?? "")}";
+        var continueShoppingUrl = _emailSettings.FrontendUrl;
+        
+        // Format date
+        var orderDate = order.CreatedAt.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+        
+        // Format currency
+        var formatCurrency = new Func<decimal, string>((amount) => 
+            amount.ToString("N0", new CultureInfo("vi-VN")) + " ₫");
+        
+        // Build order items HTML
+        var orderItemsHtml = "";
+        foreach (var item in order.Items)
+        {
+            var itemImage = item.Product?.Images?.FirstOrDefault(i => i.IsPrimary)?.ImageUrl 
+                ?? item.Product?.Images?.FirstOrDefault()?.ImageUrl 
+                ?? "";
+            
+            var imageHtml = !string.IsNullOrEmpty(itemImage) 
+                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' />"
+                : "<div class='product-image' style='background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;'><span style='color: #999; font-size: 11px;'>No Image</span></div>";
+            
+            orderItemsHtml += $@"
+            <tr style='border-bottom: 1px solid #eee;'>
+                <td>
+                    <div class='product-item'>
+                        {imageHtml}
+                        <div class='product-details'>
+                            <div class='product-name'>{item.ProductNameSnapshot}</div>
+                            {(string.IsNullOrEmpty(item.VariantInfoSnapshot) ? "" : $"<div class='product-variant'>{item.VariantInfoSnapshot}</div>")}
+                            <div class='product-quantity'>Số lượng: {item.Quantity}</div>
+                        </div>
+                        <div class='product-price'>
+                            {formatCurrency(item.LineTotal)}
+                        </div>
+                    </div>
+                </td>
+            </tr>";
+        }
+        
+        // Get payment status text
+        var paymentStatusText = order.PaymentStatus switch
+        {
+            PaymentStatus.Paid => "Đã thanh toán",
+            PaymentStatus.Pending => "Chờ thanh toán",
+            PaymentStatus.Failed => "Thanh toán thất bại",
+            _ => "Chưa xác định"
+        };
+        
+        var orderStatusText = order.OrderStatus switch
+        {
+            OrderStatus.Pending => "Đang chờ xử lý",
+            OrderStatus.Confirmed => "Đã xác nhận",
+            OrderStatus.Shipping => "Đang giao hàng",
+            OrderStatus.Completed => "Hoàn thành",
+            OrderStatus.Cancelled => "Đã hủy",
+            _ => "Chưa xác định"
+        };
+        
+        var paymentMethodText = order.PaymentMethod switch
+        {
+            PaymentMethod.COD => "Thanh toán khi nhận hàng (COD)",
+            PaymentMethod.BankTransfer => "Chuyển khoản ngân hàng",
+            PaymentMethod.MoMo => "Ví MoMo",
+            PaymentMethod.VNPay => "VNPay",
+            _ => "Chưa xác định"
+        };
+        
+        var subject = $"Xác nhận đơn hàng #{order.OrderNumber} - IKA PickleBall Shop";
+        var body = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        * {{ box-sizing: border-box; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 0; width: 100%; }}
+        .header {{ background-color: #4CAF50; color: #ffffff; padding: 25px 20px; text-align: center; }}
+        .header h1 {{ margin: 0; padding: 0; color: #ffffff; font-size: 24px; font-weight: 600; }}
+        .content {{ background-color: #ffffff; padding: 20px; }}
+        .order-info {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }}
+        .order-info-row {{ margin: 12px 0; display: block; }}
+        .order-info-label {{ font-weight: 600; color: #666; display: block; margin-bottom: 4px; font-size: 14px; }}
+        .order-info-value {{ color: #333; display: block; font-size: 14px; word-break: break-word; }}
+        .order-items {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+        .order-items td {{ padding: 12px 8px; font-size: 14px; }}
+        .product-item {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }}
+        .product-image {{ width: 70px; height: 70px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }}
+        .product-details {{ flex: 1; min-width: 0; }}
+        .product-name {{ font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }}
+        .product-variant {{ color: #888; font-size: 12px; margin-bottom: 3px; }}
+        .product-quantity {{ color: #666; font-size: 13px; }}
+        .product-price {{ text-align: right; color: #333; font-weight: 600; font-size: 14px; white-space: nowrap; }}
+        .total-section {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }}
+        .total-row {{ display: flex; justify-content: space-between; margin: 10px 0; align-items: center; }}
+        .total-label {{ font-weight: 600; color: #666; font-size: 14px; }}
+        .total-value {{ font-weight: 600; color: #333; font-size: 18px; }}
+        .total-final {{ font-size: 20px; color: #4CAF50; }}
+        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; padding: 20px; }}
+        .support-section {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }}
+    </style>
+</head>
+<body style='margin: 0; padding: 0; background-color: #f5f5f5;'>
+    <div class='container'>
+        <div class='header'>
+            <h1 style='margin: 0; padding: 0; color: #ffffff;'>Xác nhận đơn hàng #{order.OrderNumber}</h1>
+        </div>
+        <div class='content'>
+            <p>Xin chào, <strong>{order.GuestFullName ?? order.ShippingFullName}</strong></p>
+            <p>Cảm ơn bạn đã đặt hàng tại IKA PickleBall Shop! Đơn hàng của bạn đã được ghi nhận.</p>
+            
+            <div class='order-info'>
+                <h3 style='margin-top: 0; color: #333;'>Thông tin đơn hàng</h3>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Mã đơn hàng:</span>
+                    <span class='order-info-value'>#{order.OrderNumber}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Ngày đặt hàng:</span>
+                    <span class='order-info-value'>{orderDate}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Email:</span>
+                    <span class='order-info-value'>{order.GuestEmail}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Số điện thoại:</span>
+                    <span class='order-info-value'>{order.ShippingPhoneNumber}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Địa chỉ giao hàng:</span>
+                    <span class='order-info-value'>{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Phương thức thanh toán:</span>
+                    <span class='order-info-value'>{paymentMethodText}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Trạng thái thanh toán:</span>
+                    <span class='order-info-value'>{paymentStatusText}</span>
+                </div>
+                <div class='order-info-row'>
+                    <span class='order-info-label'>Trạng thái đơn hàng:</span>
+                    <span class='order-info-value'>{orderStatusText}</span>
+                </div>
+            </div>
+            
+            <h3 style='color: #333; margin-top: 30px; font-size: 18px; margin-bottom: 15px;'>Chi tiết đơn hàng</h3>
+            <table class='order-items'>
+                <tbody>
+                    {orderItemsHtml}
+                </tbody>
+            </table>
+            
+            <div class='total-section'>
+                <div class='total-row'>
+                    <span class='total-label'>Tổng giá trị sản phẩm:</span>
+                    <span class='total-value'>{formatCurrency(order.TotalAmount)}</span>
+                </div>
+                <div class='total-row' style='margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;'>
+                    <span class='total-label total-final'>Tổng cộng:</span>
+                    <span class='total-value total-final'>{formatCurrency(order.TotalAmount)}</span>
+                </div>
+            </div>
+            
+            <div class='support-section'>
+                <p style='margin: 10px 0; color: #666;'>Liên hệ hỗ trợ</p>
+                <p style='margin: 5px 0;'>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
+            </div>
+        </div>
+        <div class='footer'>
+            <p>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
+        var recipientEmail = order.GuestEmail ?? "";
+        
+        if (string.IsNullOrWhiteSpace(recipientEmail))
+        {
+            _logger.LogError("Cannot send guest order confirmation email: Order {OrderId} has no guest email", order.Id);
+            throw new InvalidOperationException($"Cannot send guest order confirmation email: Guest email is required for order {order.Id}");
+        }
+
+        _logger.LogInformation("Preparing to send guest order confirmation email to: {Email} for order {OrderId}", recipientEmail, order.Id);
+
+        try
+        {
+            await SendEmailAsync(recipientEmail, subject, body);
+            _logger.LogInformation("Guest order confirmation email sent successfully to: {Email} for order {OrderId}", recipientEmail, order.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send guest order confirmation email to: {Email} for order {OrderId}. Error: {Error}", 
+                recipientEmail, order.Id, ex.Message);
+            throw;
+        }
+    }
+
     public async Task<bool> SendEmailAsync(string toEmail, string subject, string body)
     {
         try

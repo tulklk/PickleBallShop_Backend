@@ -17,6 +17,10 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.PaymentMethod).HasConversion<int?>();
         builder.Property(o => o.PaymentTransactionId).HasMaxLength(256);
 
+        // Guest checkout fields
+        builder.Property(o => o.GuestEmail).HasMaxLength(256);
+        builder.Property(o => o.GuestFullName).HasMaxLength(256);
+
         // Shipping address fields
         builder.Property(o => o.ShippingFullName).IsRequired().HasMaxLength(256);
         builder.Property(o => o.ShippingPhoneNumber).IsRequired().HasMaxLength(20);
@@ -24,6 +28,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.ShippingWard).HasMaxLength(100);
         builder.Property(o => o.ShippingDistrict).HasMaxLength(100);
         builder.Property(o => o.ShippingCity).HasMaxLength(100);
+
+        // UserId is nullable for guest checkout
+        builder.Property(o => o.UserId).IsRequired(false);
 
         builder.HasMany(o => o.Items)
             .WithOne(oi => oi.Order)
@@ -39,5 +46,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => o.OrderStatus);
         builder.HasIndex(o => o.PaymentStatus);
         builder.HasIndex(o => o.CreatedAt);
+        builder.HasIndex(o => o.GuestEmail); // Index for guest email lookup
     }
 }

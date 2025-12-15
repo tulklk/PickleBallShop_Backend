@@ -3,12 +3,16 @@ namespace PickleBall.Domain.Entities;
 public class Order : BaseEntity
 {
     public string OrderNumber { get; set; } = string.Empty;
-    public Guid UserId { get; set; }
+    public Guid? UserId { get; set; } // Nullable for guest checkout
     public decimal TotalAmount { get; set; }
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
     public PaymentMethod? PaymentMethod { get; set; }
     public string? PaymentTransactionId { get; set; }
+
+    // Guest checkout fields (used when UserId is null)
+    public string? GuestEmail { get; set; }
+    public string? GuestFullName { get; set; }
 
     // Shipping address fields
     public string ShippingFullName { get; set; } = string.Empty;
@@ -19,7 +23,7 @@ public class Order : BaseEntity
     public string? ShippingCity { get; set; }
 
     // Navigation properties
-    public User User { get; set; } = null!;
+    public User? User { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

@@ -87,7 +87,6 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
-                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.MoMo,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -159,7 +158,6 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
-                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.MoMo,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -228,7 +226,6 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
-                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.VNPay,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -299,7 +296,6 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
-                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.VNPay,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -406,7 +402,6 @@ public class PaymentsController : ControllerBase
                             var payment = new Payment
                             {
                                 OrderId = order.Id,
-                                UserId = order.UserId,
                                 PaymentGateway = PaymentMethod.BankTransfer,
                                 Amount = order.TotalAmount,
                                 Currency = "VND",
@@ -440,15 +435,27 @@ public class PaymentsController : ControllerBase
                                 .ThenInclude(oi => oi.ProductVariant)
                             .FirstOrDefaultAsync(o => o.Id == order.Id);
 
-                        if (orderForEmail?.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+                        if (orderForEmail != null)
                         {
-                            await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
-                            _logger.LogInformation("Confirmation email sent successfully to {Email} for order {OrderId}", 
-                                orderForEmail.User.Email, order.Id);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Cannot send email for order {OrderId}: User or email is null", order.Id);
+                            // Check if it's a guest order or registered user order
+                            if (orderForEmail.UserId == null && !string.IsNullOrWhiteSpace(orderForEmail.GuestEmail))
+                            {
+                                // Guest order - use guest email method
+                                await _emailService.SendGuestOrderConfirmationEmailAsync(orderForEmail, clientIp);
+                                _logger.LogInformation("Guest confirmation email sent successfully to {Email} for order {OrderId}", 
+                                    orderForEmail.GuestEmail, order.Id);
+                            }
+                            else if (orderForEmail.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+                            {
+                                // Registered user order
+                                await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
+                                _logger.LogInformation("Confirmation email sent successfully to {Email} for order {OrderId}", 
+                                    orderForEmail.User.Email, order.Id);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Cannot send email for order {OrderId}: No valid email found", order.Id);
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -550,7 +557,6 @@ public class PaymentsController : ControllerBase
                     var payment = new Payment
                     {
                         OrderId = order.Id,
-                        UserId = order.UserId,
                         PaymentGateway = PaymentMethod.BankTransfer,
                         Amount = verifiedData.Amount,
                         Currency = verifiedData.Currency,
@@ -721,7 +727,6 @@ public class PaymentsController : ControllerBase
                     var payment = new Payment
                     {
                         OrderId = order.Id,
-                        UserId = order.UserId,
                         PaymentGateway = PaymentMethod.BankTransfer,
                         Amount = order.TotalAmount,
                         Currency = "VND",

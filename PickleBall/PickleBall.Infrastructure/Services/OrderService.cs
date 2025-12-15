@@ -203,6 +203,202 @@ public class OrderService : IOrderService
         return _mapper.Map<OrderDto>(order);
     }
 
+    public async Task<OrderDto> CreateGuestOrderAsync(CreateGuestOrderRequest request)
+    {
+        if (request.Items == null || !request.Items.Any())
+        {
+            throw new InvalidOperationException("Giỏ hàng trống");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            throw new InvalidOperationException("Email là bắt buộc");
+        }
+
+        // Load products and variants for the cart items
+        var productIds = request.Items.Select(i => i.ProductId).ToList();
+        var variantIds = request.Items.Where(i => i.ProductVariantId.HasValue).Select(i => i.ProductVariantId!.Value).ToList();
+
+        var products = await _context.Products
+            .Include(p => p.Variants)
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+        var variants = variantIds.Any()
+            ? await _context.ProductVariants.Where(v => variantIds.Contains(v.Id)).ToListAsync()
+            : new List<ProductVariant>();
+
+        // Validate products exist and have enough stock
+        foreach (var item in request.Items)
+        {
+            var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product == null)
+            {
+                throw new InvalidOperationException($"Không tìm thấy sản phẩm với ID {item.ProductId}");
+            }
+
+            if (product.HasVariants && item.ProductVariantId.HasValue)
+            {
+                var variant = variants.FirstOrDefault(v => v.Id == item.ProductVariantId);
+                if (variant == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy biến thể sản phẩm với ID {item.ProductVariantId}");
+                }
+                if (variant.StockQuantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Sản phẩm {product.Name} biến thể không đủ số lượng. Còn lại: {variant.StockQuantity}");
+                }
+            }
+            else
+            {
+                if (product.StockQuantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Sản phẩm {product.Name} không đủ số lượng. Còn lại: {product.StockQuantity}");
+                }
+            }
+        }
+
+        // Generate order number
+        var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
+
+        // Calculate total
+        decimal totalAmount = 0;
+        foreach (var item in request.Items)
+        {
+            var product = products.First(p => p.Id == item.ProductId);
+            decimal price;
+            
+            if (product.HasVariants && item.ProductVariantId.HasValue)
+            {
+                var variant = variants.First(v => v.Id == item.ProductVariantId);
+                price = variant.Price;
+            }
+            else
+            {
+                price = product.Price; // Price is the current selling price
+            }
+            
+            totalAmount += price * item.Quantity;
+        }
+
+        // Create order
+        var order = new Order
+        {
+            OrderNumber = orderNumber,
+            UserId = null, // Guest order
+            GuestEmail = request.Email,
+            GuestFullName = request.FullName,
+            TotalAmount = totalAmount,
+            PaymentStatus = PaymentStatus.Pending,
+            OrderStatus = request.PaymentMethod == PaymentMethod.COD ? OrderStatus.Confirmed : OrderStatus.Pending,
+            PaymentMethod = request.PaymentMethod,
+            ShippingFullName = request.ShippingAddress.FullName,
+            ShippingPhoneNumber = request.ShippingAddress.PhoneNumber,
+            ShippingAddressLine = request.ShippingAddress.AddressLine,
+            ShippingWard = request.ShippingAddress.Ward,
+            ShippingDistrict = request.ShippingAddress.District,
+            ShippingCity = request.ShippingAddress.City
+        };
+
+        // Create order items and update inventory
+        foreach (var cartItem in request.Items)
+        {
+            var product = products.First(p => p.Id == cartItem.ProductId);
+            ProductVariant? variant = null;
+            decimal unitPrice;
+            string? variantInfoSnapshot = null;
+
+            if (product.HasVariants && cartItem.ProductVariantId.HasValue)
+            {
+                variant = variants.First(v => v.Id == cartItem.ProductVariantId);
+                unitPrice = variant.Price;
+
+                var variantParts = new List<string>();
+                if (!string.IsNullOrWhiteSpace(variant.Color))
+                    variantParts.Add($"Màu: {variant.Color}");
+                if (!string.IsNullOrWhiteSpace(variant.Size))
+                    variantParts.Add($"Size: {variant.Size}");
+                if (!string.IsNullOrWhiteSpace(variant.Spec))
+                    variantParts.Add($"Thông số: {variant.Spec}");
+                
+                if (variantParts.Any())
+                {
+                    variantInfoSnapshot = string.Join(", ", variantParts);
+                }
+
+                // Update variant inventory
+                variant.StockQuantity -= cartItem.Quantity;
+            }
+            else
+            {
+                unitPrice = product.Price; // Price is the current selling price
+                // Update product inventory
+                product.StockQuantity -= cartItem.Quantity;
+            }
+
+            var orderItem = new OrderItem
+            {
+                OrderId = order.Id,
+                ProductId = cartItem.ProductId,
+                ProductVariantId = cartItem.ProductVariantId,
+                ProductNameSnapshot = product.Name,
+                VariantInfoSnapshot = variantInfoSnapshot,
+                UnitPrice = unitPrice,
+                Quantity = cartItem.Quantity,
+                LineTotal = unitPrice * cartItem.Quantity
+            };
+            order.Items.Add(orderItem);
+
+            // Create inventory transaction
+            var transaction = new InventoryTransaction
+            {
+                ProductId = cartItem.ProductId,
+                ChangeQuantity = -cartItem.Quantity,
+                Reason = $"Order {orderNumber} (Guest)"
+            };
+            _context.InventoryTransactions.Add(transaction);
+        }
+
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        // For COD orders, send confirmation email immediately
+        if (request.PaymentMethod == PaymentMethod.COD)
+        {
+            try
+            {
+                _context.Entry(order).State = EntityState.Detached;
+                
+                var orderWithDetails = await _context.Orders
+                    .AsNoTracking()
+                    .Include(o => o.Items)
+                        .ThenInclude(oi => oi.Product)
+                            .ThenInclude(p => p.Images)
+                    .Include(o => o.Items)
+                        .ThenInclude(oi => oi.ProductVariant)
+                    .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+                if (orderWithDetails != null && !string.IsNullOrWhiteSpace(orderWithDetails.GuestEmail))
+                {
+                    _logger.LogInformation("Sending order confirmation email for guest COD order {OrderId} to {Email}", 
+                        order.Id, orderWithDetails.GuestEmail);
+                    
+                    await _emailService.SendGuestOrderConfirmationEmailAsync(orderWithDetails);
+                    
+                    _logger.LogInformation("Order confirmation email sent successfully for guest COD order {OrderId} to {Email}", 
+                        order.Id, orderWithDetails.GuestEmail);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send order confirmation email for guest COD order {OrderId}. Error: {Error}", 
+                    order.Id, ex.Message);
+            }
+        }
+
+        return _mapper.Map<OrderDto>(order);
+    }
+
     public async Task<List<OrderDto>> GetUserOrdersAsync(Guid userId)
     {
         var orders = await _context.Orders
@@ -221,6 +417,58 @@ public class OrderService : IOrderService
             .FirstOrDefaultAsync(o => o.Id == orderId && o.UserId == userId);
 
         return order != null ? _mapper.Map<OrderDto>(order) : null;
+    }
+
+    public async Task<OrderDto?> GetGuestOrderByIdAsync(Guid orderId, string email)
+    {
+        var order = await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.GuestEmail == email && o.UserId == null);
+
+        return order != null ? _mapper.Map<OrderDto>(order) : null;
+    }
+
+    public async Task<CreatePaymentResponse?> InitiateGuestPaymentAsync(Guid orderId, string email)
+    {
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.Id == orderId && o.GuestEmail == email && o.UserId == null);
+
+        if (order == null)
+        {
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng");
+        }
+
+        if (order.PaymentStatus != PaymentStatus.Pending)
+        {
+            throw new InvalidOperationException("Đơn hàng đã được thanh toán");
+        }
+
+        if (!order.PaymentMethod.HasValue)
+        {
+            throw new InvalidOperationException("Chưa chọn phương thức thanh toán");
+        }
+
+        // For COD orders, return response immediately without payment gateway
+        if (order.PaymentMethod.Value == PaymentMethod.COD)
+        {
+            return new CreatePaymentResponse
+            {
+                PaymentUrl = null,
+                OrderId = order.Id,
+                OrderNumber = order.OrderNumber,
+                IsCod = true
+            };
+        }
+
+        // Build return URL (frontend) and notify URL (backend webhook)
+        var frontendBaseUrl = "https://pickleball-shop-frontend.vercel.app";
+        var returnUrl = $"{frontendBaseUrl}/payments/payos/return";
+        var cancelUrl = $"{frontendBaseUrl}/payments/payos/cancel";
+        var notifyUrl = $"/api/payments/{order.PaymentMethod.Value.ToString().ToLower()}/ipn";
+
+        var paymentResponse = await _paymentService.CreatePaymentAsync(order, returnUrl, cancelUrl, notifyUrl);
+
+        return paymentResponse;
     }
 
     public async Task<CreatePaymentResponse?> InitiatePaymentAsync(Guid orderId, Guid userId)
@@ -304,11 +552,23 @@ public class OrderService : IOrderService
         // Send order confirmation email when payment is successful
         if (isPaid && orderForEmail != null)
         {
-            // Only send email if user email is available
-            if (orderForEmail.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+            try
             {
-                try
+                // Check if it's a guest order or registered user order
+                if (orderForEmail.UserId == null && !string.IsNullOrWhiteSpace(orderForEmail.GuestEmail))
                 {
+                    // Guest order - use guest email method
+                    _logger.LogInformation("Sending guest order confirmation email for order {OrderId} to {Email}", 
+                        orderId, orderForEmail.GuestEmail);
+                    
+                    await _emailService.SendGuestOrderConfirmationEmailAsync(orderForEmail, clientIpAddress);
+                    
+                    _logger.LogInformation("Guest order confirmation email sent successfully for order {OrderId} to {Email}", 
+                        orderId, orderForEmail.GuestEmail);
+                }
+                else if (orderForEmail.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
+                {
+                    // Registered user order
                     _logger.LogInformation("Sending order confirmation email for order {OrderId} to {Email}", 
                         orderId, orderForEmail.User.Email);
                     
@@ -317,20 +577,20 @@ public class OrderService : IOrderService
                     _logger.LogInformation("Order confirmation email sent successfully for order {OrderId} to {Email}", 
                         orderId, orderForEmail.User.Email);
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Log error but don't fail the payment update
-                    // Email sending failure shouldn't prevent payment status update
-                    _logger.LogError(ex, "Failed to send order confirmation email for order {OrderId} to {Email}. Error: {Error}", 
-                        orderId, orderForEmail.User.Email, ex.Message);
+                    _logger.LogWarning("Skipping order confirmation email for order {OrderId} - no valid email available. User: {User}, GuestEmail: {GuestEmail}", 
+                        orderId, 
+                        orderForEmail.User != null ? "exists" : "null",
+                        orderForEmail.GuestEmail ?? "null");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("Skipping order confirmation email for order {OrderId} - user email not available. User: {User}, Email: {Email}", 
-                    orderId, 
-                    orderForEmail.User != null ? "exists" : "null",
-                    orderForEmail.User?.Email ?? "null");
+                // Log error but don't fail the payment update
+                // Email sending failure shouldn't prevent payment status update
+                _logger.LogError(ex, "Failed to send order confirmation email for order {OrderId}. Error: {Error}", 
+                    orderId, ex.Message);
             }
         }
         else if (isPaid && orderForEmail == null)
