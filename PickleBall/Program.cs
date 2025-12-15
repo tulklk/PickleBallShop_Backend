@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,7 +31,14 @@ public class Program
         }
 
         // Add services to the container
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                // Support both string and number for enum values (e.g., "COD" or 0)
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                // Case insensitive property matching
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            });
 
         // Configure Swagger
         builder.Services.AddEndpointsApiExplorer();

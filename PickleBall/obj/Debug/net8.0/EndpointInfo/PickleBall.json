@@ -6454,14 +6454,13 @@
       },
       "PickleBall.Domain.Entities.OrderStatus": {
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
+          "Pending",
+          "Confirmed",
+          "Shipping",
+          "Completed",
+          "Cancelled"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "PickleBall.Domain.Entities.Payment": {
         "type": "object",
@@ -6523,23 +6522,21 @@
       },
       "PickleBall.Domain.Entities.PaymentMethod": {
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "COD",
+          "MoMo",
+          "VNPay",
+          "BankTransfer"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "PickleBall.Domain.Entities.PaymentStatus": {
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Pending",
+          "Paid",
+          "Failed",
+          "Refunded"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "PickleBall.Domain.Entities.Product": {
         "type": "object",
@@ -6977,11 +6974,10 @@
       },
       "PickleBall.Domain.Entities.Role": {
         "enum": [
-          1,
-          2
+          "Customer",
+          "Admin"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "PickleBall.Domain.Entities.User": {
         "type": "object",
