@@ -1162,6 +1162,32 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.GuestOrdersController",
+    "Method": "GetGuestOrderStatusByOrderNumber",
+    "RelativePath": "api/guest/orders/status/{orderNumber}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderNumber",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Orders.OrderStatusDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "PickleBall.Controllers.HealthController",
     "Method": "Get",
     "RelativePath": "api/Health",
@@ -1338,6 +1364,32 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.OrdersController",
+    "Method": "GetOrderStatus",
+    "RelativePath": "api/Orders/{id}/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Orders.OrderStatusDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.OrdersController",
     "Method": "TestOrderEmail",
     "RelativePath": "api/Orders/{id}/test-email",
     "HttpMethod": "POST",
@@ -1363,6 +1415,26 @@
     "ReturnTypes": [
       {
         "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.OrdersController",
+    "Method": "GetMyOrdersStatus",
+    "RelativePath": "api/Orders/my/status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Orders.UserOrdersSummaryDto",
         "MediaTypes": [
           "text/plain",
           "application/json",

@@ -2277,6 +2277,45 @@
         }
       }
     },
+    "/api/guest/orders/status/{orderNumber}": {
+      "get": {
+        "tags": [
+          "GuestOrders"
+        ],
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Health": {
       "get": {
         "tags": [
@@ -2555,6 +2594,75 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Orders/{id}/status": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Orders/my/status": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UserOrdersSummaryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UserOrdersSummaryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UserOrdersSummaryDto"
                 }
               }
             }
@@ -5237,6 +5345,45 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Orders.OrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "orderStatus": {
+            "type": "string"
+          },
+          "paymentStatus": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "statusDescription": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Orders.ShippingAddressDto": {
         "type": "object",
         "properties": {
@@ -5280,6 +5427,42 @@
           "phoneNumber": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.Orders.UserOrdersSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "confirmedOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shippingOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cancelledOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.OrderStatusDto"
+            }
           }
         },
         "additionalProperties": false

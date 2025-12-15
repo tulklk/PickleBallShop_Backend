@@ -95,6 +95,104 @@ public class OrdersController : ControllerBase
         return Ok(order);
     }
 
+    /// <summary>
+    /// Get order status by ID (lightweight - only returns status info)
+    /// </summary>
+    [HttpGet("{id:guid}/status")]
+    public async Task<ActionResult<OrderStatusDto>> GetOrderStatus(Guid id)
+    {
+        var userId = GetUserId();
+        
+        var order = await _context.Orders
+            .Where(o => o.Id == id && o.UserId == userId)
+            .Select(o => new OrderStatusDto
+            {
+                OrderId = o.Id,
+                OrderNumber = o.OrderNumber,
+                OrderStatus = o.OrderStatus.ToString(),
+                PaymentStatus = o.PaymentStatus.ToString(),
+                PaymentMethod = o.PaymentMethod.ToString(),
+                TotalAmount = o.TotalAmount,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt,
+                StatusDescription = GetStatusDescription(o.OrderStatus, o.PaymentStatus)
+            })
+            .FirstOrDefaultAsync();
+
+        if (order == null)
+        {
+            return NotFound(new { message = "Không tìm thấy đơn hàng" });
+        }
+
+        return Ok(order);
+    }
+
+    /// <summary>
+    /// Get all orders status summary for current user
+    /// </summary>
+    [HttpGet("my/status")]
+    public async Task<ActionResult<UserOrdersSummaryDto>> GetMyOrdersStatus()
+    {
+        var userId = GetUserId();
+        
+        var orders = await _context.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new OrderStatusDto
+            {
+                OrderId = o.Id,
+                OrderNumber = o.OrderNumber,
+                OrderStatus = o.OrderStatus.ToString(),
+                PaymentStatus = o.PaymentStatus.ToString(),
+                PaymentMethod = o.PaymentMethod.ToString(),
+                TotalAmount = o.TotalAmount,
+                CreatedAt = o.CreatedAt,
+                UpdatedAt = o.UpdatedAt,
+                StatusDescription = GetStatusDescription(o.OrderStatus, o.PaymentStatus)
+            })
+            .ToListAsync();
+
+        var summary = new UserOrdersSummaryDto
+        {
+            TotalOrders = orders.Count,
+            PendingOrders = orders.Count(o => o.OrderStatus == "Pending"),
+            ConfirmedOrders = orders.Count(o => o.OrderStatus == "Confirmed"),
+            ShippingOrders = orders.Count(o => o.OrderStatus == "Shipping"),
+            CompletedOrders = orders.Count(o => o.OrderStatus == "Completed"),
+            CancelledOrders = orders.Count(o => o.OrderStatus == "Cancelled"),
+            Orders = orders
+        };
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Helper method to get Vietnamese status description
+    /// </summary>
+    private static string GetStatusDescription(Domain.Entities.OrderStatus orderStatus, Domain.Entities.PaymentStatus paymentStatus)
+    {
+        var paymentDesc = paymentStatus switch
+        {
+            Domain.Entities.PaymentStatus.Pending => "Chờ thanh toán",
+            Domain.Entities.PaymentStatus.Paid => "Đã thanh toán",
+            Domain.Entities.PaymentStatus.Failed => "Thanh toán thất bại",
+            Domain.Entities.PaymentStatus.Refunded => "Đã hoàn tiền",
+            _ => "Không xác định"
+        };
+
+        var orderDesc = orderStatus switch
+        {
+            Domain.Entities.OrderStatus.Pending => "Chờ xác nhận",
+            Domain.Entities.OrderStatus.Confirmed => "Đã xác nhận",
+            Domain.Entities.OrderStatus.Shipping => "Đang giao hàng",
+            Domain.Entities.OrderStatus.Completed => "Hoàn thành",
+            Domain.Entities.OrderStatus.Cancelled => "Đã hủy",
+            _ => "Không xác định"
+        };
+
+        return $"{orderDesc} - {paymentDesc}";
+    }
+
     [HttpPost("{id:guid}/payment")]
     public async Task<ActionResult<CreatePaymentResponse>> InitiatePayment(Guid id)
     {
