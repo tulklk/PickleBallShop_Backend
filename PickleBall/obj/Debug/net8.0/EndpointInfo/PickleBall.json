@@ -5858,9 +5858,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "sku": {
-            "type": "string"
-          },
           "brand": {
             "type": "string",
             "nullable": true
@@ -5911,9 +5908,6 @@
           "stockQuantity": {
             "type": "integer",
             "format": "int32"
-          },
-          "sku": {
-            "type": "string"
           },
           "isActive": {
             "type": "boolean"
@@ -6031,9 +6025,6 @@
           "stockQuantity": {
             "type": "integer",
             "format": "int32"
-          },
-          "sku": {
-            "type": "string"
           },
           "brand": {
             "type": "string",
@@ -6159,9 +6150,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "sku": {
-            "type": "string"
-          },
           "isActive": {
             "type": "boolean"
           },
@@ -6198,9 +6186,6 @@
           "stockQuantity": {
             "type": "integer",
             "format": "int32"
-          },
-          "sku": {
-            "type": "string"
           },
           "brand": {
             "type": "string",
@@ -7037,9 +7022,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "sku": {
-            "type": "string"
-          },
           "brand": {
             "type": "string",
             "nullable": true
@@ -7323,9 +7305,6 @@
           "stockQuantity": {
             "type": "integer",
             "format": "int32"
-          },
-          "sku": {
-            "type": "string"
           },
           "isActive": {
             "type": "boolean"

@@ -16,8 +16,6 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
         builder.Property(pv => pv.Price).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(pv => pv.OriginalPrice).HasColumnType("decimal(18,2)");
         builder.Property(pv => pv.StockQuantity).IsRequired().HasDefaultValue(0);
-        builder.Property(pv => pv.SKU).IsRequired().HasMaxLength(100);
-        builder.HasIndex(pv => pv.SKU).IsUnique();
         builder.Property(pv => pv.IsActive).HasDefaultValue(true);
 
         // Relationship with Product

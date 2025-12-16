@@ -8,7 +8,6 @@ public class CreateProductRequest
     public decimal Price { get; set; }
     public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; } = 0;
-    public string SKU { get; set; } = string.Empty;
     public string? Brand { get; set; }
     public bool IsActive { get; set; } = true;
     

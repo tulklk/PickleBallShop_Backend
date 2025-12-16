@@ -9,7 +9,6 @@ public class ProductVariant : BaseEntity
     public decimal Price { get; set; } // Giá của variant (có thể khác với Product base price)
     public decimal? OriginalPrice { get; set; } // Giá gốc nếu có giảm giá
     public int StockQuantity { get; set; } // Số lượng tồn kho riêng cho variant
-    public string SKU { get; set; } = string.Empty; // SKU riêng cho variant
     public bool IsActive { get; set; } = true;
 
     // Navigation properties

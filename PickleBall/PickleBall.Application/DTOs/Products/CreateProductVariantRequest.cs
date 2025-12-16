@@ -8,7 +8,6 @@ public class CreateProductVariantRequest
     public decimal Price { get; set; } // Giá của variant (giá tuyệt đối)
     public decimal? OriginalPrice { get; set; } // Giá gốc của variant (nếu có giảm giá)
     public int StockQuantity { get; set; } = 0; // Số lượng tồn kho
-    public string SKU { get; set; } = string.Empty; // SKU riêng cho variant (phải unique)
     public bool IsActive { get; set; } = true;
 }
 

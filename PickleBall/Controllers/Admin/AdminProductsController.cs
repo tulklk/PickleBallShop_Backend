@@ -44,37 +44,12 @@ public class AdminProductsController : ControllerBase
             return BadRequest(new { message = "Category not found" });
         }
 
-        // Check if SKU already exists
-        var skuExists = await _context.Products.AnyAsync(p => p.SKU == request.SKU);
-        if (skuExists)
-        {
-            return BadRequest(new { message = "SKU already exists" });
-        }
-
         // Check if product has variants
         bool hasVariants = request.Variants != null && request.Variants.Count > 0;
 
         // Validate variants if provided
         if (hasVariants)
         {
-            // Validate variant SKUs are unique within the request
-            var variantSkus = request.Variants.Select(v => v.SKU).ToList();
-            if (variantSkus.Count != variantSkus.Distinct().Count())
-            {
-                return BadRequest(new { message = "Variant SKUs must be unique within the product" });
-            }
-
-            // Validate variant SKUs don't already exist in database
-            var existingVariantSkus = await _context.ProductVariants
-                .Where(pv => variantSkus.Contains(pv.SKU))
-                .Select(pv => pv.SKU)
-                .ToListAsync();
-            
-            if (existingVariantSkus.Any())
-            {
-                return BadRequest(new { message = $"Variant SKUs already exist: {string.Join(", ", existingVariantSkus)}" });
-            }
-
             // Validate at least one variant attribute (Color, Size, or Spec) is provided for each variant
             foreach (var variant in request.Variants)
             {
@@ -82,12 +57,7 @@ public class AdminProductsController : ControllerBase
                     string.IsNullOrWhiteSpace(variant.Size) && 
                     string.IsNullOrWhiteSpace(variant.Spec))
                 {
-                    return BadRequest(new { message = $"Each variant must have at least one attribute (Color, Size, or Spec). SKU: {variant.SKU}" });
-                }
-
-                if (string.IsNullOrWhiteSpace(variant.SKU))
-                {
-                    return BadRequest(new { message = "Variant SKU is required" });
+                    return BadRequest(new { message = "Each variant must have at least one attribute (Color, Size, or Spec)" });
                 }
             }
         }
@@ -108,7 +78,6 @@ public class AdminProductsController : ControllerBase
             Price = request.Price,
             OriginalPrice = request.OriginalPrice,
             StockQuantity = hasVariants ? 0 : request.StockQuantity, // If has variants, product stock = 0
-            SKU = request.SKU,
             Brand = request.Brand,
             IsActive = request.IsActive,
             HasVariants = hasVariants,
@@ -147,7 +116,6 @@ public class AdminProductsController : ControllerBase
                 Price = v.Price,
                 OriginalPrice = v.OriginalPrice,
                 StockQuantity = v.StockQuantity,
-                SKU = v.SKU,
                 IsActive = v.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -208,13 +176,6 @@ public class AdminProductsController : ControllerBase
             return BadRequest(new { message = "Category not found" });
         }
 
-        // Check if SKU already exists (excluding current product)
-        var skuExists = await _context.Products.AnyAsync(p => p.SKU == request.SKU && p.Id != id);
-        if (skuExists)
-        {
-            return BadRequest(new { message = "SKU already exists" });
-        }
-
         // Check if variants are provided in request (null = keep existing, not null = replace)
         bool shouldUpdateVariants = request.Variants != null;
         bool hasVariants = request.Variants != null && request.Variants.Count > 0;
@@ -222,24 +183,6 @@ public class AdminProductsController : ControllerBase
         // Validate variants if provided
         if (shouldUpdateVariants && hasVariants)
         {
-            // Validate variant SKUs are unique within the request
-            var variantSkus = request.Variants.Select(v => v.SKU).ToList();
-            if (variantSkus.Count != variantSkus.Distinct().Count())
-            {
-                return BadRequest(new { message = "Variant SKUs must be unique within the product" });
-            }
-
-            // Get existing variant SKUs (excluding current product's variants)
-            var existingVariantSkus = await _context.ProductVariants
-                .Where(pv => variantSkus.Contains(pv.SKU) && pv.ProductId != id)
-                .Select(pv => pv.SKU)
-                .ToListAsync();
-            
-            if (existingVariantSkus.Any())
-            {
-                return BadRequest(new { message = $"Variant SKUs already exist for other products: {string.Join(", ", existingVariantSkus)}" });
-            }
-
             // Validate at least one variant attribute (Color, Size, or Spec) is provided for each variant
             foreach (var variant in request.Variants)
             {
@@ -247,12 +190,7 @@ public class AdminProductsController : ControllerBase
                     string.IsNullOrWhiteSpace(variant.Size) && 
                     string.IsNullOrWhiteSpace(variant.Spec))
                 {
-                    return BadRequest(new { message = $"Each variant must have at least one attribute (Color, Size, or Spec). SKU: {variant.SKU}" });
-                }
-
-                if (string.IsNullOrWhiteSpace(variant.SKU))
-                {
-                    return BadRequest(new { message = "Variant SKU is required" });
+                    return BadRequest(new { message = "Each variant must have at least one attribute (Color, Size, or Spec)" });
                 }
             }
         }
@@ -273,7 +211,6 @@ public class AdminProductsController : ControllerBase
         product.CategoryId = request.CategoryId;
         product.Price = request.Price;
         product.OriginalPrice = request.OriginalPrice;
-        product.SKU = request.SKU;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
@@ -332,7 +269,6 @@ public class AdminProductsController : ControllerBase
                     Price = v.Price,
                     OriginalPrice = v.OriginalPrice,
                     StockQuantity = v.StockQuantity,
-                    SKU = v.SKU,
                     IsActive = v.IsActive,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow

@@ -139,13 +139,6 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> CreateProductAsync(CreateProductRequest request)
     {
-        // Check if SKU already exists
-        var existingSku = await _context.Products.FirstOrDefaultAsync(p => p.SKU == request.SKU);
-        if (existingSku != null)
-        {
-            throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
-        }
-
         // Generate slug from product name
         var baseSlug = SlugHelper.GenerateSlug(request.Name);
         var slug = await SlugHelper.GenerateUniqueSlugAsync(baseSlug, async (s) =>
@@ -162,7 +155,6 @@ public class ProductService : IProductService
             Price = request.Price,
             OriginalPrice = request.OriginalPrice,
             StockQuantity = request.StockQuantity,
-            SKU = request.SKU,
             Brand = request.Brand,
             IsActive = request.IsActive
         };
@@ -206,13 +198,6 @@ public class ProductService : IProductService
             throw new KeyNotFoundException("Product not found");
         }
 
-        // Check if SKU already exists (excluding current product)
-        var existingSku = await _context.Products.FirstOrDefaultAsync(p => p.SKU == request.SKU && p.Id != id);
-        if (existingSku != null)
-        {
-            throw new InvalidOperationException($"Product with SKU '{request.SKU}' already exists");
-        }
-
         // Generate slug from product name if name changed
         if (product.Name != request.Name)
         {
@@ -230,7 +215,6 @@ public class ProductService : IProductService
         product.Price = request.Price;
         product.OriginalPrice = request.OriginalPrice;
         product.StockQuantity = request.StockQuantity;
-        product.SKU = request.SKU;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
 

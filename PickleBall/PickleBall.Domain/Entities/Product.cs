@@ -11,7 +11,6 @@ public class Product : BaseEntity
     public decimal Price { get; set; }
     public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
-    public string SKU { get; set; } = string.Empty;
     public string? Brand { get; set; }
     public bool IsActive { get; set; } = true;
     public bool HasVariants { get; set; } = false; // Có variants hay không (vợt, giày có variants)

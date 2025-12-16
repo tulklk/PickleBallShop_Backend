@@ -20,10 +20,6 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
         RuleFor(x => x.StockQuantity)
             .GreaterThanOrEqualTo(0).WithMessage("Stock quantity must be greater than or equal to 0");
 
-        RuleFor(x => x.SKU)
-            .NotEmpty().WithMessage("SKU is required")
-            .MaximumLength(100).WithMessage("SKU must not exceed 100 characters");
-
         RuleFor(x => x.Description)
             .MaximumLength(5000).WithMessage("Description must not exceed 5000 characters");
 

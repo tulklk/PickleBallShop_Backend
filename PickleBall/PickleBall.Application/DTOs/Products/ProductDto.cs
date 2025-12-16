@@ -11,7 +11,6 @@ public class ProductDto
     public decimal Price { get; set; }
     public decimal? OriginalPrice { get; set; }
     public int StockQuantity { get; set; }
-    public string SKU { get; set; } = string.Empty;
     public string? Brand { get; set; }
     public bool IsActive { get; set; }
     public List<string> ImageUrls { get; set; } = new();
