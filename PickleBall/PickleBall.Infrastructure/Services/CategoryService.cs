@@ -27,6 +27,51 @@ public class CategoryService : ICategoryService
         return _mapper.Map<List<CategoryDto>>(categories);
     }
 
+        public async Task<List<CategoryDto>> GetCategoryTreeAsync()
+        {
+            var categories = await _context.ProductCategories
+                .Include(c => c.Products)
+                .ToListAsync();
+
+            // Create DTOs with product count
+            var dtoDict = categories.ToDictionary(
+                c => c.Name,
+                c => new CategoryDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Description = c.Description,
+                    ProductCount = c.Products.Count
+                });
+
+            // Build parent-child relationship by name prefix: "Parent - Child"
+            foreach (var category in categories)
+            {
+                if (!category.Name.Contains(" - "))
+                {
+                    continue;
+                }
+
+                var parts = category.Name.Split(" - ", 2, StringSplitOptions.TrimEntries);
+                if (parts.Length != 2) continue;
+
+                var parentName = parts[0];
+                var childName = category.Name;
+
+                if (dtoDict.TryGetValue(parentName, out var parentDto) &&
+                    dtoDict.TryGetValue(childName, out var childDto))
+                {
+                    parentDto.Children.Add(childDto);
+                }
+            }
+
+            // Return only top-level categories (no " - " in name), with children populated
+            return dtoDict.Values
+                .Where(c => !c.Name.Contains(" - "))
+                .OrderBy(c => c.Name)
+                .ToList();
+        }
+
     public async Task<CategoryDto?> GetCategoryByIdAsync(Guid id)
     {
         var category = await _context.ProductCategories

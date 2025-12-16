@@ -1012,6 +1012,26 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.CategoriesController",
+    "Method": "GetCategoryTree",
+    "RelativePath": "api/Categories/tree",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "PickleBall.Controllers.ChatController",
     "Method": "HealthCheck",
     "RelativePath": "api/Chat/health",

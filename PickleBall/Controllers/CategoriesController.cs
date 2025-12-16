@@ -23,6 +23,16 @@ public class CategoriesController : ControllerBase
         return Ok(categories);
     }
 
+        /// <summary>
+        /// Get categories with sub-categories grouped (e.g., Vợt Pickleball -> Vợt Pickleball - Adidas)
+        /// </summary>
+        [HttpGet("tree")]
+        public async Task<ActionResult<List<CategoryDto>>> GetCategoryTree()
+        {
+            var categories = await _categoryService.GetCategoryTreeAsync();
+            return Ok(categories);
+        }
+
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CategoryDto>> GetCategory(Guid id)
     {

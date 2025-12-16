@@ -5,6 +5,7 @@ namespace PickleBall.Application.Interfaces;
 public interface ICategoryService
 {
     Task<List<CategoryDto>> GetAllCategoriesAsync();
+    Task<List<CategoryDto>> GetCategoryTreeAsync();
     Task<CategoryDto?> GetCategoryByIdAsync(Guid id);
     Task<CategoryDto> CreateCategoryAsync(CreateCategoryRequest request);
     Task<List<CategoryDto>> CreateCategoriesBulkAsync(List<CreateCategoryRequest> requests);
