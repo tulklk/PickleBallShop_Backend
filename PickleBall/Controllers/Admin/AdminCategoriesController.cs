@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PickleBall.Domain.Entities;
-using PickleBall.Infrastructure.Data;
+using PickleBall.Application.DTOs.Categories;
+using PickleBall.Application.Interfaces;
 
 namespace PickleBall.Controllers.Admin;
 
@@ -11,78 +10,111 @@ namespace PickleBall.Controllers.Admin;
 [Authorize(Roles = "Admin")]
 public class AdminCategoriesController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ICategoryService _categoryService;
 
-    public AdminCategoriesController(ApplicationDbContext context)
+    public AdminCategoriesController(ICategoryService categoryService)
     {
-        _context = context;
+        _categoryService = categoryService;
     }
 
-    [HttpPost]
-    public async Task<ActionResult<ProductCategory>> CreateCategory([FromBody] ProductCategory category)
+    [HttpGet]
+    public async Task<ActionResult<List<CategoryDto>>> GetCategories()
     {
-        _context.ProductCategories.Add(category);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+        var categories = await _categoryService.GetAllCategoriesAsync();
+        return Ok(categories);
     }
 
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] ProductCategory category)
+    /// <summary>
+    /// Get categories with sub-categories grouped (e.g., Vợt Pickleball -> Vợt Pickleball - Adidas)
+    /// </summary>
+    [HttpGet("tree")]
+    public async Task<ActionResult<List<CategoryDto>>> GetCategoryTree()
     {
-        if (id != category.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(category).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!await CategoryExists(id))
-            {
-                return NotFound();
-            }
-            throw;
-        }
-
-        return NoContent();
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteCategory(Guid id)
-    {
-        var category = await _context.ProductCategories.FindAsync(id);
-        if (category == null)
-        {
-            return NotFound();
-        }
-
-        _context.ProductCategories.Remove(category);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        var categories = await _categoryService.GetCategoryTreeAsync();
+        return Ok(categories);
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ProductCategory>> GetCategory(Guid id)
+    public async Task<ActionResult<CategoryDto>> GetCategory(Guid id)
     {
-        var category = await _context.ProductCategories
-            .FirstOrDefaultAsync(c => c.Id == id);
-
+        var category = await _categoryService.GetCategoryByIdAsync(id);
         if (category == null)
         {
             return NotFound();
         }
-
-        return category;
+        return Ok(category);
     }
 
-    private async Task<bool> CategoryExists(Guid id)
+    [HttpPost]
+    public async Task<ActionResult<CategoryDto>> CreateCategory([FromBody] CreateCategoryRequest request)
     {
-        return await _context.ProductCategories.AnyAsync(e => e.Id == id);
+        try
+        {
+            var category = await _categoryService.CreateCategoryAsync(request);
+            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<CategoryDto>> UpdateCategory(Guid id, [FromBody] UpdateCategoryRequest request)
+    {
+        try
+        {
+            var category = await _categoryService.UpdateCategoryAsync(id, request);
+            return Ok(category);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteCategory(Guid id)
+    {
+        try
+        {
+            var deleted = await _categoryService.DeleteCategoryAsync(id);
+            if (!deleted)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("bulk")]
+    public async Task<ActionResult<List<CategoryDto>>> CreateCategoriesBulk([FromBody] List<CreateCategoryRequest> requests)
+    {
+        if (requests == null || !requests.Any())
+        {
+            return BadRequest(new { message = "Request list cannot be empty" });
+        }
+
+        try
+        {
+            var categories = await _categoryService.CreateCategoriesBulkAsync(requests);
+            return Ok(categories);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

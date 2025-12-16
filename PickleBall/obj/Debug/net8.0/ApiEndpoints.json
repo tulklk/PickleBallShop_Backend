@@ -1,6 +1,26 @@
 [
   {
     "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
+    "Method": "GetCategories",
+    "RelativePath": "api/admin/AdminCategories",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
     "Method": "CreateCategory",
     "RelativePath": "api/admin/AdminCategories",
     "HttpMethod": "POST",
@@ -8,14 +28,40 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "category",
-        "Type": "PickleBall.Domain.Entities.ProductCategory",
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Categories.CreateCategoryRequest",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Domain.Entities.ProductCategory",
+        "Type": "PickleBall.Application.DTOs.Categories.CategoryDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
+    "Method": "GetCategory",
+    "RelativePath": "api/admin/AdminCategories/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Categories.CategoryDto",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -39,12 +85,22 @@
         "IsRequired": true
       },
       {
-        "Name": "category",
-        "Type": "PickleBall.Domain.Entities.ProductCategory",
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.Categories.UpdateCategoryRequest",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": []
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Categories.CategoryDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
@@ -64,21 +120,41 @@
   },
   {
     "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
-    "Method": "GetCategory",
-    "RelativePath": "api/admin/AdminCategories/{id}",
-    "HttpMethod": "GET",
+    "Method": "CreateCategoriesBulk",
+    "RelativePath": "api/admin/AdminCategories/bulk",
+    "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "id",
-        "Type": "System.Guid",
+        "Name": "requests",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CreateCategoryRequest, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Domain.Entities.ProductCategory",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminCategoriesController",
+    "Method": "GetCategoryTree",
+    "RelativePath": "api/admin/AdminCategories/tree",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",

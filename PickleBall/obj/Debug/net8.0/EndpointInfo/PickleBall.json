@@ -7,6 +7,42 @@
   },
   "paths": {
     "/api/admin/AdminCategories": {
+      "get": {
+        "tags": [
+          "AdminCategories"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "AdminCategories"
@@ -17,7 +53,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                   }
                 ]
               }
@@ -26,7 +62,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                   }
                 ]
               }
@@ -35,7 +71,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
                   }
                 ]
               }
@@ -48,17 +84,55 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/AdminCategories/tree": {
+      "get": {
+        "tags": [
+          "AdminCategories"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
                 }
               }
             }
@@ -67,6 +141,44 @@
       }
     },
     "/api/admin/AdminCategories/{id}": {
+      "get": {
+        "tags": [
+          "AdminCategories"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              }
+            }
+          }
+        }
+      },
       "put": {
         "tags": [
           "AdminCategories"
@@ -88,7 +200,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
                   }
                 ]
               }
@@ -97,7 +209,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
                   }
                 ]
               }
@@ -106,7 +218,7 @@
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.UpdateCategoryRequest"
                   }
                 ]
               }
@@ -115,7 +227,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                }
+              }
+            }
           }
         }
       },
@@ -139,39 +268,67 @@
             "description": "OK"
           }
         }
-      },
-      "get": {
+      }
+    },
+    "/api/admin/AdminCategories/bulk": {
+      "post": {
         "tags": [
           "AdminCategories"
         ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                }
+              }
+            },
+            "text/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                }
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+                }
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CategoryDto"
+                  }
                 }
               }
             }
@@ -6873,56 +7030,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PickleBall.Domain.Entities.InventoryTransaction"
-            }
-          }
-        },
-        "additionalProperties": false
-      },
-      "PickleBall.Domain.Entities.ProductCategory": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "parentId": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "products": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
-            }
-          },
-          "parent": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
-              }
-            ],
-            "nullable": true
-          },
-          "children": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
             }
           }
         },
