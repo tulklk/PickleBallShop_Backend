@@ -8,7 +8,7 @@ public class CategoryDto
     public int ProductCount { get; set; }
 
     /// <summary>
-    /// Children sub-categories (e.g., Vợt Pickleball - Adidas belongs to Vợt Pickleball)
+    /// Children sub-categories
     /// </summary>
     public List<CategoryDto> Children { get; set; } = new();
 }

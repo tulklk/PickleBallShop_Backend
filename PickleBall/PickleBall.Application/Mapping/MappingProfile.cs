@@ -43,7 +43,8 @@ public class MappingProfile : Profile
 
         // Category mapping
         CreateMap<ProductCategory, CategoryDto>()
-            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count(p => p.IsActive)));
+            .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products.Count(p => p.IsActive)))
+            .ForMember(dest => dest.Children, opt => opt.Ignore()); // children handled manually to avoid cycles
 
         // Cart mapping
         CreateMap<Cart, CartDto>();

@@ -4737,6 +4737,13 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -6893,10 +6900,29 @@
             "type": "string",
             "nullable": true
           },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
           "products": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+            }
+          },
+          "parent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+              }
+            ],
+            "nullable": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
             }
           }
         },

@@ -16,5 +16,11 @@ public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCate
             .WithOne(p => p.Category)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Self-referencing parent-child
+        builder.HasMany(pc => pc.Children)
+            .WithOne(pc => pc.Parent)
+            .HasForeignKey(pc => pc.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
