@@ -4886,9 +4886,13 @@
         "additionalProperties": false
       },
       "PickleBall.Application.DTOs.Categories.CreateCategoryRequest": {
+        "required": [
+          "name"
+        ],
         "type": "object",
         "properties": {
           "name": {
+            "minLength": 1,
             "type": "string"
           },
           "description": {
@@ -4906,13 +4910,24 @@
         "additionalProperties": false
       },
       "PickleBall.Application.DTOs.Categories.UpdateCategoryRequest": {
+        "required": [
+          "name"
+        ],
         "type": "object",
         "properties": {
           "name": {
+            "minLength": 1,
             "type": "string"
           },
           "description": {
             "type": "string",
+            "nullable": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.Categories.CreateCategoryRequest"
+            },
             "nullable": true
           }
         },
@@ -6534,7 +6549,7 @@
         },
         "additionalProperties": false
       },
-      "PickleBall.Domain.Entities.Cart": {
+      "PickleBall.Domain.Entities.BaseEntity": {
         "type": "object",
         "properties": {
           "id": {
@@ -6548,7 +6563,18 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
-          },
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.Cart": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -6571,19 +6597,12 @@
       },
       "PickleBall.Domain.Entities.CartItem": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "cartId": {
             "type": "string",
             "format": "uuid"
@@ -6630,21 +6649,46 @@
         },
         "additionalProperties": false
       },
-      "PickleBall.Domain.Entities.InventoryTransaction": {
+      "PickleBall.Domain.Entities.EmailVerificationToken": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
+          "userId": {
             "type": "string",
             "format": "uuid"
           },
-          "createdAt": {
+          "token": {
+            "type": "string"
+          },
+          "expiresAt": {
             "type": "string",
             "format": "date-time"
           },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+          "isUsed": {
+            "type": "boolean"
           },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.InventoryTransaction": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
           "productId": {
             "type": "string",
             "format": "uuid"
@@ -6666,21 +6710,64 @@
         },
         "additionalProperties": false
       },
-      "PickleBall.Domain.Entities.Order": {
+      "PickleBall.Domain.Entities.NewsPost": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "authorId": {
             "type": "string",
             "format": "uuid"
           },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
+          "category": {
+            "type": "string"
           },
-          "updatedAt": {
+          "tags": {
             "type": "string",
-            "format": "date-time"
+            "nullable": true
           },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.Order": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
           "orderNumber": {
             "type": "string"
           },
@@ -6773,19 +6860,12 @@
       },
       "PickleBall.Domain.Entities.OrderItem": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "orderId": {
             "type": "string",
             "format": "uuid"
@@ -6855,19 +6935,12 @@
       },
       "PickleBall.Domain.Entities.Payment": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "orderId": {
             "type": "string",
             "format": "uuid"
@@ -6931,19 +7004,12 @@
       },
       "PickleBall.Domain.Entities.Product": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "name": {
             "type": "string"
           },
@@ -7035,21 +7101,57 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Domain.Entities.ProductCategory": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.Product"
+            }
+          },
+          "parent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+              }
+            ],
+            "nullable": true
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.ProductCategory"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Domain.Entities.ProductComment": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "productId": {
             "type": "string",
             "format": "uuid"
@@ -7102,19 +7204,12 @@
       },
       "PickleBall.Domain.Entities.ProductImage": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "productId": {
             "type": "string",
             "format": "uuid"
@@ -7137,19 +7232,12 @@
       },
       "PickleBall.Domain.Entities.ProductReview": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "productId": {
             "type": "string",
             "format": "uuid"
@@ -7201,19 +7289,12 @@
       },
       "PickleBall.Domain.Entities.ProductVariant": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "productId": {
             "type": "string",
             "format": "uuid"
@@ -7273,19 +7354,12 @@
       },
       "PickleBall.Domain.Entities.RefreshToken": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "userId": {
             "type": "string",
             "format": "uuid"
@@ -7341,19 +7415,12 @@
       },
       "PickleBall.Domain.Entities.User": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "email": {
             "type": "string"
           },
@@ -7423,19 +7490,12 @@
       },
       "PickleBall.Domain.Entities.Wishlist": {
         "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "userId": {
             "type": "string",
             "format": "uuid"

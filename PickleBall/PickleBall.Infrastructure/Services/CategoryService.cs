@@ -176,6 +176,8 @@ public class CategoryService : ICategoryService
     public async Task<CategoryDto> UpdateCategoryAsync(Guid id, UpdateCategoryRequest request)
     {
         var category = await _context.ProductCategories
+            .Include(c => c.Children)
+                .ThenInclude(child => child.Products)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
@@ -185,6 +187,38 @@ public class CategoryService : ICategoryService
 
         category.Name = request.Name;
         category.Description = request.Description;
+
+        // Update children if provided
+        if (request.Children != null)
+        {
+            // Remove existing children and create new ones from request
+            if (category.Children.Any())
+            {
+                // Check if any child has active products
+                foreach (var child in category.Children)
+                {
+                    if (child.Products.Any(p => p.IsActive))
+                    {
+                        throw new InvalidOperationException($"Cannot remove child category '{child.Name}' because it has active products");
+                    }
+                }
+
+                _context.ProductCategories.RemoveRange(category.Children);
+            }
+
+            // Create new children from request
+            if (request.Children.Any())
+            {
+                var childCategories = request.Children.Select(childRequest => new ProductCategory
+                {
+                    Name = childRequest.Name,
+                    Description = childRequest.Description,
+                    ParentId = category.Id
+                }).ToList();
+
+                _context.ProductCategories.AddRange(childCategories);
+            }
+        }
 
         await _context.SaveChangesAsync();
 

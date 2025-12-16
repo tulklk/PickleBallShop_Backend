@@ -38,6 +38,10 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 // Case insensitive property matching
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                // Allow reading numbers from strings
+                options.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
+                // Reference handling for recursive types
+                options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
             });
 
         // Configure Swagger
@@ -88,7 +92,23 @@ public class Program
             
             // Use fully qualified names to avoid ambiguity
             c.UseAllOfToExtendReferenceSchemas();
+            c.UseOneOfForPolymorphism();
             c.SupportNonNullableReferenceTypes();
+            
+            // Include XML comments for better documentation
+            try
+            {
+                var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
+            }
+            catch
+            {
+                // Ignore if XML file doesn't exist
+            }
             
             // Filter out problematic controllers/actions
             c.DocInclusionPredicate((docName, apiDesc) => true);
