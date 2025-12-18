@@ -198,9 +198,9 @@ public class CategoryService : ICategoryService
                 foreach (var child in category.Children)
                 {
                     if (child.Products.Any(p => p.IsActive))
-                    {
+            {
                         throw new InvalidOperationException($"Cannot remove child category '{child.Name}' because it has active products");
-                    }
+            }
                 }
 
                 _context.ProductCategories.RemoveRange(category.Children);

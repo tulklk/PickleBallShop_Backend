@@ -16,14 +16,16 @@ public class OrderService : IOrderService
     private readonly IPaymentService _paymentService;
     private readonly IEmailService _emailService;
     private readonly ILogger<OrderService> _logger;
+    private readonly IVoucherService _voucherService;
 
-    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService, IEmailService emailService, ILogger<OrderService> logger)
+    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService, IEmailService emailService, ILogger<OrderService> logger, IVoucherService voucherService)
     {
         _context = context;
         _mapper = mapper;
         _paymentService = paymentService;
         _emailService = emailService;
         _logger = logger;
+        _voucherService = voucherService;
     }
 
     public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderRequest request)
@@ -65,8 +67,30 @@ public class OrderService : IOrderService
         // Generate order number
         var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 
-        // Calculate total
-        var totalAmount = cart.Items.Sum(ci => ci.UnitPriceSnapshot * ci.Quantity);
+        // Calculate subtotal
+        var subtotal = cart.Items.Sum(ci => ci.UnitPriceSnapshot * ci.Quantity);
+
+        decimal discountAmount = 0;
+        Guid? voucherId = null;
+
+        if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateAsync(
+                request.VoucherCode,
+                subtotal,
+                userId,
+                null);
+
+            if (!validateResult.isValid)
+            {
+                throw new InvalidOperationException(validateResult.message);
+            }
+
+            discountAmount = validateResult.discountAmount;
+            voucherId = validateResult.voucher?.Id;
+        }
+
+        var totalAmount = subtotal - discountAmount;
 
         // Create order
         var order = new Order
@@ -83,7 +107,9 @@ public class OrderService : IOrderService
             ShippingAddressLine = request.ShippingAddress.AddressLine,
             ShippingWard = request.ShippingAddress.Ward,
             ShippingDistrict = request.ShippingAddress.District,
-            ShippingCity = request.ShippingAddress.City
+            ShippingCity = request.ShippingAddress.City,
+            VoucherId = voucherId,
+            VoucherDiscountAmount = discountAmount > 0 ? discountAmount : null
         };
 
         // Create order items
@@ -143,6 +169,24 @@ public class OrderService : IOrderService
         }
 
         _context.Orders.Add(order);
+
+        // Track voucher usage
+        if (voucherId.HasValue && discountAmount > 0)
+        {
+            var usage = new VoucherUsage
+            {
+                VoucherId = voucherId.Value,
+                OrderId = order.Id,
+                UserId = userId
+            };
+            _context.VoucherUsages.Add(usage);
+
+            var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Id == voucherId.Value);
+            if (voucher != null)
+            {
+                voucher.UsedCount += 1;
+            }
+        }
 
         // Clear cart
         _context.CartItems.RemoveRange(cart.Items);
@@ -261,8 +305,8 @@ public class OrderService : IOrderService
         // Generate order number
         var orderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 
-        // Calculate total
-        decimal totalAmount = 0;
+        // Calculate subtotal
+        decimal subtotal = 0;
         foreach (var item in request.Items)
         {
             var product = products.First(p => p.Id == item.ProductId);
@@ -278,8 +322,30 @@ public class OrderService : IOrderService
                 price = product.Price; // Price is the current selling price
             }
             
-            totalAmount += price * item.Quantity;
+            subtotal += price * item.Quantity;
         }
+
+        decimal discountAmount = 0;
+        Guid? voucherId = null;
+
+        if (!string.IsNullOrWhiteSpace(request.VoucherCode))
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateAsync(
+                request.VoucherCode,
+                subtotal,
+                null,
+                request.Email);
+
+            if (!validateResult.isValid)
+            {
+                throw new InvalidOperationException(validateResult.message);
+            }
+
+            discountAmount = validateResult.discountAmount;
+            voucherId = validateResult.voucher?.Id;
+        }
+
+        var totalAmount = subtotal - discountAmount;
 
         // Create order
         var order = new Order
@@ -297,7 +363,9 @@ public class OrderService : IOrderService
             ShippingAddressLine = request.ShippingAddress.AddressLine,
             ShippingWard = request.ShippingAddress.Ward,
             ShippingDistrict = request.ShippingAddress.District,
-            ShippingCity = request.ShippingAddress.City
+            ShippingCity = request.ShippingAddress.City,
+            VoucherId = voucherId,
+            VoucherDiscountAmount = discountAmount > 0 ? discountAmount : null
         };
 
         // Create order items and update inventory
@@ -360,6 +428,24 @@ public class OrderService : IOrderService
         }
 
         _context.Orders.Add(order);
+
+        // Track voucher usage
+        if (voucherId.HasValue && discountAmount > 0)
+        {
+            var usage = new VoucherUsage
+            {
+                VoucherId = voucherId.Value,
+                OrderId = order.Id,
+                GuestEmail = request.Email
+            };
+            _context.VoucherUsages.Add(usage);
+
+            var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.Id == voucherId.Value);
+            if (voucher != null)
+            {
+                voucher.UsedCount += 1;
+            }
+        }
         await _context.SaveChangesAsync();
 
         // For COD orders, send confirmation email immediately

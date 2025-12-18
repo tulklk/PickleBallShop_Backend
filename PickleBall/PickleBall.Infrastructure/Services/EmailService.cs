@@ -141,44 +141,66 @@ public class EmailService : IEmailService
                 ?? "";
             
             var imageHtml = !string.IsNullOrEmpty(itemImage) 
-                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' />"
-                : "<div class='product-image' style='background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;'><span style='color: #999; font-size: 11px;'>No Image</span></div>";
+                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
+                : "<div class='product-image' style='width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;'><span style='color: #fff; font-size: 24px;'>🏓</span></div>";
+            
+            var variantInfo = !string.IsNullOrEmpty(item.VariantInfoSnapshot) 
+                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{item.VariantInfoSnapshot}</div>"
+                : "";
             
             orderItemsHtml += $@"
-            <tr style='border-bottom: 1px solid #eee;'>
-                <td>
-                    <div class='product-item'>
-                        {imageHtml}
-                        <div class='product-details'>
-                            <div class='product-name'>{item.ProductNameSnapshot}</div>
-                            <div class='product-quantity'>Số lượng: {item.Quantity}</div>
+            <tr style='border-bottom: 1px solid #e8e8e8;'>
+                <td style='padding: 20px 0;'>
+                    <div class='product-item' style='display: flex; align-items: flex-start; gap: 16px;'>
+                        <div class='product-image-wrapper'>
+                            {imageHtml}
                         </div>
-                        <div class='product-price'>
-                            {formatCurrency(item.LineTotal)}
+                        <div class='product-details' style='flex: 1; min-width: 0;'>
+                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{item.ProductNameSnapshot}</div>
+                            {variantInfo}
+                            <div class='product-meta' style='color: #888; font-size: 13px; margin-top: 8px;'>
+                                Số lượng: <strong style='color: #333;'>{item.Quantity}</strong> × {formatCurrency(item.UnitPrice)}
+                            </div>
+                        </div>
+                        <div class='product-price-wrapper' style='text-align: right;'>
+                            <div class='product-price' style='color: #1a1a1a; font-weight: 700; font-size: 18px; white-space: nowrap;'>
+                                {formatCurrency(item.LineTotal)}
+                            </div>
                         </div>
                     </div>
                 </td>
             </tr>";
         }
         
-        // Get payment status text
-        var paymentStatusText = order.PaymentStatus switch
+        // Get payment status text with badge
+        var (paymentStatusText, paymentStatusClass) = order.PaymentStatus switch
         {
-            PaymentStatus.Paid => "Đã thanh toán",
-            PaymentStatus.Pending => "Chờ thanh toán",
-            PaymentStatus.Failed => "Thanh toán thất bại",
-            _ => "Chưa xác định"
+            PaymentStatus.Paid => ("✓ Đã thanh toán", "status-badge-success"),
+            PaymentStatus.Pending => ("⏳ Chờ thanh toán", "status-badge-warning"),
+            PaymentStatus.Failed => ("✗ Thanh toán thất bại", "status-badge-error"),
+            _ => ("❓ Chưa xác định", "status-badge-default")
         };
         
-        var orderStatusText = order.OrderStatus switch
+        var (orderStatusText, orderStatusClass) = order.OrderStatus switch
         {
-            OrderStatus.Pending => "Đang chờ xử lý",
-            OrderStatus.Confirmed => "Đã xác nhận",
-            OrderStatus.Shipping => "Đang giao hàng",
-            OrderStatus.Completed => "Hoàn thành",
-            OrderStatus.Cancelled => "Đã hủy",
-            _ => "Chưa xác định"
+            OrderStatus.Pending => ("⏳ Đang chờ xử lý", "status-badge-warning"),
+            OrderStatus.Confirmed => ("✓ Đã xác nhận", "status-badge-success"),
+            OrderStatus.Shipping => ("🚚 Đang giao hàng", "status-badge-info"),
+            OrderStatus.Completed => ("✅ Hoàn thành", "status-badge-success"),
+            OrderStatus.Cancelled => ("✗ Đã hủy", "status-badge-error"),
+            _ => ("❓ Chưa xác định", "status-badge-default")
         };
+
+        var paymentMethodText = order.PaymentMethod switch
+        {
+            PaymentMethod.COD => "💰 Thanh toán khi nhận hàng (COD)",
+            PaymentMethod.BankTransfer => "🏦 Chuyển khoản ngân hàng",
+            PaymentMethod.MoMo => "💜 Ví MoMo",
+            PaymentMethod.VNPay => "💳 VNPay",
+            _ => "❓ Chưa xác định"
+        };
+        
+        var shippingAddress = $"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim();
         
         var subject = $"Đơn hàng của bạn đã được hoàn thành #{order.OrderNumber}";
         var body = $@"
@@ -190,127 +212,174 @@ public class EmailService : IEmailService
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <style>
         * {{ box-sizing: border-box; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 0; width: 100%; }}
-        .header {{ background-color: #4CAF50; color: #ffffff; padding: 25px 20px; text-align: center; border-radius: 0; }}
-        .header h1 {{ margin: 0; padding: 0; color: #ffffff; font-size: 24px; font-weight: 600; line-height: 1.3; }}
-        .content {{ background-color: #ffffff; padding: 20px; border: none; }}
-        .order-info {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }}
-        .order-info-row {{ margin: 12px 0; display: block; }}
-        .order-info-label {{ font-weight: 600; color: #666; display: block; margin-bottom: 4px; font-size: 14px; }}
-        .order-info-value {{ color: #333; display: block; font-size: 14px; word-break: break-word; }}
-        .order-items {{ width: 100%; border-collapse: collapse; margin: 20px 0; display: table; }}
-        .order-items th {{ background-color: #f5f5f5; padding: 10px 8px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #ddd; font-size: 14px; }}
-        .order-items td {{ padding: 12px 8px; font-size: 14px; }}
-        .product-item {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }}
-        .product-image {{ width: 70px; height: 70px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f7fa; }}
+        .email-wrapper {{ background-color: #f5f7fa; padding: 20px 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: #ffffff; padding: 40px 30px; text-align: center; position: relative; }}
+        .header::after {{ content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #4CAF50, #45a049, #4CAF50); }}
+        .header h1 {{ margin: 0; padding: 0; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1.3; letter-spacing: -0.5px; }}
+        .header-icon {{ font-size: 48px; margin-bottom: 10px; display: block; }}
+        .content {{ background-color: #ffffff; padding: 30px; }}
+        .greeting {{ font-size: 16px; color: #333; margin-bottom: 25px; line-height: 1.6; }}
+        .greeting strong {{ color: #1a1a1a; font-size: 18px; }}
+        .cta-section {{ text-align: center; margin: 35px 0; }}
+        .button {{ display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; margin: 8px; font-weight: 600; font-size: 16px; text-align: center; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); transition: all 0.3s ease; }}
+        .button:hover {{ box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4); transform: translateY(-2px); }}
+        .info-section {{ background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 25px; border-radius: 10px; margin: 30px 0; border: 1px solid #e8e8e8; }}
+        .info-section h3 {{ margin: 0 0 20px 0; color: #1a1a1a; font-size: 20px; font-weight: 700; padding-bottom: 15px; border-bottom: 2px solid #4CAF50; }}
+        .info-grid {{ display: grid; gap: 16px; }}
+        .info-row {{ display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }}
+        .info-row:last-child {{ border-bottom: none; }}
+        .info-label {{ font-weight: 600; color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }}
+        .info-value {{ color: #1a1a1a; font-size: 15px; word-break: break-word; line-height: 1.5; }}
+        .status-badge {{ display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 4px; }}
+        .status-badge-success {{ background-color: #d4edda; color: #155724; }}
+        .status-badge-warning {{ background-color: #fff3cd; color: #856404; }}
+        .status-badge-error {{ background-color: #f8d7da; color: #721c24; }}
+        .status-badge-info {{ background-color: #d1ecf1; color: #0c5460; }}
+        .status-badge-default {{ background-color: #e2e3e5; color: #383d41; }}
+        .order-details-section {{ margin: 35px 0; }}
+        .section-title {{ color: #1a1a1a; font-size: 20px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #4CAF50; display: flex; align-items: center; gap: 10px; }}
+        .section-title::before {{ content: '📦'; font-size: 24px; }}
+        .order-items-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #ffffff; }}
+        .order-items-table td {{ padding: 0; }}
+        .product-item {{ display: flex; align-items: flex-start; gap: 16px; padding: 20px 0; }}
+        .product-image-wrapper {{ flex-shrink: 0; }}
         .product-details {{ flex: 1; min-width: 0; }}
-        .product-name {{ font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; word-break: break-word; }}
-        .product-quantity {{ color: #666; font-size: 13px; }}
-        .product-price {{ text-align: right; color: #333; font-weight: 600; font-size: 14px; white-space: nowrap; }}
-        .button {{ display: inline-block; padding: 14px 25px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 10px 5px; font-weight: 600; font-size: 16px; text-align: center; }}
-        .button-secondary {{ display: inline-block; padding: 14px 25px; background-color: #2196F3; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 10px 5px; font-weight: 600; font-size: 16px; text-align: center; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; padding: 20px; }}
-        .total-section {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }}
-        .total-row {{ display: flex; justify-content: space-between; margin: 10px 0; align-items: center; }}
-        .total-label {{ font-weight: 600; color: #666; font-size: 14px; }}
-        .total-value {{ font-weight: 600; color: #333; font-size: 18px; }}
-        .total-final {{ font-size: 20px; color: #4CAF50; }}
-        .support-section {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }}
+        .product-name {{ font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4; }}
+        .product-variant {{ color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block; }}
+        .product-meta {{ color: #888; font-size: 13px; margin-top: 6px; }}
+        .product-meta strong {{ color: #333; }}
+        .product-price-wrapper {{ text-align: right; }}
+        .product-price {{ color: #1a1a1a; font-weight: 700; font-size: 18px; white-space: nowrap; }}
+        .product-unit-price {{ color: #999; font-size: 12px; margin-top: 4px; }}
+        .total-section {{ background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 25px; border-radius: 10px; margin-top: 30px; border: 2px solid #e8e8e8; }}
+        .total-row {{ display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }}
+        .total-label {{ font-weight: 600; color: #666; font-size: 15px; }}
+        .total-value {{ font-weight: 600; color: #1a1a1a; font-size: 18px; }}
+        .total-final-row {{ margin-top: 20px; padding-top: 20px; border-top: 3px solid #4CAF50; }}
+        .total-final-label {{ font-size: 18px; font-weight: 700; color: #1a1a1a; }}
+        .total-final-value {{ font-size: 24px; font-weight: 700; color: #4CAF50; }}
+        .support-section {{ margin-top: 40px; padding: 25px; background-color: #f8f9fa; border-radius: 10px; text-align: center; border: 1px solid #e8e8e8; }}
+        .support-section h4 {{ margin: 0 0 10px 0; color: #1a1a1a; font-size: 18px; font-weight: 600; }}
+        .support-section p {{ margin: 5px 0; color: #666; font-size: 14px; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 25px; background-color: #f8f9fa; color: #666; font-size: 12px; border-top: 1px solid #e8e8e8; }}
+        .footer p {{ margin: 5px 0; }}
+        .divider {{ height: 1px; background: linear-gradient(90deg, transparent, #e0e0e0, transparent); margin: 25px 0; }}
         
         @media only screen and (max-width: 600px) {{
-            .container {{ width: 100% !important; padding: 0 !important; }}
-            .header {{ padding: 20px 15px !important; }}
-            .header h1 {{ font-size: 20px !important; }}
-            .content {{ padding: 15px !important; }}
-            .order-info {{ padding: 12px !important; margin: 15px 0 !important; }}
-            .order-info-row {{ margin: 10px 0 !important; }}
-            .order-items {{ font-size: 13px !important; }}
-            .order-items th, .order-items td {{ padding: 8px 5px !important; font-size: 13px !important; }}
-            .product-item {{ flex-direction: column; align-items: flex-start; }}
-            .product-image {{ width: 60px !important; height: 60px !important; }}
-            .product-name {{ font-size: 13px !important; }}
-            .product-quantity {{ font-size: 12px !important; }}
-            .product-price {{ text-align: left !important; margin-top: 5px; width: 100%; }}
-            .button, .button-secondary {{ display: block; width: 100%; margin: 10px 0 !important; padding: 12px 20px !important; font-size: 15px !important; }}
-            .total-section {{ padding: 12px !important; }}
-            .total-label {{ font-size: 13px !important; }}
-            .total-value {{ font-size: 16px !important; }}
-            .total-final {{ font-size: 18px !important; }}
+            .email-wrapper {{ padding: 10px !important; }}
+            .container {{ border-radius: 8px !important; }}
+            .header {{ padding: 30px 20px !important; }}
+            .header h1 {{ font-size: 22px !important; }}
+            .content {{ padding: 20px !important; }}
+            .info-section {{ padding: 20px !important; margin: 20px 0 !important; }}
+            .info-section h3 {{ font-size: 18px !important; }}
+            .section-title {{ font-size: 18px !important; }}
+            .product-item {{ flex-direction: column; gap: 12px !important; }}
+            .product-image-wrapper {{ width: 100%; text-align: center; }}
+            .product-price-wrapper {{ text-align: left !important; width: 100%; }}
+            .product-price {{ font-size: 16px !important; }}
+            .button {{ display: block; width: 100%; margin: 10px 0 !important; padding: 14px 24px !important; }}
+            .total-section {{ padding: 20px !important; }}
+            .total-label, .total-value {{ font-size: 14px !important; }}
+            .total-final-label {{ font-size: 16px !important; }}
+            .total-final-value {{ font-size: 20px !important; }}
         }}
     </style>
 </head>
-<body style='margin: 0; padding: 0; background-color: #f5f5f5;'>
-    <div class='container'>
-        <div class='header'>
-            <h1 style='margin: 0; padding: 0; color: #ffffff;'>Đơn hàng của bạn đã được hoàn thành</h1>
-        </div>
-        <div class='content'>
-            <p>Cảm ơn bạn đã quan tâm sản phẩm của IKA PickleBall Shop.</p>
-            <p>Xin chào, <strong>{order.User?.FullName ?? order.ShippingFullName}</strong></p>
+<body style='margin: 0; padding: 0; background-color: #f5f7fa;'>
+    <div class='email-wrapper'>
+        <div class='container'>
+            <div class='header'>
+                <span class='header-icon'>✅</span>
+                <h1>Đơn hàng của bạn đã được hoàn thành</h1>
+                <p style='margin: 15px 0 0 0; font-size: 16px; opacity: 0.95;'>Mã đơn hàng: <strong>#{order.OrderNumber}</strong></p>
+            </div>
             
-            <p style='text-align: center; margin: 30px 0;'>
-                <a href='{orderDetailUrl}' class='button-secondary' style='color: #ffffff !important;'><span style='color: #ffffff !important;'>Xem chi tiết đơn hàng</span></a>
-            </p>
-            
-            <div class='order-info'>
-                <h3 style='margin-top: 0; color: #333;'>Thông tin đơn hàng</h3>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Ngày đặt hàng:</span>
-                    <span class='order-info-value'>{orderDate}</span>
+            <div class='content'>
+                <div class='greeting'>
+                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{order.User?.FullName ?? order.ShippingFullName}</strong>,</p>
+                    <p style='margin: 0; color: #666;'>Cảm ơn bạn đã đặt hàng tại <strong style='color: #4CAF50;'>IKA PickleBall Shop</strong>! Chúng tôi rất vui được phục vụ bạn.</p>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Khách hàng:</span>
-                    <span class='order-info-value'>{order.User?.FullName ?? order.ShippingFullName}</span>
+                
+                <div class='cta-section'>
+                    <a href='{orderDetailUrl}' class='button'>Xem chi tiết đơn hàng →</a>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Email:</span>
-                    <span class='order-info-value'>{order.User?.Email ?? ""}</span>
+                
+                <div class='info-section'>
+                    <h3>📋 Thông tin đơn hàng</h3>
+                    <div class='info-grid'>
+                        <div class='info-row'>
+                            <span class='info-label'>Mã đơn hàng</span>
+                            <span class='info-value'><strong>#{order.OrderNumber}</strong></span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Ngày đặt hàng</span>
+                            <span class='info-value'>{orderDate}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Khách hàng</span>
+                            <span class='info-value'>{order.User?.FullName ?? order.ShippingFullName}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Email</span>
+                            <span class='info-value'>{order.User?.Email ?? ""}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Số điện thoại</span>
+                            <span class='info-value'>{order.ShippingPhoneNumber}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Địa chỉ giao hàng</span>
+                            <span class='info-value'>{shippingAddress}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Phương thức thanh toán</span>
+                            <span class='info-value'>{paymentMethodText}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Trạng thái thanh toán</span>
+                            <span class='info-value'><span class='status-badge {paymentStatusClass}'>{paymentStatusText}</span></span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Trạng thái đơn hàng</span>
+                            <span class='info-value'><span class='status-badge {orderStatusClass}'>{orderStatusText}</span></span>
+                        </div>
+                    </div>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Số điện thoại:</span>
-                    <span class='order-info-value'>{order.ShippingPhoneNumber}</span>
+                
+                <div class='order-details-section'>
+                    <div class='section-title'>Chi tiết sản phẩm</div>
+                    <table class='order-items-table'>
+                        <tbody>
+                            {orderItemsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div class='total-section'>
+                        <div class='total-row'>
+                            <span class='total-label'>Tổng giá trị sản phẩm</span>
+                            <span class='total-value'>{formatCurrency(order.TotalAmount)}</span>
+                        </div>
+                        <div class='total-row total-final-row'>
+                            <span class='total-label total-final-label'>Tổng cộng</span>
+                            <span class='total-value total-final-value'>{formatCurrency(order.TotalAmount)}</span>
+                        </div>
+                    </div>
                 </div>
-                {(string.IsNullOrEmpty(clientIpAddress) ? "" : $@"
-                <div class='order-info-row'>
-                    <span class='order-info-label'>IP:</span>
-                    <span class='order-info-value'>{clientIpAddress}</span>
-                </div>")}
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Email nhận hàng:</span>
-                    <span class='order-info-value'>{order.User?.Email ?? ""}</span>
-                </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Tình trạng:</span>
-                    <span class='order-info-value'>{orderStatusText}</span>
+                
+                <div class='support-section'>
+                    <h4>💬 Cần hỗ trợ?</h4>
+                    <p>Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, vui lòng liên hệ với chúng tôi qua email hoặc số điện thoại hỗ trợ.</p>
+                    <p style='margin-top: 15px;'><a href='{continueShoppingUrl}' style='color: #4CAF50; text-decoration: none; font-weight: 600;'>Tiếp tục mua sắm →</a></p>
                 </div>
             </div>
             
-            <h3 style='color: #333; margin-top: 30px; font-size: 18px; margin-bottom: 15px;'>Chi tiết đơn hàng #{order.OrderNumber}</h3>
-            <table class='order-items'>
-                <tbody>
-                    {orderItemsHtml}
-                </tbody>
-            </table>
-            
-            <div class='total-section'>
-                <div class='total-row'>
-                    <span class='total-label'>Tổng giá trị sản phẩm:</span>
-                    <span class='total-value'>{formatCurrency(order.TotalAmount)}</span>
-                </div>
-                <div class='total-row' style='margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;'>
-                    <span class='total-label total-final'>Tổng cộng:</span>
-                    <span class='total-value total-final'>{formatCurrency(order.TotalAmount)}</span>
-                </div>
+            <div class='footer'>
+                <p style='margin: 0 0 10px 0;'><strong>IKA PickleBall Shop</strong></p>
+                <p style='margin: 0;'>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
             </div>
-            
-            <div class='support-section'>
-                <p style='margin: 10px 0; color: #666;'>Liên hệ hỗ trợ</p>
-                <p style='margin: 5px 0;'>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
-            </div>
-        </div>
-        <div class='footer'>
-            <p>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
         </div>
     </div>
 </body>
@@ -362,54 +431,66 @@ public class EmailService : IEmailService
                 ?? "";
             
             var imageHtml = !string.IsNullOrEmpty(itemImage) 
-                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' />"
-                : "<div class='product-image' style='background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;'><span style='color: #999; font-size: 11px;'>No Image</span></div>";
+                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
+                : "<div class='product-image' style='width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;'><span style='color: #fff; font-size: 24px;'>🏓</span></div>";
+            
+            var variantInfo = !string.IsNullOrEmpty(item.VariantInfoSnapshot) 
+                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{item.VariantInfoSnapshot}</div>"
+                : "";
             
             orderItemsHtml += $@"
-            <tr style='border-bottom: 1px solid #eee;'>
-                <td>
-                    <div class='product-item'>
-                        {imageHtml}
-                        <div class='product-details'>
-                            <div class='product-name'>{item.ProductNameSnapshot}</div>
-                            {(string.IsNullOrEmpty(item.VariantInfoSnapshot) ? "" : $"<div class='product-variant'>{item.VariantInfoSnapshot}</div>")}
-                            <div class='product-quantity'>Số lượng: {item.Quantity}</div>
+            <tr style='border-bottom: 1px solid #e8e8e8;'>
+                <td style='padding: 20px 0;'>
+                    <div class='product-item' style='display: flex; align-items: flex-start; gap: 16px;'>
+                        <div class='product-image-wrapper'>
+                            {imageHtml}
                         </div>
-                        <div class='product-price'>
-                            {formatCurrency(item.LineTotal)}
+                        <div class='product-details' style='flex: 1; min-width: 0;'>
+                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{item.ProductNameSnapshot}</div>
+                            {variantInfo}
+                            <div class='product-meta' style='color: #888; font-size: 13px; margin-top: 8px;'>
+                                Số lượng: <strong style='color: #333;'>{item.Quantity}</strong> × {formatCurrency(item.UnitPrice)}
+                            </div>
+                        </div>
+                        <div class='product-price-wrapper' style='text-align: right;'>
+                            <div class='product-price' style='color: #1a1a1a; font-weight: 700; font-size: 18px; white-space: nowrap;'>
+                                {formatCurrency(item.LineTotal)}
+                            </div>
                         </div>
                     </div>
                 </td>
             </tr>";
         }
         
-        // Get payment status text
-        var paymentStatusText = order.PaymentStatus switch
+        // Get payment status text with badge
+        var (paymentStatusText, paymentStatusClass) = order.PaymentStatus switch
         {
-            PaymentStatus.Paid => "Đã thanh toán",
-            PaymentStatus.Pending => "Chờ thanh toán",
-            PaymentStatus.Failed => "Thanh toán thất bại",
-            _ => "Chưa xác định"
+            PaymentStatus.Paid => ("✓ Đã thanh toán", "status-badge-success"),
+            PaymentStatus.Pending => ("⏳ Chờ thanh toán", "status-badge-warning"),
+            PaymentStatus.Failed => ("✗ Thanh toán thất bại", "status-badge-error"),
+            _ => ("❓ Chưa xác định", "status-badge-default")
         };
         
-        var orderStatusText = order.OrderStatus switch
+        var (orderStatusText, orderStatusClass) = order.OrderStatus switch
         {
-            OrderStatus.Pending => "Đang chờ xử lý",
-            OrderStatus.Confirmed => "Đã xác nhận",
-            OrderStatus.Shipping => "Đang giao hàng",
-            OrderStatus.Completed => "Hoàn thành",
-            OrderStatus.Cancelled => "Đã hủy",
-            _ => "Chưa xác định"
+            OrderStatus.Pending => ("⏳ Đang chờ xử lý", "status-badge-warning"),
+            OrderStatus.Confirmed => ("✓ Đã xác nhận", "status-badge-success"),
+            OrderStatus.Shipping => ("🚚 Đang giao hàng", "status-badge-info"),
+            OrderStatus.Completed => ("✅ Hoàn thành", "status-badge-success"),
+            OrderStatus.Cancelled => ("✗ Đã hủy", "status-badge-error"),
+            _ => ("❓ Chưa xác định", "status-badge-default")
         };
         
         var paymentMethodText = order.PaymentMethod switch
         {
-            PaymentMethod.COD => "Thanh toán khi nhận hàng (COD)",
-            PaymentMethod.BankTransfer => "Chuyển khoản ngân hàng",
-            PaymentMethod.MoMo => "Ví MoMo",
-            PaymentMethod.VNPay => "VNPay",
-            _ => "Chưa xác định"
+            PaymentMethod.COD => "💰 Thanh toán khi nhận hàng (COD)",
+            PaymentMethod.BankTransfer => "🏦 Chuyển khoản ngân hàng",
+            PaymentMethod.MoMo => "💜 Ví MoMo",
+            PaymentMethod.VNPay => "💳 VNPay",
+            _ => "❓ Chưa xác định"
         };
+        
+        var shippingAddress = $"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim();
         
         var subject = $"Xác nhận đơn hàng #{order.OrderNumber} - IKA PickleBall Shop";
         var body = $@"
@@ -418,105 +499,177 @@ public class EmailService : IEmailService
 <head>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <style>
         * {{ box-sizing: border-box; }}
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 0; width: 100%; }}
-        .header {{ background-color: #4CAF50; color: #ffffff; padding: 25px 20px; text-align: center; }}
-        .header h1 {{ margin: 0; padding: 0; color: #ffffff; font-size: 24px; font-weight: 600; }}
-        .content {{ background-color: #ffffff; padding: 20px; }}
-        .order-info {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }}
-        .order-info-row {{ margin: 12px 0; display: block; }}
-        .order-info-label {{ font-weight: 600; color: #666; display: block; margin-bottom: 4px; font-size: 14px; }}
-        .order-info-value {{ color: #333; display: block; font-size: 14px; word-break: break-word; }}
-        .order-items {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
-        .order-items td {{ padding: 12px 8px; font-size: 14px; }}
-        .product-item {{ display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }}
-        .product-image {{ width: 70px; height: 70px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; background-color: #f5f7fa; }}
+        .email-wrapper {{ background-color: #f5f7fa; padding: 20px 0; }}
+        .container {{ max-width: 600px; margin: 0 auto; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: #ffffff; padding: 40px 30px; text-align: center; position: relative; }}
+        .header::after {{ content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #4CAF50, #45a049, #4CAF50); }}
+        .header h1 {{ margin: 0; padding: 0; color: #ffffff; font-size: 26px; font-weight: 700; line-height: 1.3; letter-spacing: -0.5px; }}
+        .header-icon {{ font-size: 48px; margin-bottom: 10px; display: block; }}
+        .content {{ background-color: #ffffff; padding: 30px; }}
+        .greeting {{ font-size: 16px; color: #333; margin-bottom: 25px; line-height: 1.6; }}
+        .greeting strong {{ color: #1a1a1a; font-size: 18px; }}
+        .cta-section {{ text-align: center; margin: 35px 0; }}
+        .button {{ display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; margin: 8px; font-weight: 600; font-size: 16px; text-align: center; box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3); transition: all 0.3s ease; }}
+        .button:hover {{ box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4); transform: translateY(-2px); }}
+        .info-section {{ background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 25px; border-radius: 10px; margin: 30px 0; border: 1px solid #e8e8e8; }}
+        .info-section h3 {{ margin: 0 0 20px 0; color: #1a1a1a; font-size: 20px; font-weight: 700; padding-bottom: 15px; border-bottom: 2px solid #4CAF50; }}
+        .info-grid {{ display: grid; gap: 16px; }}
+        .info-row {{ display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }}
+        .info-row:last-child {{ border-bottom: none; }}
+        .info-label {{ font-weight: 600; color: #666; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }}
+        .info-value {{ color: #1a1a1a; font-size: 15px; word-break: break-word; line-height: 1.5; }}
+        .status-badge {{ display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-top: 4px; }}
+        .status-badge-success {{ background-color: #d4edda; color: #155724; }}
+        .status-badge-warning {{ background-color: #fff3cd; color: #856404; }}
+        .status-badge-error {{ background-color: #f8d7da; color: #721c24; }}
+        .status-badge-info {{ background-color: #d1ecf1; color: #0c5460; }}
+        .status-badge-default {{ background-color: #e2e3e5; color: #383d41; }}
+        .order-details-section {{ margin: 35px 0; }}
+        .section-title {{ color: #1a1a1a; font-size: 20px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid #4CAF50; display: flex; align-items: center; gap: 10px; }}
+        .section-title::before {{ content: '📦'; font-size: 24px; }}
+        .order-items-table {{ width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #ffffff; }}
+        .order-items-table td {{ padding: 0; }}
+        .product-item {{ display: flex; align-items: flex-start; gap: 16px; padding: 20px 0; }}
+        .product-image-wrapper {{ flex-shrink: 0; }}
         .product-details {{ flex: 1; min-width: 0; }}
-        .product-name {{ font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }}
-        .product-variant {{ color: #888; font-size: 12px; margin-bottom: 3px; }}
-        .product-quantity {{ color: #666; font-size: 13px; }}
-        .product-price {{ text-align: right; color: #333; font-weight: 600; font-size: 14px; white-space: nowrap; }}
-        .total-section {{ background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 20px; }}
-        .total-row {{ display: flex; justify-content: space-between; margin: 10px 0; align-items: center; }}
-        .total-label {{ font-weight: 600; color: #666; font-size: 14px; }}
-        .total-value {{ font-weight: 600; color: #333; font-size: 18px; }}
-        .total-final {{ font-size: 20px; color: #4CAF50; }}
-        .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; padding: 20px; }}
-        .support-section {{ margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; }}
+        .product-name {{ font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4; }}
+        .product-variant {{ color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block; }}
+        .product-meta {{ color: #888; font-size: 13px; margin-top: 6px; }}
+        .product-meta strong {{ color: #333; }}
+        .product-price-wrapper {{ text-align: right; }}
+        .product-price {{ color: #1a1a1a; font-weight: 700; font-size: 18px; white-space: nowrap; }}
+        .product-unit-price {{ color: #999; font-size: 12px; margin-top: 4px; }}
+        .total-section {{ background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 25px; border-radius: 10px; margin-top: 30px; border: 2px solid #e8e8e8; }}
+        .total-row {{ display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }}
+        .total-label {{ font-weight: 600; color: #666; font-size: 15px; }}
+        .total-value {{ font-weight: 600; color: #1a1a1a; font-size: 18px; }}
+        .total-final-row {{ margin-top: 20px; padding-top: 20px; border-top: 3px solid #4CAF50; }}
+        .total-final-label {{ font-size: 18px; font-weight: 700; color: #1a1a1a; }}
+        .total-final-value {{ font-size: 24px; font-weight: 700; color: #4CAF50; }}
+        .support-section {{ margin-top: 40px; padding: 25px; background-color: #f8f9fa; border-radius: 10px; text-align: center; border: 1px solid #e8e8e8; }}
+        .support-section h4 {{ margin: 0 0 10px 0; color: #1a1a1a; font-size: 18px; font-weight: 600; }}
+        .support-section p {{ margin: 5px 0; color: #666; font-size: 14px; }}
+        .footer {{ text-align: center; margin-top: 30px; padding: 25px; background-color: #f8f9fa; color: #666; font-size: 12px; border-top: 1px solid #e8e8e8; }}
+        .footer p {{ margin: 5px 0; }}
+        .divider {{ height: 1px; background: linear-gradient(90deg, transparent, #e0e0e0, transparent); margin: 25px 0; }}
+        
+        @media only screen and (max-width: 600px) {{
+            .email-wrapper {{ padding: 10px !important; }}
+            .container {{ border-radius: 8px !important; }}
+            .header {{ padding: 30px 20px !important; }}
+            .header h1 {{ font-size: 22px !important; }}
+            .content {{ padding: 20px !important; }}
+            .info-section {{ padding: 20px !important; margin: 20px 0 !important; }}
+            .info-section h3 {{ font-size: 18px !important; }}
+            .section-title {{ font-size: 18px !important; }}
+            .product-item {{ flex-direction: column; gap: 12px !important; }}
+            .product-image-wrapper {{ width: 100%; text-align: center; }}
+            .product-price-wrapper {{ text-align: left !important; width: 100%; }}
+            .product-price {{ font-size: 16px !important; }}
+            .button {{ display: block; width: 100%; margin: 10px 0 !important; padding: 14px 24px !important; }}
+            .total-section {{ padding: 20px !important; }}
+            .total-label, .total-value {{ font-size: 14px !important; }}
+            .total-final-label {{ font-size: 16px !important; }}
+            .total-final-value {{ font-size: 20px !important; }}
+        }}
     </style>
 </head>
-<body style='margin: 0; padding: 0; background-color: #f5f5f5;'>
-    <div class='container'>
-        <div class='header'>
-            <h1 style='margin: 0; padding: 0; color: #ffffff;'>Xác nhận đơn hàng #{order.OrderNumber}</h1>
-        </div>
-        <div class='content'>
-            <p>Xin chào, <strong>{order.GuestFullName ?? order.ShippingFullName}</strong></p>
-            <p>Cảm ơn bạn đã đặt hàng tại IKA PickleBall Shop! Đơn hàng của bạn đã được ghi nhận.</p>
+<body style='margin: 0; padding: 0; background-color: #f5f7fa;'>
+    <div class='email-wrapper'>
+        <div class='container'>
+            <div class='header'>
+                <span class='header-icon'>✅</span>
+                <h1>Xác nhận đơn hàng</h1>
+                <p style='margin: 15px 0 0 0; font-size: 16px; opacity: 0.95;'>Mã đơn hàng: <strong>#{order.OrderNumber}</strong></p>
+            </div>
             
-            <div class='order-info'>
-                <h3 style='margin-top: 0; color: #333;'>Thông tin đơn hàng</h3>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Mã đơn hàng:</span>
-                    <span class='order-info-value'>#{order.OrderNumber}</span>
+            <div class='content'>
+                <div class='greeting'>
+                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{order.GuestFullName ?? order.ShippingFullName}</strong>,</p>
+                    <p style='margin: 0; color: #666;'>Cảm ơn bạn đã đặt hàng tại <strong style='color: #4CAF50;'>IKA PickleBall Shop</strong>! Đơn hàng của bạn đã được ghi nhận và chúng tôi đang xử lý.</p>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Ngày đặt hàng:</span>
-                    <span class='order-info-value'>{orderDate}</span>
+                
+                <div class='cta-section'>
+                    <a href='{orderDetailUrl}' class='button'>Xem chi tiết đơn hàng →</a>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Email:</span>
-                    <span class='order-info-value'>{order.GuestEmail}</span>
+                
+                <div class='info-section'>
+                    <h3>📋 Thông tin đơn hàng</h3>
+                    <div class='info-grid'>
+                        <div class='info-row'>
+                            <span class='info-label'>Mã đơn hàng</span>
+                            <span class='info-value'><strong>#{order.OrderNumber}</strong></span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Ngày đặt hàng</span>
+                            <span class='info-value'>{orderDate}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Khách hàng</span>
+                            <span class='info-value'>{order.GuestFullName ?? order.ShippingFullName}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Email</span>
+                            <span class='info-value'>{order.GuestEmail}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Số điện thoại</span>
+                            <span class='info-value'>{order.ShippingPhoneNumber}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Địa chỉ giao hàng</span>
+                            <span class='info-value'>{shippingAddress}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Phương thức thanh toán</span>
+                            <span class='info-value'>{paymentMethodText}</span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Trạng thái thanh toán</span>
+                            <span class='info-value'><span class='status-badge {paymentStatusClass}'>{paymentStatusText}</span></span>
+                        </div>
+                        <div class='info-row'>
+                            <span class='info-label'>Trạng thái đơn hàng</span>
+                            <span class='info-value'><span class='status-badge {orderStatusClass}'>{orderStatusText}</span></span>
+                        </div>
+                    </div>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Số điện thoại:</span>
-                    <span class='order-info-value'>{order.ShippingPhoneNumber}</span>
+                
+                <div class='order-details-section'>
+                    <div class='section-title'>Chi tiết sản phẩm</div>
+                    <table class='order-items-table'>
+                        <tbody>
+                            {orderItemsHtml}
+                        </tbody>
+                    </table>
+                    
+                    <div class='total-section'>
+                        <div class='total-row'>
+                            <span class='total-label'>Tổng giá trị sản phẩm</span>
+                            <span class='total-value'>{formatCurrency(order.TotalAmount)}</span>
+                        </div>
+                        <div class='total-row total-final-row'>
+                            <span class='total-label total-final-label'>Tổng cộng</span>
+                            <span class='total-value total-final-value'>{formatCurrency(order.TotalAmount)}</span>
+                        </div>
+                    </div>
                 </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Địa chỉ giao hàng:</span>
-                    <span class='order-info-value'>{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}</span>
-                </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Phương thức thanh toán:</span>
-                    <span class='order-info-value'>{paymentMethodText}</span>
-                </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Trạng thái thanh toán:</span>
-                    <span class='order-info-value'>{paymentStatusText}</span>
-                </div>
-                <div class='order-info-row'>
-                    <span class='order-info-label'>Trạng thái đơn hàng:</span>
-                    <span class='order-info-value'>{orderStatusText}</span>
+                
+                <div class='support-section'>
+                    <h4>💬 Cần hỗ trợ?</h4>
+                    <p>Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, vui lòng liên hệ với chúng tôi qua email hoặc số điện thoại hỗ trợ.</p>
+                    <p style='margin-top: 15px;'><a href='{continueShoppingUrl}' style='color: #4CAF50; text-decoration: none; font-weight: 600;'>Tiếp tục mua sắm →</a></p>
                 </div>
             </div>
             
-            <h3 style='color: #333; margin-top: 30px; font-size: 18px; margin-bottom: 15px;'>Chi tiết đơn hàng</h3>
-            <table class='order-items'>
-                <tbody>
-                    {orderItemsHtml}
-                </tbody>
-            </table>
-            
-            <div class='total-section'>
-                <div class='total-row'>
-                    <span class='total-label'>Tổng giá trị sản phẩm:</span>
-                    <span class='total-value'>{formatCurrency(order.TotalAmount)}</span>
-                </div>
-                <div class='total-row' style='margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd;'>
-                    <span class='total-label total-final'>Tổng cộng:</span>
-                    <span class='total-value total-final'>{formatCurrency(order.TotalAmount)}</span>
-                </div>
+            <div class='footer'>
+                <p style='margin: 0 0 10px 0;'><strong>IKA PickleBall Shop</strong></p>
+                <p style='margin: 0;'>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
             </div>
-            
-            <div class='support-section'>
-                <p style='margin: 10px 0; color: #666;'>Liên hệ hỗ trợ</p>
-                <p style='margin: 5px 0;'>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi.</p>
-            </div>
-        </div>
-        <div class='footer'>
-            <p>© {DateTime.UtcNow.Year} IKA PickleBall Shop. Tất cả quyền được bảo lưu.</p>
         </div>
     </div>
 </body>

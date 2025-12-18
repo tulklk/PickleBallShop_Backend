@@ -29,6 +29,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.ShippingDistrict).HasMaxLength(100);
         builder.Property(o => o.ShippingCity).HasMaxLength(100);
 
+        // Voucher
+        builder.Property(o => o.VoucherDiscountAmount).HasColumnType("decimal(18,2)");
+
         // UserId is nullable for guest checkout
         builder.Property(o => o.UserId).IsRequired(false);
 

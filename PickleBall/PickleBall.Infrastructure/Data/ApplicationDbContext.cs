@@ -34,6 +34,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Payment> Payments { get; set; }
 
+    // Voucher related
+    public DbSet<Voucher> Vouchers { get; set; }
+    public DbSet<VoucherUsage> VoucherUsages { get; set; }
+
     // Wishlist
     public DbSet<Wishlist> Wishlists { get; set; }
 
@@ -60,6 +64,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+        modelBuilder.ApplyConfiguration(new VoucherConfiguration());
+        modelBuilder.ApplyConfiguration(new VoucherUsageConfiguration());
         modelBuilder.ApplyConfiguration(new WishlistConfiguration());
         modelBuilder.ApplyConfiguration(new NewsPostConfiguration());
     }

@@ -17,18 +17,43 @@ public class OrdersController : ControllerBase
     private readonly IOrderService _orderService;
     private readonly IEmailService _emailService;
     private readonly ApplicationDbContext _context;
+    private readonly IVoucherService _voucherService;
 
-    public OrdersController(IOrderService orderService, IEmailService emailService, ApplicationDbContext context)
+    public OrdersController(IOrderService orderService, IEmailService emailService, ApplicationDbContext context, IVoucherService voucherService)
     {
         _orderService = orderService;
         _emailService = emailService;
         _context = context;
+        _voucherService = voucherService;
     }
 
     private Guid GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException());
+    }
+
+    /// <summary>
+    /// Áp dụng mã giảm giá cho giỏ hàng của user đã đăng nhập
+    /// </summary>
+    [HttpPost("apply-voucher")]
+    public async Task<ActionResult> ApplyVoucher([FromBody] ApplyVoucherForCartRequest request)
+    {
+        var userId = GetUserId();
+
+        var cart = await _context.Carts
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null || !cart.Items.Any())
+        {
+            return BadRequest(new { message = "Giỏ hàng trống" });
+        }
+
+        var orderTotal = cart.Items.Sum(ci => ci.UnitPriceSnapshot * ci.Quantity);
+
+        var result = await _voucherService.ApplyForUserAsync(userId, orderTotal, request.Code);
+        return Ok(result);
     }
 
     [HttpPost]

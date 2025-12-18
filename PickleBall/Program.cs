@@ -234,6 +234,7 @@ public class Program
         builder.Services.AddScoped<IProductReviewService, ProductReviewService>();
         builder.Services.AddScoped<INewsService, NewsService>();
         builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddScoped<IVoucherService, VoucherService>();
         builder.Services.AddScoped<IMoMoPaymentService, MoMoPaymentService>();
         builder.Services.AddScoped<IVnPayPaymentService, VnPayPaymentService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();

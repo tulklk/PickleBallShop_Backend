@@ -8,6 +8,7 @@ using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.DTOs.Reviews;
 using PickleBall.Application.DTOs.Users;
 using PickleBall.Application.DTOs.Wishlist;
+using PickleBall.Application.DTOs.Vouchers;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Application.Mapping;
@@ -127,5 +128,10 @@ public class MappingProfile : Profile
         
         CreateMap<NewsPost, NewsListDto>()
             .ForMember(dest => dest.AuthorName, opt => opt.MapFrom(src => src.Author.FullName));
+
+        // Voucher mapping
+        CreateMap<Voucher, VoucherDto>();
+        CreateMap<CreateVoucherRequest, Voucher>();
+        CreateMap<UpdateVoucherRequest, Voucher>();
     }
 }

@@ -20,19 +20,83 @@ public class GuestOrdersController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly ILogger<GuestOrdersController> _logger;
     private readonly IMapper _mapper;
+    private readonly IVoucherService _voucherService;
 
     public GuestOrdersController(
         IOrderService orderService, 
         IEmailService emailService, 
         ApplicationDbContext context,
         ILogger<GuestOrdersController> logger,
-        IMapper mapper)
+        IMapper mapper,
+        IVoucherService voucherService)
     {
         _orderService = orderService;
         _emailService = emailService;
         _context = context;
         _logger = logger;
         _mapper = mapper;
+        _voucherService = voucherService;
+    }
+
+    /// <summary>
+    /// Áp dụng mã giảm giá cho đơn khách vãng lai (chưa tạo đơn)
+    /// </summary>
+    [HttpPost("apply-voucher")]
+    public async Task<ActionResult> ApplyVoucherForGuest([FromBody] ApplyVoucherForGuestOrderRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new { message = "Email là bắt buộc" });
+        }
+
+        if (request.Items == null || !request.Items.Any())
+        {
+            return BadRequest(new { message = "Giỏ hàng không được trống" });
+        }
+
+        // Tính tạm tổng giống CreateGuestOrderAsync
+        var productIds = request.Items.Select(i => i.ProductId).ToList();
+        var variantIds = request.Items.Where(i => i.ProductVariantId.HasValue).Select(i => i.ProductVariantId!.Value).ToList();
+
+        var products = await _context.Products
+            .Include(p => p.Variants)
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+        var variants = variantIds.Any()
+            ? await _context.ProductVariants.Where(v => variantIds.Contains(v.Id)).ToListAsync()
+            : new List<Domain.Entities.ProductVariant>();
+
+        decimal totalAmount = 0;
+
+        foreach (var item in request.Items)
+        {
+            var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product == null)
+            {
+                return BadRequest(new { message = $"Không tìm thấy sản phẩm với ID {item.ProductId}" });
+            }
+
+            decimal price;
+            if (product.HasVariants && item.ProductVariantId.HasValue)
+            {
+                var variant = variants.FirstOrDefault(v => v.Id == item.ProductVariantId);
+                if (variant == null)
+                {
+                    return BadRequest(new { message = $"Không tìm thấy biến thể sản phẩm với ID {item.ProductVariantId}" });
+                }
+                price = variant.Price;
+            }
+            else
+            {
+                price = product.Price;
+            }
+
+            totalAmount += price * item.Quantity;
+        }
+
+        var result = await _voucherService.ApplyForGuestAsync(request.Email, totalAmount, request.Code);
+        return Ok(result);
     }
 
     /// <summary>

@@ -30,3 +30,9 @@ public enum PaymentMethod
     VNPay = 2,
     BankTransfer = 3
 }
+
+public enum VoucherDiscountType
+{
+    Percent = 1,
+    Amount = 2
+}

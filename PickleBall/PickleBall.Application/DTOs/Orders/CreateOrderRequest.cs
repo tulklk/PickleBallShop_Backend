@@ -6,6 +6,7 @@ public class CreateOrderRequest
 {
     public ShippingAddressDto ShippingAddress { get; set; } = null!;
     public PaymentMethod PaymentMethod { get; set; }
+    public string? VoucherCode { get; set; }
 }
 
 public class ShippingAddressDto

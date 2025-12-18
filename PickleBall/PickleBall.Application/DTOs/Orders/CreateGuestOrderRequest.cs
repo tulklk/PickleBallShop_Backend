@@ -9,6 +9,7 @@ public class CreateGuestOrderRequest
     public ShippingAddressDto ShippingAddress { get; set; } = null!;
     public PaymentMethod PaymentMethod { get; set; }
     public List<GuestCartItemDto> Items { get; set; } = new();
+    public string? VoucherCode { get; set; }
 }
 
 public class GuestCartItemDto

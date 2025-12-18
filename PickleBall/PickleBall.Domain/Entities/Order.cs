@@ -22,8 +22,13 @@ public class Order : BaseEntity
     public string? ShippingDistrict { get; set; }
     public string? ShippingCity { get; set; }
 
+    // Voucher
+    public Guid? VoucherId { get; set; }
+    public decimal? VoucherDiscountAmount { get; set; }
+
     // Navigation properties
     public User? User { get; set; }
     public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public Voucher? Voucher { get; set; }
 }
