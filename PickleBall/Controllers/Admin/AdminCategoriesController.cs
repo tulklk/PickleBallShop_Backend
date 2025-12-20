@@ -51,7 +51,7 @@ public class AdminCategoriesController : ControllerBase
         try
         {
             var category = await _categoryService.CreateCategoryAsync(request);
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+        return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
         }
         catch (KeyNotFoundException ex)
         {
@@ -83,7 +83,7 @@ public class AdminCategoriesController : ControllerBase
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteCategory(Guid id)
-    {
+        {
         try
         {
             var deleted = await _categoryService.DeleteCategoryAsync(id);
@@ -91,8 +91,8 @@ public class AdminCategoriesController : ControllerBase
             {
                 return NotFound();
             }
-            return NoContent();
-        }
+        return NoContent();
+    }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });

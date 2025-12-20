@@ -35,7 +35,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.PrimaryImageUrl, opt => opt.MapFrom(src => src.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Images.FirstOrDefault() != null ? src.Images.FirstOrDefault()!.ImageUrl : null))
             .ForMember(dest => dest.AverageRating, opt => opt.MapFrom(src => src.Reviews.Any() ? src.Reviews.Average(r => r.Rating) : (double?)null))
             .ForMember(dest => dest.ReviewCount, opt => opt.MapFrom(src => src.Reviews.Count))
-            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants.Where(v => v.IsActive).ToList()));
+            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants.Where(v => v.IsActive).ToList()))
+            .ForMember(dest => dest.Specifications, opt => opt.MapFrom(src => src.Specifications.OrderBy(s => s.DisplayOrder).ToList()));
 
         CreateMap<Product, ProductListDto>()
             .ForMember(dest => dest.PrimaryImageUrl, opt => opt.MapFrom(src => src.Images.FirstOrDefault(i => i.IsPrimary) != null ? src.Images.FirstOrDefault(i => i.IsPrimary)!.ImageUrl : src.Images.FirstOrDefault() != null ? src.Images.FirstOrDefault()!.ImageUrl : null))
@@ -133,5 +134,10 @@ public class MappingProfile : Profile
         CreateMap<Voucher, VoucherDto>();
         CreateMap<CreateVoucherRequest, Voucher>();
         CreateMap<UpdateVoucherRequest, Voucher>();
+
+        // ProductSpecification mapping
+        CreateMap<ProductSpecification, ProductSpecificationDto>();
+        CreateMap<CreateProductSpecificationRequest, ProductSpecification>();
+        CreateMap<UpdateProductSpecificationRequest, ProductSpecification>();
     }
 }

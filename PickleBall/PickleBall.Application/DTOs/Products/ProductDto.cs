@@ -19,5 +19,6 @@ public class ProductDto
     public int ReviewCount { get; set; }
     public bool HasVariants { get; set; }
     public List<ProductVariantDto> Variants { get; set; } = new();
+    public List<ProductSpecificationDto> Specifications { get; set; } = new();
     public DateTime CreatedAt { get; set; }
 }

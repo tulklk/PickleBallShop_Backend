@@ -26,4 +26,5 @@ public class Product : BaseEntity
     public ICollection<ProductComment> Comments { get; set; } = new List<ProductComment>();
     public ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
     public ICollection<InventoryTransaction> InventoryTransactions { get; set; } = new List<InventoryTransaction>();
+    public ICollection<ProductSpecification> Specifications { get; set; } = new List<ProductSpecification>();
 }
