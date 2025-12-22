@@ -1,5 +1,6 @@
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Payments;
+using PickleBall.Domain.Entities;
 
 namespace PickleBall.Application.Interfaces;
 
@@ -13,4 +14,5 @@ public interface IOrderService
     Task<CreatePaymentResponse?> InitiatePaymentAsync(Guid orderId, Guid userId);
     Task<CreatePaymentResponse?> InitiateGuestPaymentAsync(Guid orderId, string email);
     Task UpdateOrderPaymentStatusAsync(Guid orderId, string transactionId, bool isPaid, string? clientIpAddress = null);
+    Task<OrderDto> UpdateOrderStatusAsync(Guid orderId, OrderStatus status);
 }

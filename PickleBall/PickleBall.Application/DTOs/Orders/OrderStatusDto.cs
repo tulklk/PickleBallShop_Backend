@@ -26,9 +26,10 @@ public class OrderStatusDto
 public class UserOrdersSummaryDto
 {
     public int TotalOrders { get; set; }
-    public int PendingOrders { get; set; }
+    public int ProcessingOrders { get; set; }
     public int ConfirmedOrders { get; set; }
-    public int ShippingOrders { get; set; }
+    public int PreparedOrders { get; set; }
+    public int ShippedOrders { get; set; }
     public int CompletedOrders { get; set; }
     public int CancelledOrders { get; set; }
     public List<OrderStatusDto> Orders { get; set; } = new();

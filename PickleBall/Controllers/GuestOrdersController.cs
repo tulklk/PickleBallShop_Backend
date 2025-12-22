@@ -293,9 +293,10 @@ public class GuestOrdersController : ControllerBase
 
         var orderDesc = orderStatus switch
         {
-            Domain.Entities.OrderStatus.Pending => "Chờ xác nhận",
+            Domain.Entities.OrderStatus.Processing => "Đang xử lý",
             Domain.Entities.OrderStatus.Confirmed => "Đã xác nhận",
-            Domain.Entities.OrderStatus.Shipping => "Đang giao hàng",
+            Domain.Entities.OrderStatus.Prepared => "Đã chuẩn bị hàng",
+            Domain.Entities.OrderStatus.Shipped => "Đã giao cho đơn vị vận chuyển",
             Domain.Entities.OrderStatus.Completed => "Hoàn thành",
             Domain.Entities.OrderStatus.Cancelled => "Đã hủy",
             _ => "Không xác định"

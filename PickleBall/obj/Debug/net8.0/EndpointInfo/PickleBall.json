@@ -746,6 +746,77 @@
         }
       }
     },
+    "/api/admin/AdminOrders/{id}/status": {
+      "put": {
+        "tags": [
+          "AdminOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UpdateOrderStatusRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UpdateOrderStatusRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.UpdateOrderStatusRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Orders.AdminOrderDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/AdminProducts": {
       "post": {
         "tags": [
@@ -6384,6 +6455,19 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Orders.UpdateOrderStatusRequest": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.OrderStatus"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Orders.UserInfoDto": {
         "type": "object",
         "properties": {
@@ -6411,7 +6495,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "pendingOrders": {
+          "processingOrders": {
             "type": "integer",
             "format": "int32"
           },
@@ -6419,7 +6503,11 @@
             "type": "integer",
             "format": "int32"
           },
-          "shippingOrders": {
+          "preparedOrders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "shippedOrders": {
             "type": "integer",
             "format": "int32"
           },
@@ -7931,9 +8019,10 @@
       },
       "PickleBall.Domain.Entities.OrderStatus": {
         "enum": [
-          "Pending",
+          "Processing",
           "Confirmed",
-          "Shipping",
+          "Prepared",
+          "Shipped",
           "Completed",
           "Cancelled"
         ],

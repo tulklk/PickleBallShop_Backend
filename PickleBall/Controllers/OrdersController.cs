@@ -180,9 +180,10 @@ public class OrdersController : ControllerBase
         var summary = new UserOrdersSummaryDto
         {
             TotalOrders = orders.Count,
-            PendingOrders = orders.Count(o => o.OrderStatus == "Pending"),
+            ProcessingOrders = orders.Count(o => o.OrderStatus == "Processing"),
             ConfirmedOrders = orders.Count(o => o.OrderStatus == "Confirmed"),
-            ShippingOrders = orders.Count(o => o.OrderStatus == "Shipping"),
+            PreparedOrders = orders.Count(o => o.OrderStatus == "Prepared"),
+            ShippedOrders = orders.Count(o => o.OrderStatus == "Shipped"),
             CompletedOrders = orders.Count(o => o.OrderStatus == "Completed"),
             CancelledOrders = orders.Count(o => o.OrderStatus == "Cancelled"),
             Orders = orders
@@ -207,9 +208,10 @@ public class OrdersController : ControllerBase
 
         var orderDesc = orderStatus switch
         {
-            Domain.Entities.OrderStatus.Pending => "Chờ xác nhận",
+            Domain.Entities.OrderStatus.Processing => "Đang xử lý",
             Domain.Entities.OrderStatus.Confirmed => "Đã xác nhận",
-            Domain.Entities.OrderStatus.Shipping => "Đang giao hàng",
+            Domain.Entities.OrderStatus.Prepared => "Đã chuẩn bị hàng",
+            Domain.Entities.OrderStatus.Shipped => "Đã giao cho đơn vị vận chuyển",
             Domain.Entities.OrderStatus.Completed => "Hoàn thành",
             Domain.Entities.OrderStatus.Cancelled => "Đã hủy",
             _ => "Không xác định"

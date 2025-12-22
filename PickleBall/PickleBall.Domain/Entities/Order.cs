@@ -6,7 +6,7 @@ public class Order : BaseEntity
     public Guid? UserId { get; set; } // Nullable for guest checkout
     public decimal TotalAmount { get; set; }
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
-    public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+    public OrderStatus OrderStatus { get; set; } = OrderStatus.Processing;
     public PaymentMethod? PaymentMethod { get; set; }
     public string? PaymentTransactionId { get; set; }
 

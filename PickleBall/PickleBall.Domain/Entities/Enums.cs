@@ -16,11 +16,12 @@ public enum PaymentStatus
 
 public enum OrderStatus
 {
-    Pending = 1,
-    Confirmed = 2,
-    Shipping = 3,
-    Completed = 4,
-    Cancelled = 5
+    Processing = 1,        // Đang xử lý
+    Confirmed = 2,         // Đã xác nhận
+    Prepared = 3,          // Đã chuẩn bị hàng
+    Shipped = 4,           // Đã giao cho đơn vị vận chuyển
+    Completed = 5,        // Hoàn thành
+    Cancelled = 6         // Đã hủy
 }
 
 public enum PaymentMethod

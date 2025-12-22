@@ -183,9 +183,10 @@ public class EmailService : IEmailService
         
         var (orderStatusText, orderStatusClass) = order.OrderStatus switch
         {
-            OrderStatus.Pending => ("⏳ Đang chờ xử lý", "status-badge-warning"),
+            OrderStatus.Processing => ("⏳ Đang xử lý", "status-badge-warning"),
             OrderStatus.Confirmed => ("✓ Đã xác nhận", "status-badge-success"),
-            OrderStatus.Shipping => ("🚚 Đang giao hàng", "status-badge-info"),
+            OrderStatus.Prepared => ("📦 Đã chuẩn bị hàng", "status-badge-info"),
+            OrderStatus.Shipped => ("🚚 Đã giao cho đơn vị vận chuyển", "status-badge-info"),
             OrderStatus.Completed => ("✅ Hoàn thành", "status-badge-success"),
             OrderStatus.Cancelled => ("✗ Đã hủy", "status-badge-error"),
             _ => ("❓ Chưa xác định", "status-badge-default")
@@ -473,9 +474,10 @@ public class EmailService : IEmailService
         
         var (orderStatusText, orderStatusClass) = order.OrderStatus switch
         {
-            OrderStatus.Pending => ("⏳ Đang chờ xử lý", "status-badge-warning"),
+            OrderStatus.Processing => ("⏳ Đang xử lý", "status-badge-warning"),
             OrderStatus.Confirmed => ("✓ Đã xác nhận", "status-badge-success"),
-            OrderStatus.Shipping => ("🚚 Đang giao hàng", "status-badge-info"),
+            OrderStatus.Prepared => ("📦 Đã chuẩn bị hàng", "status-badge-info"),
+            OrderStatus.Shipped => ("🚚 Đã giao cho đơn vị vận chuyển", "status-badge-info"),
             OrderStatus.Completed => ("✅ Hoàn thành", "status-badge-success"),
             OrderStatus.Cancelled => ("✗ Đã hủy", "status-badge-error"),
             _ => ("❓ Chưa xác định", "status-badge-default")

@@ -99,8 +99,8 @@ public class OrderService : IOrderService
             UserId = userId,
             TotalAmount = totalAmount,
             PaymentStatus = PaymentStatus.Pending,
-            // For COD orders, set order status to Confirmed since payment will be collected on delivery
-            OrderStatus = request.PaymentMethod == PaymentMethod.COD ? OrderStatus.Confirmed : OrderStatus.Pending,
+            // Mặc định đơn hàng ở trạng thái "Đang xử lý"
+            OrderStatus = OrderStatus.Processing,
             PaymentMethod = request.PaymentMethod,
             ShippingFullName = request.ShippingAddress.FullName,
             ShippingPhoneNumber = request.ShippingAddress.PhoneNumber,
@@ -356,7 +356,8 @@ public class OrderService : IOrderService
             GuestFullName = request.FullName,
             TotalAmount = totalAmount,
             PaymentStatus = PaymentStatus.Pending,
-            OrderStatus = request.PaymentMethod == PaymentMethod.COD ? OrderStatus.Confirmed : OrderStatus.Pending,
+            // Mặc định đơn hàng ở trạng thái "Đang xử lý"
+            OrderStatus = OrderStatus.Processing,
             PaymentMethod = request.PaymentMethod,
             ShippingFullName = request.ShippingAddress.FullName,
             ShippingPhoneNumber = request.ShippingAddress.PhoneNumber,
@@ -618,6 +619,7 @@ public class OrderService : IOrderService
 
         if (isPaid)
         {
+            // Khi thanh toán thành công, chuyển sang trạng thái "Đã xác nhận"
             order.OrderStatus = OrderStatus.Confirmed;
         }
 
@@ -683,5 +685,22 @@ public class OrderService : IOrderService
         {
             _logger.LogWarning("Cannot send order confirmation email: Order {OrderId} not found after payment update", orderId);
         }
+    }
+
+    public async Task<OrderDto> UpdateOrderStatusAsync(Guid orderId, OrderStatus status)
+    {
+        var order = await _context.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+        {
+            throw new KeyNotFoundException("Không tìm thấy đơn hàng");
+        }
+
+        order.OrderStatus = status;
+        await _context.SaveChangesAsync();
+
+        return _mapper.Map<OrderDto>(order);
     }
 }
