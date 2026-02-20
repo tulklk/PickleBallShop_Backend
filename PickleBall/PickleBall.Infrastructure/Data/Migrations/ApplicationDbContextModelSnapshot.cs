@@ -319,11 +319,6 @@ namespace PickleBall.Infrastructure.Data.Migrations
                     b.Property<int>("ProductType")
                         .HasColumnType("integer");
 
-                    b.Property<string>("SKU")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<int?>("SkillLevel")
                         .HasColumnType("integer");
 
@@ -349,9 +344,6 @@ namespace PickleBall.Infrastructure.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("SKU")
-                        .IsUnique();
 
                     b.HasIndex("Slug")
                         .IsUnique();

@@ -268,11 +268,25 @@ public class Program
                 {
                     context.Response.StatusCode = 500;
                     context.Response.ContentType = "application/json";
-                    
+
+                    // In Development, include inner exception (e.g. PostgreSQL constraint message)
+                    var errorDetail = (string?)null;
+                    if (app.Environment.IsDevelopment())
+                    {
+                        var inner = ex;
+                        var parts = new List<string> { inner.Message };
+                        while (inner.InnerException != null)
+                        {
+                            inner = inner.InnerException;
+                            parts.Add(inner.Message);
+                        }
+                        errorDetail = string.Join(" | ", parts);
+                    }
+
                     await context.Response.WriteAsJsonAsync(new
                     {
                         message = "An error occurred while processing your request",
-                        error = app.Environment.IsDevelopment() ? ex.Message : null
+                        error = errorDetail
                     });
                 }
             }
