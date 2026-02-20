@@ -154,12 +154,11 @@ yarn-error.log
 # User secrets (Windows)
 secrets.json
 
-# App settings với sensitive data (PASSWORD, API KEYS)
-# CẢNH BÁO: appsettings.json chứa password thực tế, không commit lên git!
-appsettings.json
+# App settings với sensitive data (chỉ ignore bản override theo môi trường)
 appsettings.Development.json
 appsettings.Production.json
 appsettings.*.json
+!appsettings.Example.json
 
 # OS generated files
 .DS_Store

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace PickleBall.Application.DTOs.Categories;
 
@@ -20,9 +21,10 @@ public class CreateCategoryRequest
     public string? Description { get; set; }
 
     /// <summary>
-    /// Children sub-categories. Each child must be a full CreateCategoryRequest object with name and description properties.
-    /// Example: [ { "name": "Child Category", "description": "Child description" } ]
+    /// Children sub-categories. Accepts either an array of strings (child names) or an array of objects with name and description.
+    /// Example: [ "Vợt Pickleball Head", "Vợt Pickleball Joola" ] or [ { "name": "Child Category", "description": "Child description" } ]
     /// </summary>
+    [JsonConverter(typeof(CreateCategoryRequestChildrenConverter))]
     public List<CreateCategoryRequest>? Children { get; set; }
 }
 

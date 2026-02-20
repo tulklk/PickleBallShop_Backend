@@ -4,6 +4,7 @@ using PickleBall.Application.DTOs.Categories;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
+using PickleBall.Infrastructure.Helpers;
 
 namespace PickleBall.Infrastructure.Services;
 
@@ -55,6 +56,7 @@ public class CategoryService : ICategoryService
             {
                 Id = c.Id,
                 Name = c.Name,
+                Slug = c.Slug,
                 Description = c.Description,
                 ProductCount = c.Products.Count(p => p.IsActive),
                 Children = new()
@@ -110,10 +112,14 @@ public class CategoryService : ICategoryService
 
     public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryRequest request)
     {
-        // Create the main category (no parent, it's a root category)
+        var parentSlug = await SlugHelper.GenerateUniqueSlugAsync(
+            SlugHelper.GenerateSlug(request.Name),
+            s => _context.ProductCategories.AnyAsync(c => c.Slug == s));
+
         var category = new ProductCategory
         {
             Name = request.Name,
+            Slug = parentSlug,
             Description = request.Description,
             ParentId = null
         };
@@ -121,15 +127,22 @@ public class CategoryService : ICategoryService
         _context.ProductCategories.Add(category);
         await _context.SaveChangesAsync();
 
-        // Create children categories if provided
         if (request.Children != null && request.Children.Any())
         {
-            var childCategories = request.Children.Select(childRequest => new ProductCategory
+            var childCategories = new List<ProductCategory>();
+            foreach (var childRequest in request.Children)
             {
-                Name = childRequest.Name,
-                Description = childRequest.Description,
-                ParentId = category.Id
-            }).ToList();
+                var childSlug = await SlugHelper.GenerateUniqueSlugAsync(
+                    SlugHelper.GenerateSlug(childRequest.Name),
+                    s => _context.ProductCategories.AnyAsync(c => c.Slug == s));
+                childCategories.Add(new ProductCategory
+                {
+                    Name = childRequest.Name,
+                    Slug = childSlug,
+                    Description = childRequest.Description,
+                    ParentId = category.Id
+                });
+            }
 
             _context.ProductCategories.AddRange(childCategories);
             await _context.SaveChangesAsync();
@@ -187,35 +200,40 @@ public class CategoryService : ICategoryService
 
         category.Name = request.Name;
         category.Description = request.Description;
+        category.Slug = await SlugHelper.GenerateUniqueSlugAsync(
+            SlugHelper.GenerateSlug(request.Name),
+            s => _context.ProductCategories.AnyAsync(c => c.Slug == s && c.Id != id));
 
-        // Update children if provided
         if (request.Children != null)
         {
-            // Remove existing children and create new ones from request
             if (category.Children.Any())
             {
-                // Check if any child has active products
                 foreach (var child in category.Children)
                 {
                     if (child.Products.Any(p => p.IsActive))
-            {
+                    {
                         throw new InvalidOperationException($"Cannot remove child category '{child.Name}' because it has active products");
-            }
+                    }
                 }
-
                 _context.ProductCategories.RemoveRange(category.Children);
             }
 
-            // Create new children from request
             if (request.Children.Any())
             {
-                var childCategories = request.Children.Select(childRequest => new ProductCategory
+                var childCategories = new List<ProductCategory>();
+                foreach (var childRequest in request.Children)
                 {
-                    Name = childRequest.Name,
-                    Description = childRequest.Description,
-                    ParentId = category.Id
-                }).ToList();
-
+                    var childSlug = await SlugHelper.GenerateUniqueSlugAsync(
+                        SlugHelper.GenerateSlug(childRequest.Name),
+                        s => _context.ProductCategories.AnyAsync(c => c.Slug == s));
+                    childCategories.Add(new ProductCategory
+                    {
+                        Name = childRequest.Name,
+                        Slug = childSlug,
+                        Description = childRequest.Description,
+                        ParentId = category.Id
+                    });
+                }
                 _context.ProductCategories.AddRange(childCategories);
             }
         }

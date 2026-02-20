@@ -5654,6 +5654,9 @@
           "name": {
             "type": "string"
           },
+          "slug": {
+            "type": "string"
+          },
           "description": {
             "type": "string",
             "nullable": true
@@ -8208,6 +8211,9 @@
         ],
         "properties": {
           "name": {
+            "type": "string"
+          },
+          "slug": {
             "type": "string"
           },
           "description": {
