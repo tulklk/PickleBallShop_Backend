@@ -26,7 +26,7 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
             .GreaterThanOrEqualTo(0).WithMessage("Stock quantity must be greater than or equal to 0");
 
         RuleFor(x => x.Description)
-            .MaximumLength(5000).WithMessage("Description must not exceed 5000 characters");
+            .MaximumLength(50000).WithMessage("Description must not exceed 50000 characters");
 
         RuleFor(x => x.Brand)
             .MaximumLength(256).WithMessage("Brand must not exceed 256 characters");

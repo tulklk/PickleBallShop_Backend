@@ -293,8 +293,8 @@ namespace PickleBall.Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)");
+                        .HasMaxLength(50000)
+                        .HasColumnType("character varying(50000)");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
