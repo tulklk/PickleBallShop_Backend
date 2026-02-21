@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Products;
+using PickleBall.Application.Helpers;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
 using PickleBall.Infrastructure.Helpers;
@@ -69,14 +70,15 @@ public class AdminProductsController : ControllerBase
             return await _context.Products.AnyAsync(p => p.Slug == s);
         });
 
+        ProductPriceHelper.SetEffectivePrices(request.Price, request.OriginalPrice, out var effectivePrice, out var storedOriginalPrice);
         var product = new Product
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             Description = request.Description,
             CategoryId = request.CategoryId,
-            Price = request.Price,
-            OriginalPrice = request.OriginalPrice,
+            Price = effectivePrice,
+            OriginalPrice = storedOriginalPrice,
             StockQuantity = hasVariants ? 0 : request.StockQuantity, // If has variants, product stock = 0
             Brand = request.Brand,
             IsActive = request.IsActive,
@@ -106,19 +108,23 @@ public class AdminProductsController : ControllerBase
         // Handle variants if provided
         if (hasVariants && request.Variants != null)
         {
-            var variants = request.Variants.Select(v => new ProductVariant
+            var variants = request.Variants.Select(v =>
             {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                Color = v.Color,
-                Size = v.Size,
-                Spec = v.Spec,
-                Price = v.Price,
-                OriginalPrice = v.OriginalPrice,
-                StockQuantity = v.StockQuantity,
-                IsActive = v.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                ProductPriceHelper.SetEffectivePrices(v.Price, v.OriginalPrice, out var vEffective, out var vOriginal);
+                return new ProductVariant
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = product.Id,
+                    Color = v.Color,
+                    Size = v.Size,
+                    Spec = v.Spec,
+                    Price = vEffective,
+                    OriginalPrice = vOriginal,
+                    StockQuantity = v.StockQuantity,
+                    IsActive = v.IsActive,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
             }).ToList();
 
         _context.ProductVariants.AddRange(variants);
@@ -205,12 +211,13 @@ public class AdminProductsController : ControllerBase
             });
         }
 
-        // Update product properties
+        // Update product properties (Giá bán: ưu tiên Giá giảm, không có thì dùng Giá gốc)
+        ProductPriceHelper.SetEffectivePrices(request.Price, request.OriginalPrice, out var effectivePrice, out var storedOriginalPrice);
         product.Name = request.Name;
         product.Description = request.Description;
         product.CategoryId = request.CategoryId;
-        product.Price = request.Price;
-        product.OriginalPrice = request.OriginalPrice;
+        product.Price = effectivePrice;
+        product.OriginalPrice = storedOriginalPrice;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
         product.UpdatedAt = DateTime.UtcNow;
@@ -259,19 +266,23 @@ public class AdminProductsController : ControllerBase
             // Add new variants if provided
             if (hasVariants)
             {
-                var variants = request.Variants.Select(v => new ProductVariant
+                var variants = request.Variants.Select(v =>
                 {
-                    Id = Guid.NewGuid(),
-                    ProductId = product.Id,
-                    Color = v.Color,
-                    Size = v.Size,
-                    Spec = v.Spec,
-                    Price = v.Price,
-                    OriginalPrice = v.OriginalPrice,
-                    StockQuantity = v.StockQuantity,
-                    IsActive = v.IsActive,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    ProductPriceHelper.SetEffectivePrices(v.Price, v.OriginalPrice, out var vEffective, out var vOriginal);
+                    return new ProductVariant
+                    {
+                        Id = Guid.NewGuid(),
+                        ProductId = product.Id,
+                        Color = v.Color,
+                        Size = v.Size,
+                        Spec = v.Spec,
+                        Price = vEffective,
+                        OriginalPrice = vOriginal,
+                        StockQuantity = v.StockQuantity,
+                        IsActive = v.IsActive,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
                 }).ToList();
 
                 _context.ProductVariants.AddRange(variants);

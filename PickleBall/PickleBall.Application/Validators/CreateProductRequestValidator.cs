@@ -14,8 +14,13 @@ public class CreateProductRequestValidator : AbstractValidator<CreateProductRequ
         RuleFor(x => x.CategoryId)
             .NotEmpty().WithMessage("Category ID is required");
 
+        RuleFor(x => x)
+            .Must(x => x.Price > 0 || (x.OriginalPrice.HasValue && x.OriginalPrice.Value > 0))
+            .WithMessage("Either Price (Giá giảm) or Original Price (Giá gốc) must be greater than 0");
         RuleFor(x => x.Price)
-            .GreaterThan(0).WithMessage("Price must be greater than 0");
+            .GreaterThanOrEqualTo(0).WithMessage("Price must be greater than or equal to 0");
+        RuleFor(x => x.OriginalPrice)
+            .GreaterThanOrEqualTo(0).When(x => x.OriginalPrice.HasValue).WithMessage("Original price must be greater than or equal to 0");
 
         RuleFor(x => x.StockQuantity)
             .GreaterThanOrEqualTo(0).WithMessage("Stock quantity must be greater than or equal to 0");

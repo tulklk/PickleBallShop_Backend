@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Products;
+using PickleBall.Application.Helpers;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
@@ -149,14 +150,15 @@ public class ProductService : IProductService
             return await _context.Products.AnyAsync(p => p.Slug == s);
         });
 
+        ProductPriceHelper.SetEffectivePrices(request.Price, request.OriginalPrice, out var effectivePrice, out var storedOriginalPrice);
         var product = new Product
         {
             Name = request.Name,
             Slug = slug,
             Description = request.Description,
             CategoryId = request.CategoryId,
-            Price = request.Price,
-            OriginalPrice = request.OriginalPrice,
+            Price = effectivePrice,
+            OriginalPrice = storedOriginalPrice,
             StockQuantity = request.StockQuantity,
             Brand = request.Brand,
             IsActive = request.IsActive
@@ -211,12 +213,13 @@ public class ProductService : IProductService
             });
         }
 
-        // Update product properties
+        // Update product properties (Giá bán: ưu tiên Giá giảm, không có thì dùng Giá gốc)
+        ProductPriceHelper.SetEffectivePrices(request.Price, request.OriginalPrice, out var effectivePrice, out var storedOriginalPrice);
         product.Name = request.Name;
         product.Description = request.Description;
         product.CategoryId = request.CategoryId;
-        product.Price = request.Price;
-        product.OriginalPrice = request.OriginalPrice;
+        product.Price = effectivePrice;
+        product.OriginalPrice = storedOriginalPrice;
         product.StockQuantity = request.StockQuantity;
         product.Brand = request.Brand;
         product.IsActive = request.IsActive;
