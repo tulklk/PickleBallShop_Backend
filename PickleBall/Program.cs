@@ -11,6 +11,7 @@ using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Application.Mapping;
 using PickleBall.Application.Validators;
+using PickleBall.Hubs;
 using PickleBall.Infrastructure.Data;
 using PickleBall.Infrastructure.Services;
 
@@ -155,6 +156,18 @@ public class Program
             // Add event handlers for better error logging
             options.Events = new JwtBearerEvents
             {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/support-chat"))
+                    {
+                        context.Token = accessToken;
+                    }
+
+                    return Task.CompletedTask;
+                },
                 OnAuthenticationFailed = context =>
                 {
                     var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
@@ -179,6 +192,7 @@ public class Program
         });
 
         builder.Services.AddAuthorization();
+        builder.Services.AddSignalR();
 
         // Configure AutoMapper
         builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -238,6 +252,7 @@ public class Program
         builder.Services.AddScoped<IMoMoPaymentService, MoMoPaymentService>();
         builder.Services.AddScoped<IVnPayPaymentService, VnPayPaymentService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
+        builder.Services.AddScoped<ISupportChatService, SupportChatService>();
         
         // Register HttpClient Factory and Gemini Chat Service
         builder.Services.AddHttpClient();
@@ -312,6 +327,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+        app.MapHub<SupportChatHub>("/hubs/support-chat");
 
         // Apply migrations on startup (non-blocking)
         // If migrations fail, app will still start but may have database issues

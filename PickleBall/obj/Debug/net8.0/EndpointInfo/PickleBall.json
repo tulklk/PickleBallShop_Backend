@@ -1345,6 +1345,201 @@
         }
       }
     },
+    "/api/admin/support-chat/conversations": {
+      "get": {
+        "tags": [
+          "AdminSupportChat"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/support-chat/conversations/{customerId}/messages": {
+      "get": {
+        "tags": [
+          "AdminSupportChat"
+        ],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminSupportChat"
+        ],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/support-chat/conversations/{customerId}/read": {
+      "post": {
+        "tags": [
+          "AdminSupportChat"
+        ],
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/AdminUsers": {
       "get": {
         "tags": [
@@ -5033,6 +5228,125 @@
         }
       }
     },
+    "/api/support-chat/my-conversation": {
+      "get": {
+        "tags": [
+          "SupportChat"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/support-chat/my-conversation/messages": {
+      "post": {
+        "tags": [
+          "SupportChat"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/support-chat/my-conversation/read": {
+      "post": {
+        "tags": [
+          "SupportChat"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Users": {
       "get": {
         "tags": [
@@ -6858,6 +7172,43 @@
         },
         "additionalProperties": false
       },
+      "PickleBall.Application.DTOs.Products.PagedResultDto`1[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PickleBall.Application.DTOs.Products.ProductDto": {
         "type": "object",
         "properties": {
@@ -7246,6 +7597,114 @@
               "type": "integer",
               "format": "int32"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.SupportChat.SupportConversationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "customerEmail": {
+            "type": "string"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastMessagePreview": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerUnreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adminUnreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportConversationDto"
+              }
+            ]
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Application.DTOs.SupportChat.SupportMessageDto"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Application.DTOs.SupportChat.SupportMessageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderName": {
+            "type": "string"
+          },
+          "isFromAdmin": {
+            "type": "boolean"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "additionalProperties": false
@@ -8546,6 +9005,98 @@
           "Admin"
         ],
         "type": "string"
+      },
+      "PickleBall.Domain.Entities.SupportConversation": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastMessagePreview": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerUnreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "adminUnreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "customer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PickleBall.Domain.Entities.SupportMessage"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "PickleBall.Domain.Entities.SupportMessage": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PickleBall.Domain.Entities.BaseEntity"
+          }
+        ],
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isFromAdmin": {
+            "type": "boolean"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "conversation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.SupportConversation"
+              }
+            ]
+          },
+          "sender": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PickleBall.Domain.Entities.User"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
       },
       "PickleBall.Domain.Entities.User": {
         "type": "object",

@@ -45,6 +45,10 @@ public class ApplicationDbContext : DbContext
     // News
     public DbSet<NewsPost> NewsPosts { get; set; }
 
+    // Support chat
+    public DbSet<SupportConversation> SupportConversations { get; set; }
+    public DbSet<SupportMessage> SupportMessages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -70,6 +74,8 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new VoucherUsageConfiguration());
         modelBuilder.ApplyConfiguration(new WishlistConfiguration());
         modelBuilder.ApplyConfiguration(new NewsPostConfiguration());
+        modelBuilder.ApplyConfiguration(new SupportConversationConfiguration());
+        modelBuilder.ApplyConfiguration(new SupportMessageConfiguration());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

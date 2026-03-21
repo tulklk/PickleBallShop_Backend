@@ -843,6 +843,120 @@
     ]
   },
   {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminSupportChatController",
+    "Method": "GetConversations",
+    "RelativePath": "api/admin/support-chat/conversations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminSupportChatController",
+    "Method": "GetConversationMessages",
+    "RelativePath": "api/admin/support-chat/conversations/{customerId}/messages",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "customerId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminSupportChatController",
+    "Method": "SendMessage",
+    "RelativePath": "api/admin/support-chat/conversations/{customerId}/messages",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "customerId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.SupportChat.SupportMessageDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.Admin.AdminSupportChatController",
+    "Method": "MarkConversationRead",
+    "RelativePath": "api/admin/support-chat/conversations/{customerId}/read",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "customerId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "PickleBall.Controllers.Admin.AdminVouchersController",
     "Method": "GetVouchers",
     "RelativePath": "api/admin/vouchers",
@@ -2625,6 +2739,73 @@
         "StatusCode": 200
       }
     ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.SupportChatController",
+    "Method": "GetMyConversation",
+    "RelativePath": "api/support-chat/my-conversation",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.SupportChat.SupportConversationMessagesDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.SupportChatController",
+    "Method": "SendMyMessage",
+    "RelativePath": "api/support-chat/my-conversation/messages",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "PickleBall.Application.DTOs.SupportChat.SendSupportMessageRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.SupportChat.SupportMessageDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "PickleBall.Controllers.SupportChatController",
+    "Method": "MarkMyConversationRead",
+    "RelativePath": "api/support-chat/my-conversation/read",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
   },
   {
     "ContainingType": "PickleBall.Controllers.UsersController",
