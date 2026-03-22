@@ -14,6 +14,7 @@ using PickleBall.Application.Validators;
 using PickleBall.Hubs;
 using PickleBall.Infrastructure.Data;
 using PickleBall.Infrastructure.Services;
+using PickleBall.Services;
 
 namespace PickleBall;
 
@@ -161,7 +162,9 @@ public class Program
                     var accessToken = context.Request.Query["access_token"];
                     var path = context.HttpContext.Request.Path;
 
-                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs/support-chat"))
+                    if (!string.IsNullOrEmpty(accessToken) &&
+                        (path.StartsWithSegments("/hubs/support-chat") ||
+                         path.StartsWithSegments("/hubs/admin-notifications")))
                     {
                         context.Token = accessToken;
                     }
@@ -249,6 +252,9 @@ public class Program
         builder.Services.AddScoped<IVnPayPaymentService, VnPayPaymentService>();
         builder.Services.AddScoped<IPaymentService, PaymentService>();
         builder.Services.AddScoped<ISupportChatService, SupportChatService>();
+        builder.Services.AddSingleton<AdminOrderNotificationPublisher>();
+        builder.Services.AddSingleton<IAdminOrderNotificationPublisher>(sp => sp.GetRequiredService<AdminOrderNotificationPublisher>());
+        builder.Services.AddSingleton<IAdminSupportMessageNotificationPublisher>(sp => sp.GetRequiredService<AdminOrderNotificationPublisher>());
         
         // Register HttpClient Factory and Gemini Chat Service
         builder.Services.AddHttpClient();
@@ -324,6 +330,7 @@ public class Program
 
         app.MapControllers();
         app.MapHub<SupportChatHub>("/hubs/support-chat");
+        app.MapHub<AdminNotificationsHub>("/hubs/admin-notifications");
 
         // Apply migrations on startup (non-blocking)
         // If migrations fail, app will still start but may have database issues

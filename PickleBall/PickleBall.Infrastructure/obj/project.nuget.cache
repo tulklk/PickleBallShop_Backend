@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qmtEYsx1G1c=",
+  "dgSpecHash": "yp21Wtl9Nho=",
   "success": true,
-  "projectFilePath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
+  "projectFilePath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Tus\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Tus\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -71,5 +71,18 @@
     "C:\\Users\\Tus\\.nuget\\packages\\system.text.json\\8.0.5\\system.text.json.8.0.5.nupkg.sha512",
     "C:\\Users\\Tus\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "message": "Package 'MimeKit' 4.14.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g7hc-96xr-gvvx",
+      "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
+      "warningLevel": 1,
+      "filePath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
+      "libraryId": "MimeKit",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

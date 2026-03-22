@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NEoryVtc7Ho=",
+  "dgSpecHash": "lOWFQPBGh7k=",
   "success": true,
-  "projectFilePath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
+  "projectFilePath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Tus\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\Tus\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",
@@ -16,5 +16,18 @@
     "C:\\Users\\Tus\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
     "C:\\Users\\Tus\\.nuget\\packages\\system.text.json\\8.0.5\\system.text.json.8.0.5.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'AutoMapper' 12.0.1 has a known high severity vulnerability, https://github.com/advisories/GHSA-rvv3-g6hj-g44x",
+      "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
+      "warningLevel": 1,
+      "filePath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
+      "libraryId": "AutoMapper",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

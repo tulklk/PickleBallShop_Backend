@@ -9,7 +9,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -128,13 +128,13 @@
     "Parameters": [
       {
         "Name": "requests",
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CreateCategoryRequest, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CreateCategoryRequest, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -154,7 +154,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -205,7 +205,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.News.NewsListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.News.NewsListDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -360,7 +360,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.AdminOrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.AdminOrderDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -552,7 +552,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Users.UserDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Users.UserDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -682,7 +682,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductSpecificationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductSpecificationDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -832,7 +832,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductSpecificationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductSpecificationDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -863,7 +863,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.SupportChat.SupportConversationDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1429,7 +1429,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1548,13 +1548,13 @@
     "Parameters": [
       {
         "Name": "requests",
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CreateCategoryRequest, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CreateCategoryRequest, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1574,7 +1574,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Categories.CategoryDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1740,7 +1740,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -1827,7 +1827,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.News.NewsListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.News.NewsListDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -2019,7 +2019,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Orders.OrderDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -2232,7 +2232,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "PickleBall.Application.DTOs.Products.PagedResultDto\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -2554,7 +2554,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -2590,7 +2590,7 @@
     ],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Products.ProductListDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -2817,7 +2817,7 @@
     "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Users.UserDto, PickleBall, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.List\u00601[[PickleBall.Application.DTOs.Users.UserDto, PickleBall, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",

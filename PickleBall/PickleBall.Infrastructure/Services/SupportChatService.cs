@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using PickleBall.Application.DTOs.Notifications;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.DTOs.SupportChat;
 using PickleBall.Application.Interfaces;
@@ -10,10 +12,17 @@ namespace PickleBall.Infrastructure.Services;
 public class SupportChatService : ISupportChatService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAdminSupportMessageNotificationPublisher _adminSupportMessageNotificationPublisher;
+    private readonly ILogger<SupportChatService> _logger;
 
-    public SupportChatService(ApplicationDbContext context)
+    public SupportChatService(
+        ApplicationDbContext context,
+        IAdminSupportMessageNotificationPublisher adminSupportMessageNotificationPublisher,
+        ILogger<SupportChatService> logger)
     {
         _context = context;
+        _adminSupportMessageNotificationPublisher = adminSupportMessageNotificationPublisher;
+        _logger = logger;
     }
 
     public async Task<SupportMessageDto> SendMessageAsync(Guid senderId, string senderRole, Guid customerId, string content)
@@ -91,6 +100,30 @@ public class SupportChatService : ISupportChatService
         }
 
         await _context.SaveChangesAsync();
+
+        if (isCustomer)
+        {
+            try
+            {
+                await _adminSupportMessageNotificationPublisher.NotifyNewCustomerMessageAsync(
+                    new NewSupportMessageNotificationDto
+                    {
+                        MessageId = message.Id,
+                        ConversationId = conversation.Id,
+                        CustomerId = customer.Id,
+                        CustomerName = customer.FullName,
+                        ContentPreview = conversation.LastMessagePreview,
+                        CreatedAt = message.CreatedAt,
+                        AdminUnreadCount = conversation.AdminUnreadCount
+                    });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to notify admins of new support message from customer {CustomerId}",
+                    customer.Id);
+            }
+        }
 
         return new SupportMessageDto
         {

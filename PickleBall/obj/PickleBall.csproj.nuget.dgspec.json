@@ -4,14 +4,14 @@
     "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.csproj": {}
   },
   "projects": {
-    "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
+    "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
+        "projectUniqueName": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
         "projectName": "PickleBall.Application",
-        "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
+        "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj",
         "packagesPath": "C:\\Users\\Tus\\.nuget\\packages\\",
-        "outputPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\obj\\",
+        "outputPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -32,8 +32,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
-                "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
+              "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
+                "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
               }
             }
           }
@@ -190,14 +190,14 @@
         }
       }
     },
-    "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
+    "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj",
+        "projectUniqueName": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj",
         "projectName": "PickleBall.Domain",
-        "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj",
+        "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj",
         "packagesPath": "C:\\Users\\Tus\\.nuget\\packages\\",
-        "outputPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\obj\\",
+        "outputPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -255,14 +255,14 @@
         }
       }
     },
-    "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj": {
+    "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
+        "projectUniqueName": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
         "projectName": "PickleBall.Infrastructure",
-        "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
+        "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\PickleBall.Infrastructure.csproj",
         "packagesPath": "C:\\Users\\Tus\\.nuget\\packages\\",
-        "outputPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\obj\\",
+        "outputPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -283,11 +283,11 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
-                "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj"
+              "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
+                "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj"
               },
-              "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
-                "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
+              "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
+                "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
               }
             }
           }

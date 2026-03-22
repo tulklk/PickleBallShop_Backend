@@ -150,3 +150,9 @@ E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\refint\
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.pdb
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\PickleBall.genruntimeconfig.cache
 E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\ref\PickleBall.dll
+e:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Migrate\bin\Debug\net8.0\PickleBall.Migrate.deps.json
+e:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Migrate\bin\Debug\net8.0\PickleBall.Migrate.runtimeconfig.json
+e:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Migrate\obj\Debug\net8.0\PickleBall.Migrate.sourcelink.json
+e:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Migrate\obj\PickleBall.Migrate.csproj.nuget.dgspec.json
+e:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\bin\Debug\net8.0\PickleBall.Migrate\obj\project.assets.json
+E:\Web\PickleBallShop_backend\PickleBallShop\PickleBall\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

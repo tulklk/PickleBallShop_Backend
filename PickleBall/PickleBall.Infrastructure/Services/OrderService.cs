@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using PickleBall.Application.DTOs.Notifications;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
@@ -17,8 +18,16 @@ public class OrderService : IOrderService
     private readonly IEmailService _emailService;
     private readonly ILogger<OrderService> _logger;
     private readonly IVoucherService _voucherService;
+    private readonly IAdminOrderNotificationPublisher _adminOrderNotificationPublisher;
 
-    public OrderService(ApplicationDbContext context, IMapper mapper, IPaymentService paymentService, IEmailService emailService, ILogger<OrderService> logger, IVoucherService voucherService)
+    public OrderService(
+        ApplicationDbContext context,
+        IMapper mapper,
+        IPaymentService paymentService,
+        IEmailService emailService,
+        ILogger<OrderService> logger,
+        IVoucherService voucherService,
+        IAdminOrderNotificationPublisher adminOrderNotificationPublisher)
     {
         _context = context;
         _mapper = mapper;
@@ -26,6 +35,7 @@ public class OrderService : IOrderService
         _emailService = emailService;
         _logger = logger;
         _voucherService = voucherService;
+        _adminOrderNotificationPublisher = adminOrderNotificationPublisher;
     }
 
     public async Task<OrderDto> CreateOrderAsync(Guid userId, CreateOrderRequest request)
@@ -192,6 +202,16 @@ public class OrderService : IOrderService
         _context.CartItems.RemoveRange(cart.Items);
 
         await _context.SaveChangesAsync();
+
+        try
+        {
+            var notificationDto = await BuildNewOrderNotificationDtoAsync(order, userId, isGuest: false, CancellationToken.None);
+            await _adminOrderNotificationPublisher.NotifyNewOrderAsync(notificationDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send admin new-order notification for order {OrderId}", order.Id);
+        }
 
         // For COD orders, send confirmation email immediately since order is confirmed
         if (request.PaymentMethod == PaymentMethod.COD)
@@ -449,6 +469,16 @@ public class OrderService : IOrderService
         }
         await _context.SaveChangesAsync();
 
+        try
+        {
+            var notificationDto = await BuildNewOrderNotificationDtoAsync(order, userIdForLookup: null, isGuest: true, CancellationToken.None);
+            await _adminOrderNotificationPublisher.NotifyNewOrderAsync(notificationDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send admin new-order notification for guest order {OrderId}", order.Id);
+        }
+
         // For COD orders, send confirmation email immediately
         if (request.PaymentMethod == PaymentMethod.COD)
         {
@@ -702,5 +732,45 @@ public class OrderService : IOrderService
         await _context.SaveChangesAsync();
 
         return _mapper.Map<OrderDto>(order);
+    }
+
+    private async Task<NewOrderNotificationDto> BuildNewOrderNotificationDtoAsync(
+        Order order,
+        Guid? userIdForLookup,
+        bool isGuest,
+        CancellationToken cancellationToken)
+    {
+        string? email = null;
+        string? name = null;
+
+        if (isGuest)
+        {
+            email = order.GuestEmail;
+            name = order.GuestFullName;
+        }
+        else if (userIdForLookup.HasValue)
+        {
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == userIdForLookup.Value, cancellationToken);
+
+            if (user != null)
+            {
+                email = user.Email;
+                name = user.FullName;
+            }
+        }
+
+        return new NewOrderNotificationDto
+        {
+            OrderId = order.Id,
+            OrderNumber = order.OrderNumber,
+            TotalAmount = order.TotalAmount,
+            CreatedAt = order.CreatedAt,
+            IsGuestOrder = isGuest,
+            CustomerEmail = email,
+            CustomerName = name,
+            PaymentMethod = order.PaymentMethod?.ToString()
+        };
     }
 }
