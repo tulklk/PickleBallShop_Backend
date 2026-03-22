@@ -251,27 +251,31 @@ public class SupportChatService : ISupportChatService
         var page = Math.Max(query.Page, 1);
         var pageSize = Math.Clamp(query.PageSize, 1, 200);
 
-        return await _context.SupportMessages
+        // Load page with newest first, then sort ascending in memory (avoids fragile EF double-OrderBy translation on PostgreSQL)
+        var rows = await _context.SupportMessages
             .AsNoTracking()
             .Include(m => m.Sender)
             .Where(m => m.ConversationId == conversationId)
             .OrderByDescending(m => m.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .ToListAsync();
+
+        return rows
             .OrderBy(m => m.CreatedAt)
             .Select(m => new SupportMessageDto
             {
                 Id = m.Id,
                 ConversationId = m.ConversationId,
                 SenderId = m.SenderId,
-                SenderName = m.Sender.FullName,
+                SenderName = m.Sender?.FullName ?? string.Empty,
                 IsFromAdmin = m.IsFromAdmin,
                 Content = m.Content,
                 IsRead = m.IsRead,
                 ReadAt = m.ReadAt,
                 CreatedAt = m.CreatedAt
             })
-            .ToListAsync();
+            .ToList();
     }
 
     private static SupportConversationDto MapConversation(SupportConversation conversation)
@@ -280,8 +284,8 @@ public class SupportChatService : ISupportChatService
         {
             Id = conversation.Id,
             CustomerId = conversation.CustomerId,
-            CustomerName = conversation.Customer.FullName,
-            CustomerEmail = conversation.Customer.Email,
+            CustomerName = conversation.Customer?.FullName ?? string.Empty,
+            CustomerEmail = conversation.Customer?.Email ?? string.Empty,
             LastMessageAt = conversation.LastMessageAt,
             LastMessagePreview = conversation.LastMessagePreview,
             CustomerUnreadCount = conversation.CustomerUnreadCount,

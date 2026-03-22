@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -197,6 +198,14 @@ public class Program
         builder.Services.AddAuthorization();
         builder.Services.AddSignalR();
 
+        // Fly.io / reverse proxy: use X-Forwarded-Proto so Request.Scheme is https (JWT, cookies, SignalR)
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+
         // Configure AutoMapper
         builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -263,7 +272,9 @@ public class Program
         var app = builder.Build();
 
         // Configure the HTTP request pipeline
-        
+        // Must be first so UseAuthentication / SignalR see correct Scheme (https) behind Fly.io proxy
+        app.UseForwardedHeaders();
+
         // CORS must be very early in the pipeline, before authentication and error handling
         // This ensures preflight OPTIONS requests are handled correctly
         app.UseCors("AllowConfiguredOrigins");
@@ -274,6 +285,28 @@ public class Program
             try
             {
                 await next();
+            }
+            catch (UnauthorizedAccessException uex)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(uex, "Unauthorized: {Message}", uex.Message);
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(new { message = uex.Message });
+                }
+            }
+            catch (KeyNotFoundException knf)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(knf, "Not found: {Message}", knf.Message);
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(new { message = knf.Message });
+                }
             }
             catch (Exception ex)
             {
@@ -394,6 +427,9 @@ public class Program
         }
 
         AddOrigin(configuration["Email:FrontendUrl"]);
+        // Production: set Fly.io secret FRONTEND_URL=https://your-app.vercel.app (preview deploys need their URL added too)
+        AddOrigin(Environment.GetEnvironmentVariable("FRONTEND_URL"));
+        AddOrigin(configuration["PublicFrontendUrl"]);
 
         // Local dev (Next/Vite/React) — needed when FE hits Fly.io API from localhost
         if (environment.IsDevelopment())
