@@ -202,25 +202,21 @@ public class Program
         builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 
         // Configure CORS
+        // SignalR negotiate + fetch from browser may use credentials; browsers forbid
+        // Access-Control-Allow-Origin: * with credentials. Must use explicit origins + AllowCredentials.
+        var corsOrigins = BuildCorsAllowedOrigins(builder.Configuration, builder.Environment);
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowAll", policy =>
+            options.AddPolicy("AllowConfiguredOrigins", policy =>
             {
-                policy.AllowAnyOrigin() // Allow all origins for now
-                      .AllowAnyMethod() // Allow all HTTP methods
-                      .AllowAnyHeader() // Allow all headers
-                      .WithExposedHeaders("*"); // Expose all headers
-                
-                // Alternative: Use specific origins if needed (comment out AllowAnyOrigin above)
-                // var frontendUrl = builder.Configuration.GetSection("Email:FrontendUrl").Value ?? "https://pickleball-shop-frontend.vercel.app";
-                // policy.WithOrigins(frontendUrl)
-                //       .AllowAnyMethod()
-                //       .AllowAnyHeader()
-                //       .WithExposedHeaders("*");
+                policy.WithOrigins(corsOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials()
+                      .WithExposedHeaders("*");
             });
-            
-            // Add default policy as well
-            options.DefaultPolicyName = "AllowAll";
+
+            options.DefaultPolicyName = "AllowConfiguredOrigins";
         });
 
         // Configure payment settings
@@ -264,7 +260,7 @@ public class Program
         
         // CORS must be very early in the pipeline, before authentication and error handling
         // This ensures preflight OPTIONS requests are handled correctly
-        app.UseCors("AllowAll");
+        app.UseCors("AllowConfiguredOrigins");
 
         // Global error handling middleware
         app.Use(async (context, next) =>
@@ -364,5 +360,50 @@ public class Program
         });
 
         app.Run();
+    }
+
+    /// <summary>
+    /// Collects allowed CORS origins from Cors:AllowedOrigins, Email:FrontendUrl, and dev defaults.
+    /// </summary>
+    private static string[] BuildCorsAllowedOrigins(IConfiguration configuration, IHostEnvironment environment)
+    {
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddOrigin(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return;
+            var trimmed = url.Trim().TrimEnd('/');
+            if (trimmed.Contains("your-frontend", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.Contains("localhost-placeholder", StringComparison.OrdinalIgnoreCase))
+                return;
+            set.Add(trimmed);
+        }
+
+        var fromSection = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+        if (fromSection != null)
+        {
+            foreach (var o in fromSection)
+                AddOrigin(o);
+        }
+
+        AddOrigin(configuration["Email:FrontendUrl"]);
+
+        // Local dev (Next/Vite/React) — needed when FE hits Fly.io API from localhost
+        if (environment.IsDevelopment())
+        {
+            AddOrigin("http://localhost:3000");
+            AddOrigin("http://127.0.0.1:3000");
+            AddOrigin("http://localhost:5173");
+            AddOrigin("http://localhost:4200");
+        }
+
+        if (set.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "CORS: configure at least one origin in Cors:AllowedOrigins or Email:FrontendUrl. " +
+                "Wildcard origin is not compatible with SignalR when the browser sends credentials.");
+        }
+
+        return set.ToArray();
     }
 }
