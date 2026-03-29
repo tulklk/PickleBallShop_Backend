@@ -16,6 +16,24 @@ public class NewsController : ControllerBase
         _newsService = newsService;
     }
 
+    /// <summary>Literal route before {idOrSlug} so "categories" is not treated as a slug.</summary>
+    [HttpGet("categories")]
+    public ActionResult<List<string>> GetCategories()
+    {
+        var categories = new List<string>
+        {
+            "Tin tức",
+            "Kiến thức",
+            "Đánh giá sản phẩm",
+            "Kỹ thuật Pickleball",
+            "Mẹo TIPS Pickleball",
+            "Luật chơi Pickleball",
+            "Khuyến mãi"
+        };
+
+        return Ok(categories);
+    }
+
     /// <summary>
     /// Get all published news (public endpoint)
     /// </summary>
@@ -24,7 +42,7 @@ public class NewsController : ControllerBase
     {
         // Force only published news for public endpoint
         query.IsPublished = true;
-        
+
         var result = await _newsService.GetNewsAsync(query);
         return Ok(result);
     }
@@ -37,7 +55,7 @@ public class NewsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(idOrSlug))
         {
-            return BadRequest(new { message = "News ID or slug is required" });
+            return BadRequest(new { success = false, message = "News ID or slug is required", traceId = HttpContext.TraceIdentifier });
         }
 
         NewsDto? news;
@@ -55,13 +73,13 @@ public class NewsController : ControllerBase
 
         if (news == null)
         {
-            return NotFound(new { message = "News not found" });
+            return NotFound(new { success = false, message = "News not found", traceId = HttpContext.TraceIdentifier });
         }
 
         // Only return published news for public endpoint
         if (!news.IsPublished)
         {
-            return NotFound(new { message = "News not found" });
+            return NotFound(new { success = false, message = "News not found", traceId = HttpContext.TraceIdentifier });
         }
 
         // Increment view count
@@ -69,25 +87,4 @@ public class NewsController : ControllerBase
 
         return Ok(news);
     }
-
-    /// <summary>
-    /// Get news categories (public endpoint)
-    /// </summary>
-    [HttpGet("categories")]
-    public ActionResult<List<string>> GetCategories()
-    {
-        var categories = new List<string>
-        {
-            "Tin tức",
-            "Kiến thức",
-            "Đánh giá sản phẩm",
-            "Kỹ thuật Pickleball",
-            "Mẹo TIPS Pickleball",
-            "Luật chơi Pickleball",
-            "Khuyến mãi"
-        };
-        
-        return Ok(categories);
-    }
 }
-

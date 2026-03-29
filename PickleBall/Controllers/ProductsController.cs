@@ -23,6 +23,26 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Literal routes must be declared before {idOrSlug} so they are not captured as slugs.</summary>
+    [HttpGet("featured")]
+    public async Task<ActionResult<List<ProductListDto>>> GetFeaturedProducts([FromQuery] int count = 10)
+    {
+        var products = await _productService.GetFeaturedProductsAsync(count);
+        return Ok(products);
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<List<ProductListDto>>> SearchProducts([FromQuery] string q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return BadRequest(new { success = false, message = "Search term is required", traceId = HttpContext.TraceIdentifier });
+        }
+
+        var products = await _productService.SearchProductsAsync(q, page, pageSize);
+        return Ok(products);
+    }
+
     /// <summary>
     /// Get product by ID or slug (SEO-friendly)
     /// Supports both:
@@ -34,7 +54,7 @@ public class ProductsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(idOrSlug))
         {
-            return BadRequest(new { message = "Product ID or slug is required" });
+            return BadRequest(new { success = false, message = "Product ID or slug is required", traceId = HttpContext.TraceIdentifier });
         }
 
         // Try to parse as Guid first (backward compatibility)
@@ -54,26 +74,7 @@ public class ProductsController : ControllerBase
             return Ok(productBySlug);
         }
 
-        return NotFound(new { message = "Product not found" });
-    }
-
-    [HttpGet("featured")]
-    public async Task<ActionResult<List<ProductListDto>>> GetFeaturedProducts([FromQuery] int count = 10)
-    {
-        var products = await _productService.GetFeaturedProductsAsync(count);
-        return Ok(products);
-    }
-
-    [HttpGet("search")]
-    public async Task<ActionResult<List<ProductListDto>>> SearchProducts([FromQuery] string q, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-    {
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            return BadRequest(new { message = "Search term is required" });
-        }
-
-        var products = await _productService.SearchProductsAsync(q, page, pageSize);
-        return Ok(products);
+        return NotFound(new { success = false, message = "Product not found", traceId = HttpContext.TraceIdentifier });
     }
 
     // CRUD Operations - Admin Only
@@ -88,11 +89,11 @@ public class ProductsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new { success = false, message = ex.Message, traceId = HttpContext.TraceIdentifier });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new { success = false, message = ex.Message, traceId = HttpContext.TraceIdentifier });
         }
     }
 
@@ -107,11 +108,11 @@ public class ProductsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(new { success = false, message = ex.Message, traceId = HttpContext.TraceIdentifier });
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(new { success = false, message = ex.Message, traceId = HttpContext.TraceIdentifier });
         }
     }
 

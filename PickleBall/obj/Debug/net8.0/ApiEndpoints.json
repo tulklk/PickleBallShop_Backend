@@ -1787,6 +1787,37 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "PickleBall.Controllers.HomeController",
+    "Method": "GetBootstrap",
+    "RelativePath": "api/Home/bootstrap",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "featuredCount",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "newsCount",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "PickleBall.Application.DTOs.Home.HomeBootstrapResponseDto",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "PickleBall.Controllers.NewsController",
     "Method": "GetNews",
     "RelativePath": "api/News",

@@ -1,5 +1,7 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PickleBall.Application.DTOs.Products;
 using PickleBall.Application.Helpers;
 using PickleBall.Application.Interfaces;
@@ -13,25 +15,26 @@ public class ProductService : IProductService
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly IMemoryCache _cache;
 
-    public ProductService(ApplicationDbContext context, IMapper mapper)
+    private static readonly TimeSpan FeaturedCacheTtl = TimeSpan.FromMinutes(5);
+
+    public ProductService(ApplicationDbContext context, IMapper mapper, IMemoryCache cache)
     {
         _context = context;
         _mapper = mapper;
+        _cache = cache;
     }
 
     public async Task<PagedResultDto<ProductListDto>> GetProductsAsync(ProductQueryDto query)
     {
-        var products = _context.Products
-            .Include(p => p.Images)
-            .Include(p => p.Reviews)
-            .Include(p => p.Category)
-            .Include(p => p.Variants.Where(v => v.IsActive))
-            .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
-            .Where(p => p.IsActive)
-            .AsQueryable();
+        var page = Math.Max(1, query.Page);
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
 
-        // Apply filters
+        IQueryable<Product> products = _context.Products
+            .AsNoTracking()
+            .Where(p => p.IsActive);
+
         if (query.CategoryId.HasValue)
         {
             products = products.Where(p => p.CategoryId == query.CategoryId.Value);
@@ -61,7 +64,6 @@ public class ProductService : IProductService
                 (p.Brand != null && p.Brand.ToLower().Contains(searchTerm)));
         }
 
-        // Apply sorting
         products = query.SortBy?.ToLower() switch
         {
             "price" => products.OrderBy(p => p.Price),
@@ -74,58 +76,103 @@ public class ProductService : IProductService
         var totalCount = await products.CountAsync();
 
         var items = await products
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(MapProductListProjection())
             .ToListAsync();
 
         return new PagedResultDto<ProductListDto>
         {
-            Items = _mapper.Map<List<ProductListDto>>(items),
+            Items = items,
             TotalCount = totalCount,
-            Page = query.Page,
-            PageSize = query.PageSize
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    /// <summary>
+    /// Projects to list DTO in SQL (no cartesian explosion from Include Reviews/Images).
+    /// </summary>
+    private static Expression<Func<Product, ProductListDto>> MapProductListProjection()
+    {
+        return p => new ProductListDto
+        {
+            Id = p.Id,
+            Name = p.Name,
+            Slug = p.Slug,
+            Price = p.Price,
+            OriginalPrice = p.OriginalPrice,
+            StockQuantity = p.StockQuantity,
+            Brand = p.Brand,
+            ReviewCount = p.Reviews.Count,
+            AverageRating = p.Reviews.Any() ? p.Reviews.Average(r => (double)r.Rating) : null,
+            PrimaryImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.ImageUrl).FirstOrDefault()
+                ?? p.Images.Select(i => i.ImageUrl).FirstOrDefault()
         };
     }
 
     public async Task<ProductDto?> GetProductByIdAsync(Guid id)
     {
         var product = await _context.Products
+            .AsSplitQuery()
+            .AsNoTracking()
             .Include(p => p.Images)
-            .Include(p => p.Reviews)
             .Include(p => p.Category)
             .Include(p => p.Variants.Where(v => v.IsActive))
             .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
             .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
 
-        return product != null ? _mapper.Map<ProductDto>(product) : null;
+        if (product == null) return null;
+
+        var dto = _mapper.Map<ProductDto>(product);
+        await ApplyReviewStatsAsync(dto, id);
+        return dto;
     }
 
     public async Task<ProductDto?> GetProductBySlugAsync(string slug)
     {
         var product = await _context.Products
+            .AsSplitQuery()
+            .AsNoTracking()
             .Include(p => p.Images)
-            .Include(p => p.Reviews)
             .Include(p => p.Category)
             .Include(p => p.Variants.Where(v => v.IsActive))
             .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
             .FirstOrDefaultAsync(p => p.Slug == slug && p.IsActive);
 
-        return product != null ? _mapper.Map<ProductDto>(product) : null;
+        if (product == null) return null;
+
+        var dto = _mapper.Map<ProductDto>(product);
+        await ApplyReviewStatsAsync(dto, product.Id);
+        return dto;
+    }
+
+    private async Task ApplyReviewStatsAsync(ProductDto dto, Guid productId)
+    {
+        var count = await _context.ProductReviews.AsNoTracking().CountAsync(r => r.ProductId == productId);
+        dto.ReviewCount = count;
+        dto.AverageRating = count == 0
+            ? null
+            : await _context.ProductReviews.AsNoTracking()
+                .Where(r => r.ProductId == productId)
+                .AverageAsync(r => (double)r.Rating);
     }
 
     public async Task<List<ProductListDto>> GetFeaturedProductsAsync(int count = 10)
     {
-        var products = await _context.Products
-            .Include(p => p.Images)
-            .Include(p => p.Reviews)
-            .Include(p => p.Variants.Where(v => v.IsActive))
-            .Where(p => p.IsActive)
-            .OrderByDescending(p => p.Reviews.Count)
-            .ThenByDescending(p => p.CreatedAt)
-            .Take(count)
-            .ToListAsync();
-
-        return _mapper.Map<List<ProductListDto>>(products);
+        count = Math.Clamp(count, 1, 100);
+        return await _cache.GetOrCreateAsync($"products:featured:{count}", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = FeaturedCacheTtl;
+            return await _context.Products
+                .AsNoTracking()
+                .Where(p => p.IsActive)
+                .OrderByDescending(p => p.Reviews.Count)
+                .ThenByDescending(p => p.CreatedAt)
+                .Take(count)
+                .Select(MapProductListProjection())
+                .ToListAsync();
+        });
     }
 
     public async Task<List<ProductListDto>> SearchProductsAsync(string searchTerm, int page = 1, int pageSize = 20)
@@ -181,15 +228,21 @@ public class ProductService : IProductService
             await _context.SaveChangesAsync();
         }
 
-        // Reload with related data
+        InvalidateFeaturedProductCache();
+
+        // Reload with related data (no Reviews — stats applied separately)
         var createdProduct = await _context.Products
+            .AsSplitQuery()
+            .AsNoTracking()
             .Include(p => p.Images)
-            .Include(p => p.Reviews)
             .Include(p => p.Category)
             .Include(p => p.Variants.Where(v => v.IsActive))
+            .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
             .FirstOrDefaultAsync(p => p.Id == product.Id);
 
-        return _mapper.Map<ProductDto>(createdProduct!);
+        var dto = _mapper.Map<ProductDto>(createdProduct!);
+        await ApplyReviewStatsAsync(dto, product.Id);
+        return dto;
     }
 
     public async Task<ProductDto> UpdateProductAsync(Guid id, UpdateProductRequest request)
@@ -240,15 +293,21 @@ public class ProductService : IProductService
 
         await _context.SaveChangesAsync();
 
+        InvalidateFeaturedProductCache();
+
         // Reload with related data
         var updatedProduct = await _context.Products
+            .AsSplitQuery()
+            .AsNoTracking()
             .Include(p => p.Images)
-            .Include(p => p.Reviews)
             .Include(p => p.Category)
             .Include(p => p.Variants.Where(v => v.IsActive))
+            .Include(p => p.Specifications.OrderBy(s => s.DisplayOrder))
             .FirstOrDefaultAsync(p => p.Id == product.Id);
 
-        return _mapper.Map<ProductDto>(updatedProduct!);
+        var dto = _mapper.Map<ProductDto>(updatedProduct!);
+        await ApplyReviewStatsAsync(dto, id);
+        return dto;
     }
 
     public async Task<bool> DeleteProductAsync(Guid id)
@@ -266,6 +325,14 @@ public class ProductService : IProductService
         product.IsActive = false;
         await _context.SaveChangesAsync();
 
+        InvalidateFeaturedProductCache();
+
         return true;
+    }
+
+    private void InvalidateFeaturedProductCache()
+    {
+        for (var i = 1; i <= 100; i++)
+            _cache.Remove($"products:featured:{i}");
     }
 }

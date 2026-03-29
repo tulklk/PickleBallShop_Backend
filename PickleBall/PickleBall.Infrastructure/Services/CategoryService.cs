@@ -1,5 +1,5 @@
-using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PickleBall.Application.DTOs.Categories;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
@@ -11,46 +11,56 @@ namespace PickleBall.Infrastructure.Services;
 public class CategoryService : ICategoryService
 {
     private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
+    private readonly IMemoryCache _cache;
 
-    public CategoryService(ApplicationDbContext context, IMapper mapper)
+    public CategoryService(ApplicationDbContext context, IMemoryCache cache)
     {
         _context = context;
-        _mapper = mapper;
+        _cache = cache;
     }
+
+    private static readonly TimeSpan CategoryCacheTtl = TimeSpan.FromMinutes(5);
+
+    private string CacheKeyAll => "categories:all:v1";
+    private string CacheKeyTree => "categories:tree:v1";
 
     public async Task<List<CategoryDto>> GetAllCategoriesAsync()
     {
-        var categories = await _context.ProductCategories
-            .Include(c => c.Products)
-            .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
-            .ToListAsync();
-
-        var dtoList = _mapper.Map<List<CategoryDto>>(categories);
-        
-        // Map children manually to avoid cycles
-        foreach (var category in categories)
+        return await _cache.GetOrCreateAsync(CacheKeyAll, async entry =>
         {
-            var dto = dtoList.FirstOrDefault(d => d.Id == category.Id);
-            if (dto != null && category.Children.Any())
-            {
-                dto.Children = _mapper.Map<List<CategoryDto>>(category.Children);
-            }
-        }
-
-        return dtoList;
+            entry.AbsoluteExpirationRelativeToNow = CategoryCacheTtl;
+            return await LoadAllCategoriesAsync();
+        });
     }
 
     public async Task<List<CategoryDto>> GetCategoryTreeAsync()
     {
-        var categories = await _context.ProductCategories
-            .Include(c => c.Products)
-            .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
+        return await _cache.GetOrCreateAsync(CacheKeyTree, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = CategoryCacheTtl;
+            return await LoadCategoryTreeAsync();
+        });
+    }
+
+    private async Task<Dictionary<Guid, int>> GetActiveProductCountsByCategoryAsync()
+    {
+        return await _context.Products
+            .AsNoTracking()
+            .Where(p => p.IsActive)
+            .GroupBy(p => p.CategoryId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count);
+    }
+
+    private async Task<List<CategoryDto>> LoadAllCategoriesAsync()
+    {
+        var allCategories = await _context.ProductCategories
+            .AsNoTracking()
             .ToListAsync();
 
-        var dtoDict = categories.ToDictionary(
+        var counts = await GetActiveProductCountsByCategoryAsync();
+
+        var dtoDict = allCategories.ToDictionary(
             c => c.Id,
             c => new CategoryDto
             {
@@ -58,56 +68,87 @@ public class CategoryService : ICategoryService
                 Name = c.Name,
                 Slug = c.Slug,
                 Description = c.Description,
-                ProductCount = c.Products.Count(p => p.IsActive),
-                Children = new()
+                ProductCount = counts.GetValueOrDefault(c.Id),
+                Children = new List<CategoryDto>()
             });
 
-        // Build parent-child relationships recursively
-        foreach (var category in categories.Where(c => c.ParentId == null))
-        {
-            MapChildrenRecursively(category, dtoDict[category.Id], categories, dtoDict);
-        }
+        foreach (var root in allCategories.Where(c => c.ParentId == null))
+            BuildCategoryChildren(dtoDict[root.Id], allCategories, dtoDict);
 
-        // Return only root categories (those without parent)
-        return dtoDict.Values
-            .Where(dto => categories.Any(c => c.Id == dto.Id && c.ParentId == null))
+        return allCategories.Select(c => dtoDict[c.Id]).ToList();
+    }
+
+    private async Task<List<CategoryDto>> LoadCategoryTreeAsync()
+    {
+        var allCategories = await _context.ProductCategories
+            .AsNoTracking()
+            .ToListAsync();
+
+        var counts = await GetActiveProductCountsByCategoryAsync();
+
+        var dtoDict = allCategories.ToDictionary(
+            c => c.Id,
+            c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                ProductCount = counts.GetValueOrDefault(c.Id),
+                Children = new List<CategoryDto>()
+            });
+
+        foreach (var root in allCategories.Where(c => c.ParentId == null))
+            BuildCategoryChildren(dtoDict[root.Id], allCategories, dtoDict);
+
+        return allCategories
+            .Where(c => c.ParentId == null)
+            .Select(c => dtoDict[c.Id])
             .OrderBy(c => c.Name)
             .ToList();
     }
 
-    private void MapChildrenRecursively(ProductCategory category, CategoryDto dto, List<ProductCategory> allCategories, Dictionary<Guid, CategoryDto> dtoDict)
+    private static void BuildCategoryChildren(CategoryDto dto, List<ProductCategory> allCategories, Dictionary<Guid, CategoryDto> dtoDict)
     {
-        var children = allCategories.Where(c => c.ParentId == category.Id).ToList();
-        
+        var children = allCategories
+            .Where(c => c.ParentId == dto.Id)
+            .OrderBy(c => c.Name)
+            .ToList();
+
         foreach (var child in children)
         {
             var childDto = dtoDict[child.Id];
             dto.Children.Add(childDto);
-            // Recursively map children of this child
-            MapChildrenRecursively(child, childDto, allCategories, dtoDict);
+            BuildCategoryChildren(childDto, allCategories, dtoDict);
         }
     }
 
     public async Task<CategoryDto?> GetCategoryByIdAsync(Guid id)
     {
-        var category = await _context.ProductCategories
-            .Include(c => c.Products)
-            .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
-            .FirstOrDefaultAsync(c => c.Id == id);
+        var allCategories = await _context.ProductCategories
+            .AsNoTracking()
+            .ToListAsync();
 
+        var category = allCategories.FirstOrDefault(c => c.Id == id);
         if (category == null)
             return null;
 
-        var dto = _mapper.Map<CategoryDto>(category);
-        
-        // Map children manually
-        if (category.Children.Any())
-        {
-            dto.Children = _mapper.Map<List<CategoryDto>>(category.Children);
-        }
+        var counts = await GetActiveProductCountsByCategoryAsync();
 
-        return dto;
+        var dtoDict = allCategories.ToDictionary(
+            c => c.Id,
+            c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Slug = c.Slug,
+                Description = c.Description,
+                ProductCount = counts.GetValueOrDefault(c.Id),
+                Children = new List<CategoryDto>()
+            });
+
+        BuildCategoryChildren(dtoDict[id], allCategories, dtoDict);
+        return dtoDict[id];
     }
 
     public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryRequest request)
@@ -148,22 +189,8 @@ public class CategoryService : ICategoryService
             await _context.SaveChangesAsync();
         }
 
-        // Reload with related data
-        var createdCategory = await _context.ProductCategories
-            .Include(c => c.Products)
-            .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
-            .FirstOrDefaultAsync(c => c.Id == category.Id);
-
-        var dto = _mapper.Map<CategoryDto>(createdCategory!);
-        
-        // Map children manually
-        if (createdCategory!.Children.Any())
-        {
-            dto.Children = _mapper.Map<List<CategoryDto>>(createdCategory.Children);
-        }
-
-        return dto;
+        InvalidateCategoryCache();
+        return (await GetCategoryByIdAsync(category.Id))!;
     }
 
     public async Task<List<CategoryDto>> CreateCategoriesBulkAsync(List<CreateCategoryRequest> requests)
@@ -190,7 +217,6 @@ public class CategoryService : ICategoryService
     {
         var category = await _context.ProductCategories
             .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
@@ -210,7 +236,7 @@ public class CategoryService : ICategoryService
             {
                 foreach (var child in category.Children)
                 {
-                    if (child.Products.Any(p => p.IsActive))
+                    if (await _context.Products.AnyAsync(p => p.CategoryId == child.Id && p.IsActive))
                     {
                         throw new InvalidOperationException($"Cannot remove child category '{child.Name}' because it has active products");
                     }
@@ -240,28 +266,13 @@ public class CategoryService : ICategoryService
 
         await _context.SaveChangesAsync();
 
-        // Reload with related data
-        var updatedCategory = await _context.ProductCategories
-            .Include(c => c.Products)
-            .Include(c => c.Children)
-                .ThenInclude(child => child.Products)
-            .FirstOrDefaultAsync(c => c.Id == category.Id);
-
-        var dto = _mapper.Map<CategoryDto>(updatedCategory!);
-        
-        // Map children manually
-        if (updatedCategory!.Children.Any())
-        {
-            dto.Children = _mapper.Map<List<CategoryDto>>(updatedCategory.Children);
-        }
-
-        return dto;
+        InvalidateCategoryCache();
+        return (await GetCategoryByIdAsync(category.Id))!;
     }
 
     public async Task<bool> DeleteCategoryAsync(Guid id)
     {
         var category = await _context.ProductCategories
-            .Include(c => c.Products)
             .Include(c => c.Children)
             .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -270,13 +281,11 @@ public class CategoryService : ICategoryService
             return false;
         }
 
-        // Check if category has products
-        if (category.Products.Any(p => p.IsActive))
+        if (await _context.Products.AnyAsync(p => p.CategoryId == id && p.IsActive))
         {
             throw new InvalidOperationException("Cannot delete category with active products");
         }
 
-        // Prevent deleting category with children
         if (category.Children.Any())
         {
             throw new InvalidOperationException("Cannot delete category that has child categories");
@@ -285,6 +294,13 @@ public class CategoryService : ICategoryService
         _context.ProductCategories.Remove(category);
         await _context.SaveChangesAsync();
 
+        InvalidateCategoryCache();
         return true;
+    }
+
+    private void InvalidateCategoryCache()
+    {
+        _cache.Remove(CacheKeyAll);
+        _cache.Remove(CacheKeyTree);
     }
 }

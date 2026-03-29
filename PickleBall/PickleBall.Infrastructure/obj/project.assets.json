@@ -3430,11 +3430,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
-              "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj"
+            "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj": {
+              "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Application\\PickleBall.Application.csproj"
             },
-            "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
-              "projectPath": "e:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
+            "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj": {
+              "projectPath": "E:\\Web\\PickleBallShop_backend\\PickleBallShop\\PickleBall\\PickleBall.Domain\\PickleBall.Domain.csproj"
             }
           }
         }

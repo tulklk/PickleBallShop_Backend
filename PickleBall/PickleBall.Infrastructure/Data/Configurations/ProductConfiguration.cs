@@ -12,6 +12,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Name).IsRequired().HasMaxLength(256);
         builder.Property(p => p.Slug).IsRequired().HasMaxLength(500);
         builder.HasIndex(p => p.Slug).IsUnique();
+        builder.HasIndex(p => new { p.IsActive, p.CategoryId });
         builder.Property(p => p.Description).HasMaxLength(50000);
         builder.Property(p => p.Price).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(p => p.OriginalPrice).HasColumnType("decimal(18,2)");

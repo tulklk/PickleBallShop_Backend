@@ -1,9 +1,12 @@
+using System.Diagnostics;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -122,8 +125,12 @@ public class Program
         
         if (!string.IsNullOrEmpty(connectionString) && !connectionString.Contains("your-supabase-host"))
         {
+            var pgConn = NpgsqlConnectionStringHelper.ForEfCore(connectionString);
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(pgConn, o => o.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorCodesToAdd: null)));
         }
         else
         {
@@ -188,7 +195,7 @@ public class Program
                 OnTokenValidated = context =>
                 {
                     var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                    logger.LogInformation("Token validated successfully for user: {UserId}", 
+                    logger.LogDebug("Token validated for user: {UserId}",
                         context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value);
                     return Task.CompletedTask;
                 }
@@ -212,6 +219,16 @@ public class Program
         // Configure FluentValidation
         builder.Services.AddFluentValidationAutoValidation();
         builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+
+        builder.Services.AddMemoryCache();
+        builder.Services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                new[] { "application/json" });
+        });
 
         // Configure CORS
         // SignalR negotiate + fetch from browser may use credentials; browsers forbid
@@ -265,79 +282,116 @@ public class Program
         builder.Services.AddSingleton<IAdminOrderNotificationPublisher>(sp => sp.GetRequiredService<AdminOrderNotificationPublisher>());
         builder.Services.AddSingleton<IAdminSupportMessageNotificationPublisher>(sp => sp.GetRequiredService<AdminOrderNotificationPublisher>());
         
-        // Register HttpClient Factory and Gemini Chat Service
+        builder.Services.AddHttpClient("Gemini", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
         builder.Services.AddHttpClient();
         builder.Services.AddScoped<IGeminiChatService, GeminiChatService>();
 
         var app = builder.Build();
 
+        static string? FormatDevExceptionDetail(Exception ex)
+        {
+            var inner = ex;
+            var parts = new List<string> { inner.Message };
+            while (inner.InnerException != null)
+            {
+                inner = inner.InnerException;
+                parts.Add(inner.Message);
+            }
+            return string.Join(" | ", parts);
+        }
+
+        async Task WriteJsonErrorAsync(HttpContext context, int statusCode, string message, Exception? ex = null)
+        {
+            if (context.Response.HasStarted) return;
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "application/json";
+            string? errorDetail = null;
+            if (ex != null && app.Environment.IsDevelopment())
+                errorDetail = FormatDevExceptionDetail(ex);
+
+            await context.Response.WriteAsJsonAsync(new
+            {
+                success = false,
+                message,
+                traceId = context.TraceIdentifier,
+                error = errorDetail
+            });
+        }
+
         // Configure the HTTP request pipeline
         // Must be first so UseAuthentication / SignalR see correct Scheme (https) behind Fly.io proxy
         app.UseForwardedHeaders();
+
+        app.UseResponseCompression();
 
         // CORS must be very early in the pipeline, before authentication and error handling
         // This ensures preflight OPTIONS requests are handled correctly
         app.UseCors("AllowConfiguredOrigins");
 
-        // Global error handling middleware
+        // Global exception handling + request timing for hot API paths
         app.Use(async (context, next) =>
         {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            var sw = Stopwatch.StartNew();
             try
             {
                 await next();
             }
             catch (UnauthorizedAccessException uex)
             {
-                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
                 logger.LogWarning(uex, "Unauthorized: {Message}", uex.Message);
-                if (!context.Response.HasStarted)
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsJsonAsync(new { message = uex.Message });
-                }
+                await WriteJsonErrorAsync(context, StatusCodes.Status401Unauthorized, uex.Message, uex);
             }
             catch (KeyNotFoundException knf)
             {
-                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
                 logger.LogWarning(knf, "Not found: {Message}", knf.Message);
-                if (!context.Response.HasStarted)
-                {
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    context.Response.ContentType = "application/json";
-                    await context.Response.WriteAsJsonAsync(new { message = knf.Message });
-                }
+                await WriteJsonErrorAsync(context, StatusCodes.Status404NotFound, knf.Message, knf);
+            }
+            catch (ArgumentException aex)
+            {
+                logger.LogWarning(aex, "Bad request: {Message}", aex.Message);
+                await WriteJsonErrorAsync(context, StatusCodes.Status400BadRequest, aex.Message, aex);
+            }
+            catch (InvalidOperationException ioex)
+            {
+                logger.LogWarning(ioex, "Invalid operation: {Message}", ioex.Message);
+                await WriteJsonErrorAsync(context, StatusCodes.Status400BadRequest, ioex.Message, ioex);
             }
             catch (Exception ex)
             {
-                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-                logger.LogError(ex, "Unhandled exception occurred");
-
-                // Ensure CORS headers are still set even on error
+                logger.LogError(ex, "Unhandled exception. TraceId: {TraceId}", context.TraceIdentifier);
                 if (!context.Response.HasStarted)
                 {
-                    context.Response.StatusCode = 500;
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     context.Response.ContentType = "application/json";
-
-                    // In Development, include inner exception (e.g. PostgreSQL constraint message)
-                    var errorDetail = (string?)null;
-                    if (app.Environment.IsDevelopment())
-                    {
-                        var inner = ex;
-                        var parts = new List<string> { inner.Message };
-                        while (inner.InnerException != null)
-                        {
-                            inner = inner.InnerException;
-                            parts.Add(inner.Message);
-                        }
-                        errorDetail = string.Join(" | ", parts);
-                    }
-
+                    string? errorDetail = app.Environment.IsDevelopment() ? FormatDevExceptionDetail(ex) : null;
                     await context.Response.WriteAsJsonAsync(new
                     {
+                        success = false,
                         message = "An error occurred while processing your request",
+                        traceId = context.TraceIdentifier,
                         error = errorDetail
                     });
+                }
+            }
+            finally
+            {
+                sw.Stop();
+                var path = context.Request.Path.Value ?? "";
+                if (path.StartsWith("/api/Products", StringComparison.OrdinalIgnoreCase) ||
+                    path.StartsWith("/api/Categories", StringComparison.OrdinalIgnoreCase) ||
+                    path.StartsWith("/api/News", StringComparison.OrdinalIgnoreCase) ||
+                    path.StartsWith("/api/Home", StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.LogInformation(
+                        "HTTP {Method} {Path} completed in {ElapsedMs}ms with status {StatusCode}",
+                        context.Request.Method,
+                        path,
+                        sw.ElapsedMilliseconds,
+                        context.Response.StatusCode);
                 }
             }
         });

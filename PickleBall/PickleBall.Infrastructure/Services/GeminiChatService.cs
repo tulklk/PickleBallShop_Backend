@@ -183,9 +183,8 @@ public class GeminiChatService : IGeminiChatService
                 }
             };
 
-            // Call Gemini API
-            var httpClient = _httpClientFactory.CreateClient();
-            httpClient.Timeout = TimeSpan.FromSeconds(60); // Increase timeout for AI requests
+            // Call Gemini API (named client: 60s timeout configured in Program.cs)
+            var httpClient = _httpClientFactory.CreateClient("Gemini");
             
             var url = $"{_baseUrl}/models/{_modelName}:generateContent?key={_apiKey}";
             

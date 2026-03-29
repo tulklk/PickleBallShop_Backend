@@ -22,9 +22,10 @@ public class NewsService : INewsService
 
     public async Task<PagedResultDto<NewsListDto>> GetNewsAsync(NewsQueryDto query)
     {
-        var newsQuery = _context.NewsPosts
-            .Include(n => n.Author)
-            .AsQueryable();
+        var page = Math.Max(1, query.Page);
+        var pageSize = Math.Clamp(query.PageSize, 1, 100);
+
+        var newsQuery = _context.NewsPosts.AsNoTracking().AsQueryable();
 
         // Filter by published status
         if (query.IsPublished.HasValue)
@@ -59,22 +60,37 @@ public class NewsService : INewsService
         var totalCount = await newsQuery.CountAsync();
 
         var items = await newsQuery
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(n => new NewsListDto
+            {
+                Id = n.Id,
+                Title = n.Title,
+                Slug = n.Slug,
+                Summary = n.Summary,
+                ThumbnailUrl = n.ThumbnailUrl,
+                AuthorName = n.Author.FullName,
+                Category = n.Category,
+                IsPublished = n.IsPublished,
+                PublishedAt = n.PublishedAt,
+                ViewCount = n.ViewCount,
+                CreatedAt = n.CreatedAt
+            })
             .ToListAsync();
 
         return new PagedResultDto<NewsListDto>
         {
-            Items = _mapper.Map<List<NewsListDto>>(items),
+            Items = items,
             TotalCount = totalCount,
-            Page = query.Page,
-            PageSize = query.PageSize
+            Page = page,
+            PageSize = pageSize
         };
     }
 
     public async Task<NewsDto?> GetNewsByIdAsync(Guid id)
     {
         var news = await _context.NewsPosts
+            .AsNoTracking()
             .Include(n => n.Author)
             .FirstOrDefaultAsync(n => n.Id == id);
 
@@ -84,6 +100,7 @@ public class NewsService : INewsService
     public async Task<NewsDto?> GetNewsBySlugAsync(string slug)
     {
         var news = await _context.NewsPosts
+            .AsNoTracking()
             .Include(n => n.Author)
             .FirstOrDefaultAsync(n => n.Slug == slug);
 

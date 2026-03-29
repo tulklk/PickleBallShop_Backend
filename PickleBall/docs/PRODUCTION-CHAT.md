@@ -20,3 +20,8 @@
 ## Sau khi deploy
 
 Redeploy backend (`fly deploy`), hard refresh FE, đăng nhập lại để lấy JWT mới nếu đổi secret.
+
+## API `/api/Products` trả 500
+
+- Xem log server: `fly logs -a pickleballshop-backend` (hoặc tab Logs trên Fly) ngay khi gọi lại API để thấy stack trace (Npgsql / EF).
+- Backend đã chuẩn hóa chuỗi Postgres qua `NpgsqlConnectionStringHelper` (SSL + `MaxAutoPrepare=0` cho pooler) và giảm tải truy vấn danh sách sản phẩm (projection SQL thay vì `Include` toàn bộ Reviews).
