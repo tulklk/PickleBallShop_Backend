@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1" # weekly: catches newly published advisories even without code changes
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build, test, dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore PickleBallShop.sln
+
+      - name: Build (Release)
+        run: dotnet build PickleBallShop.sln -c Release --no-restore
+
+      - name: Test (includes PostgreSQL concurrency tests)
+        env:
+          # Throwaway databases are created and dropped by the tests; the host is a local service container.
+          TEST_POSTGRES_CONNECTION: Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=postgres
+        run: dotnet test PickleBallShop.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Vulnerable NuGet packages (fail on any advisory)
+        shell: bash
+        run: |
+          dotnet list PickleBallShop.sln package --vulnerable --include-transitive 2>&1 | tee audit.txt
+          if grep -q "has the following vulnerable packages" audit.txt; then
+            echo "::error::Vulnerable NuGet packages found (see log)."
+            exit 1
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/test-results.trx"
+          if-no-files-found: ignore
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Scans the commits of the push / pull request, not the whole legacy history.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Organisation-owned repositories additionally need a GITLEAKS_LICENSE secret.
