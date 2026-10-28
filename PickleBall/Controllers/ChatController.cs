@@ -1,4 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PickleBall.Application.DTOs.Chat;
 using PickleBall.Application.Interfaces;
 
@@ -24,6 +25,7 @@ public class ChatController : ControllerBase
     /// </summary>
     /// <param name="request">Chat request with message and optional conversation history</param>
     /// <returns>AI chatbot response</returns>
+    [EnableRateLimiting("chat")]
     [HttpPost("message")]
     public async Task<ActionResult<ChatResponse>> SendMessage([FromBody] ChatRequest request)
     {
@@ -62,46 +64,4 @@ public class ChatController : ControllerBase
     {
         return Ok(new { status = "ok", message = "Chat service is available" });
     }
-
-    /// <summary>
-    /// Test endpoint to verify Gemini API configuration
-    /// </summary>
-    [HttpPost("test")]
-    public async Task<ActionResult> TestConfiguration()
-    {
-        try
-        {
-            var testRequest = new ChatRequest
-            {
-                Message = "Xin chào"
-            };
-            
-            var response = await _geminiChatService.SendMessageAsync(testRequest);
-            
-            if (response.Success)
-            {
-                return Ok(new { 
-                    status = "success", 
-                    message = "Gemini API is working correctly",
-                    response = response.Message 
-                });
-            }
-            
-            return BadRequest(new { 
-                status = "error", 
-                message = "Gemini API test failed",
-                error = response.Error 
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing Gemini API configuration");
-            return StatusCode(500, new { 
-                status = "error", 
-                message = "Configuration test failed",
-                error = ex.Message 
-            });
-        }
-    }
 }
-

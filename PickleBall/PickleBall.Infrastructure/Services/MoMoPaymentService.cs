@@ -29,7 +29,7 @@ public class MoMoPaymentService : IMoMoPaymentService
             var requestId = Guid.NewGuid().ToString();
             var orderId = order.OrderNumber;
             var orderInfo = $"Thanh toan don hang {order.OrderNumber}";
-            var amount = (long)(order.TotalAmount * 1000); // Convert to VND (order.TotalAmount is in VND)
+            var amount = (long)order.TotalAmount; // MoMo amount is in VND (TotalAmount is already VND)
             var extraData = "";
 
             // Build raw signature string
@@ -93,6 +93,13 @@ public class MoMoPaymentService : IMoMoPaymentService
     {
         try
         {
+            // An empty secret would make the HMAC trivially forgeable.
+            if (string.IsNullOrEmpty(_settings.SecretKey) || string.IsNullOrEmpty(_settings.AccessKey))
+            {
+                _logger.LogError("MoMo secret is not configured; rejecting callback.");
+                return Task.FromResult(false);
+            }
+
             // Extract required fields from callback
             if (!callbackData.TryGetValue("partnerCode", out var partnerCode) ||
                 !callbackData.TryGetValue("orderId", out var orderId) ||
@@ -117,7 +124,7 @@ public class MoMoPaymentService : IMoMoPaymentService
             var computedSignature = ComputeHmacSha256(rawHash, _settings.SecretKey);
 
             // Verify signature
-            if (computedSignature != signature)
+            if (!PickleBall.Application.Security.CryptoUtil.SignatureEquals(computedSignature, signature))
             {
                 _logger.LogWarning("MoMo callback signature mismatch");
                 return Task.FromResult(false);

@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using PickleBall.Application.Interfaces;
+using PickleBall.Application.Security;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
 
@@ -66,7 +67,7 @@ public class TokenService : ITokenService
         var token = new RefreshToken
         {
             UserId = userId,
-            Token = refreshToken,
+            Token = CryptoUtil.Sha256Hex(refreshToken), // only the hash is stored at rest
             ExpiresAt = DateTime.UtcNow.AddDays(30), // 30 days expiry
             IpAddress = ipAddress,
             UserAgent = userAgent
@@ -79,14 +80,16 @@ public class TokenService : ITokenService
 
     public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
     {
+        var hash = CryptoUtil.Sha256Hex(token);
         return await _context.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == token);
+            .FirstOrDefaultAsync(rt => rt.Token == hash);
     }
 
     public async Task RevokeRefreshTokenAsync(string token)
     {
-        var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
+        var hash = CryptoUtil.Sha256Hex(token);
+        var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == hash);
         if (refreshToken != null)
         {
             refreshToken.RevokedAt = DateTime.UtcNow;

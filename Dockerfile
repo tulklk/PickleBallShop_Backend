@@ -32,4 +32,7 @@ COPY --from=publish /app/publish .
 ENV ASPNETCORE_URLS=http://+:10000
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+# Run as the unprivileged user shipped with the aspnet image (not root)
+USER app
+
 ENTRYPOINT ["dotnet", "PickleBall.dll"]

@@ -1,40 +1,60 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using PickleBall.Application.Security;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Infrastructure.Data;
 
 public static class SeedData
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    /// <summary>
+    /// Bootstraps the first administrator ONLY when ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD are supplied
+    /// through the environment and no admin exists yet. There is intentionally no default credential.
+    /// </summary>
+    public static async Task SeedAsync(ApplicationDbContext context, IConfiguration configuration, ILogger logger)
     {
-        // Create admin user if not exists, or update existing admin to ensure EmailVerified = true
-        var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Email == "admin@pickleballshop.com");
-        
-        if (adminUser == null)
-        {
-            adminUser = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "admin@pickleballshop.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
-                FullName = "Administrator",
-                PhoneNumber = "0123456789",
-                Role = Role.Admin,
-                IsActive = true,
-                EmailVerified = true // Admin accounts don't need email verification
-            };
+        var email = configuration["ADMIN_SEED_EMAIL"]?.Trim();
+        var password = configuration["ADMIN_SEED_PASSWORD"];
 
-            context.Users.Add(adminUser);
-        }
-        else
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password))
         {
-            // Update existing admin to ensure EmailVerified = true
-            if (!adminUser.EmailVerified)
-            {
-                adminUser.EmailVerified = true;
-            }
+            logger.LogInformation("Admin seeding skipped (ADMIN_SEED_EMAIL / ADMIN_SEED_PASSWORD not set).");
+            return;
         }
-        
+
+        if (await context.Users.AnyAsync(u => u.Role == Role.Admin))
+        {
+            logger.LogInformation("Admin seeding skipped: an administrator already exists.");
+            return;
+        }
+
+        if (!PasswordPolicy.IsValid(password, out var reason))
+        {
+            logger.LogError("Admin seeding skipped: ADMIN_SEED_PASSWORD rejected ({Reason}).", reason);
+            return;
+        }
+
+        var normalizedEmail = email.ToLowerInvariant();
+        var existing = await context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
+        if (existing != null)
+        {
+            logger.LogWarning("Admin seeding skipped: user with the configured email already exists (not promoting automatically).");
+            return;
+        }
+
+        context.Users.Add(new User
+        {
+            Id = Guid.NewGuid(),
+            Email = normalizedEmail,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            FullName = "Administrator",
+            Role = Role.Admin,
+            IsActive = true,
+            EmailVerified = true
+        });
+
         await context.SaveChangesAsync();
+        logger.LogWarning("Initial administrator created for {Email}. Remove ADMIN_SEED_* secrets now.", normalizedEmail);
     }
 }

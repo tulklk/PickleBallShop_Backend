@@ -12,6 +12,7 @@ public class LoginRequestValidator : AbstractValidator<LoginRequest>
             .EmailAddress().WithMessage("Invalid email format");
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required");
+            .NotEmpty().WithMessage("Password is required")
+            .MaximumLength(128);
     }
 }

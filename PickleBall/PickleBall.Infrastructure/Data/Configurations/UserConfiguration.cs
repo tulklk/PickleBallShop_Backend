@@ -17,6 +17,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Avatar).HasMaxLength(500);
         builder.Property(u => u.GoogleId).HasMaxLength(256);
         builder.HasIndex(u => u.GoogleId).IsUnique().HasFilter("\"GoogleId\" IS NOT NULL");
+        builder.Property(u => u.PasswordResetTokenHash).HasMaxLength(128);
         builder.Property(u => u.Role).HasConversion<int>();
         builder.Property(u => u.IsActive).HasDefaultValue(true);
         builder.Property(u => u.EmailVerified).HasDefaultValue(false);

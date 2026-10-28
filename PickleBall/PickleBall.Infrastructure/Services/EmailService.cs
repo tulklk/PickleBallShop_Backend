@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Email;
 using PickleBall.Application.Interfaces;
@@ -7,6 +7,7 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using System.Globalization;
+using System.Net;
 
 namespace PickleBall.Infrastructure.Services;
 
@@ -24,9 +25,21 @@ public class EmailService : IEmailService
         _configuration.GetSection("Email").Bind(_emailSettings);
     }
 
+    private static string E(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
+
+    /// <summary>Only http(s) URLs may be placed in an href/src attribute; everything is attribute-encoded.</summary>
+    private static string SafeUrl(string? url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            return string.Empty;
+        }
+        return WebUtility.HtmlEncode(uri.AbsoluteUri);
+    }
+
     public async Task SendVerificationEmailAsync(string email, string fullName, string verificationToken)
     {
-        var verificationUrl = $"{_emailSettings.FrontendUrl}/auth/verify-email?token={verificationToken}";
+        var verificationUrl = $"{_emailSettings.FrontendUrl}/auth/verify-email?token={Uri.EscapeDataString(verificationToken)}";
         
         var subject = "Xác nhận email đăng ký tài khoản PickleBall Shop";
         var body = $@"
@@ -49,7 +62,7 @@ public class EmailService : IEmailService
             <h1>Chào mừng đến với IKA PickleBall Shop!</h1>
         </div>
         <div class='content'>
-            <p>Xin chào <strong>{fullName}</strong>,</p>
+            <p>Xin chào <strong>{E(fullName)}</strong>,</p>
             <p>Cảm ơn bạn đã đăng ký tài khoản tại IKA PickleBall Shop!</p>
             <p>Vui lòng nhấp vào nút bên dưới để xác nhận địa chỉ email của bạn:</p>
             <p style='text-align: center;'>
@@ -68,9 +81,10 @@ public class EmailService : IEmailService
         await SendEmailAsync(email, subject, body);
     }
 
-    public async Task SendPasswordResetEmailAsync(string email, string fullName, string newPassword)
+    public async Task SendPasswordResetLinkEmailAsync(string email, string fullName, string resetUrl)
     {
         var subject = "Khôi phục mật khẩu - IKA PickleBall Shop";
+        var safeUrl = SafeUrl(resetUrl);
         var body = $@"
 <!DOCTYPE html>
 <html>
@@ -81,8 +95,7 @@ public class EmailService : IEmailService
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
         .header {{ background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }}
         .content {{ background-color: #f9f9f9; padding: 30px; border-radius: 0 0 5px 5px; }}
-        .password-box {{ background-color: #ffffff; border: 2px solid #4CAF50; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center; }}
-        .password-text {{ font-size: 24px; font-weight: bold; color: #4CAF50; letter-spacing: 2px; font-family: 'Courier New', monospace; }}
+        .button {{ display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }}
         .warning {{ background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; }}
         .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 12px; }}
     </style>
@@ -93,19 +106,16 @@ public class EmailService : IEmailService
             <h1>Khôi phục mật khẩu</h1>
         </div>
         <div class='content'>
-            <p>Xin chào <strong>{fullName}</strong>,</p>
-            <p>Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn tại IKA PickleBall Shop.</p>
-            <p>Mật khẩu mới của bạn là:</p>
-            <div class='password-box'>
-                <div class='password-text'>{newPassword}</div>
-            </div>
+            <p>Xin chào <strong>{E(fullName)}</strong>,</p>
+            <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn tại IKA PickleBall Shop.</p>
+            <p style='text-align: center;'>
+                <a href='{safeUrl}' class='button' style='display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold;'><span style='color: #ffffff !important;'>Đặt lại mật khẩu</span></a>
+            </p>
             <div class='warning'>
-                <p><strong>⚠️ Lưu ý quan trọng:</strong></p>
                 <ul style='margin: 10px 0; padding-left: 20px;'>
-                    <li>Vui lòng đăng nhập ngay với mật khẩu mới này</li>
-                    <li>Sau khi đăng nhập, hãy đổi mật khẩu thành một mật khẩu dễ nhớ hơn trong phần Cài đặt tài khoản</li>
-                    <li>Không chia sẻ mật khẩu này với bất kỳ ai</li>
-                    <li>Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng liên hệ với chúng tôi ngay lập tức</li>
+                    <li>Liên kết chỉ có hiệu lực trong 30 phút và chỉ dùng được một lần.</li>
+                    <li>Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này - mật khẩu hiện tại vẫn không thay đổi.</li>
+                    <li>Không chia sẻ liên kết này với bất kỳ ai.</li>
                 </ul>
             </div>
             <p>Trân trọng,<br>Đội ngũ IKA PickleBall Shop</p>
@@ -119,7 +129,6 @@ public class EmailService : IEmailService
 
         await SendEmailAsync(email, subject, body);
     }
-
     public async Task SendOrderConfirmationEmailAsync(Order order, string? clientIpAddress = null)
     {
         var orderDetailUrl = $"{_emailSettings.FrontendUrl}/orders/{order.Id}";
@@ -141,11 +150,11 @@ public class EmailService : IEmailService
                 ?? "";
             
             var imageHtml = !string.IsNullOrEmpty(itemImage) 
-                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
+                ? $"<img src='{SafeUrl(itemImage)}' alt='{E(item.ProductNameSnapshot)}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
                 : "<div class='product-image' style='width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;'><span style='color: #fff; font-size: 24px;'>🏓</span></div>";
             
             var variantInfo = !string.IsNullOrEmpty(item.VariantInfoSnapshot) 
-                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{item.VariantInfoSnapshot}</div>"
+                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{E(item.VariantInfoSnapshot)}</div>"
                 : "";
             
             orderItemsHtml += $@"
@@ -156,7 +165,7 @@ public class EmailService : IEmailService
                             {imageHtml}
                         </div>
                         <div class='product-details' style='flex: 1; min-width: 0;'>
-                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{item.ProductNameSnapshot}</div>
+                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{E(item.ProductNameSnapshot)}</div>
                             {variantInfo}
                             <div class='product-meta' style='color: #888; font-size: 13px; margin-top: 8px;'>
                                 Số lượng: <strong style='color: #333;'>{item.Quantity}</strong> × {formatCurrency(item.UnitPrice)}
@@ -201,7 +210,7 @@ public class EmailService : IEmailService
             _ => "❓ Chưa xác định"
         };
         
-        var shippingAddress = $"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim();
+        var shippingAddress = E($"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim());
         
         var subject = $"Đơn hàng của bạn đã được hoàn thành #{order.OrderNumber}";
         var body = $@"
@@ -300,7 +309,7 @@ public class EmailService : IEmailService
             
             <div class='content'>
                 <div class='greeting'>
-                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{order.User?.FullName ?? order.ShippingFullName}</strong>,</p>
+                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{E(order.User?.FullName ?? order.ShippingFullName)}</strong>,</p>
                     <p style='margin: 0; color: #666;'>Cảm ơn bạn đã đặt hàng tại <strong style='color: #4CAF50;'>IKA PickleBall Shop</strong>! Chúng tôi rất vui được phục vụ bạn.</p>
                 </div>
                 
@@ -321,15 +330,15 @@ public class EmailService : IEmailService
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Khách hàng</span>
-                            <span class='info-value'>{order.User?.FullName ?? order.ShippingFullName}</span>
+                            <span class='info-value'>{E(order.User?.FullName ?? order.ShippingFullName)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Email</span>
-                            <span class='info-value'>{order.User?.Email ?? ""}</span>
+                            <span class='info-value'>{E(order.User?.Email)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Số điện thoại</span>
-                            <span class='info-value'>{order.ShippingPhoneNumber}</span>
+                            <span class='info-value'>{E(order.ShippingPhoneNumber)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Địa chỉ giao hàng</span>
@@ -432,11 +441,11 @@ public class EmailService : IEmailService
                 ?? "";
             
             var imageHtml = !string.IsNullOrEmpty(itemImage) 
-                ? $"<img src='{itemImage}' alt='{item.ProductNameSnapshot}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
+                ? $"<img src='{SafeUrl(itemImage)}' alt='{E(item.ProductNameSnapshot)}' class='product-image' style='width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #e0e0e0;' />"
                 : "<div class='product-image' style='width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; border-radius: 8px;'><span style='color: #fff; font-size: 24px;'>🏓</span></div>";
             
             var variantInfo = !string.IsNullOrEmpty(item.VariantInfoSnapshot) 
-                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{item.VariantInfoSnapshot}</div>"
+                ? $"<div class='product-variant' style='color: #666; font-size: 13px; margin-top: 4px; padding: 4px 8px; background-color: #f8f9fa; border-radius: 4px; display: inline-block;'>{E(item.VariantInfoSnapshot)}</div>"
                 : "";
             
             orderItemsHtml += $@"
@@ -447,7 +456,7 @@ public class EmailService : IEmailService
                             {imageHtml}
                         </div>
                         <div class='product-details' style='flex: 1; min-width: 0;'>
-                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{item.ProductNameSnapshot}</div>
+                            <div class='product-name' style='font-weight: 600; color: #1a1a1a; margin-bottom: 8px; font-size: 15px; line-height: 1.4;'>{E(item.ProductNameSnapshot)}</div>
                             {variantInfo}
                             <div class='product-meta' style='color: #888; font-size: 13px; margin-top: 8px;'>
                                 Số lượng: <strong style='color: #333;'>{item.Quantity}</strong> × {formatCurrency(item.UnitPrice)}
@@ -492,7 +501,7 @@ public class EmailService : IEmailService
             _ => "❓ Chưa xác định"
         };
         
-        var shippingAddress = $"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim();
+        var shippingAddress = E($"{order.ShippingAddressLine}, {order.ShippingWard}, {order.ShippingDistrict}, {order.ShippingCity}".TrimStart(',', ' ').Trim());
         
         var subject = $"Xác nhận đơn hàng #{order.OrderNumber} - IKA PickleBall Shop";
         var body = $@"
@@ -591,7 +600,7 @@ public class EmailService : IEmailService
             
             <div class='content'>
                 <div class='greeting'>
-                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{order.GuestFullName ?? order.ShippingFullName}</strong>,</p>
+                    <p style='margin: 0 0 10px 0;'>Xin chào <strong>{E(order.GuestFullName ?? order.ShippingFullName)}</strong>,</p>
                     <p style='margin: 0; color: #666;'>Cảm ơn bạn đã đặt hàng tại <strong style='color: #4CAF50;'>IKA PickleBall Shop</strong>! Đơn hàng của bạn đã được ghi nhận và chúng tôi đang xử lý.</p>
                 </div>
                 
@@ -612,15 +621,15 @@ public class EmailService : IEmailService
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Khách hàng</span>
-                            <span class='info-value'>{order.GuestFullName ?? order.ShippingFullName}</span>
+                            <span class='info-value'>{E(order.GuestFullName ?? order.ShippingFullName)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Email</span>
-                            <span class='info-value'>{order.GuestEmail}</span>
+                            <span class='info-value'>{E(order.GuestEmail)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Số điện thoại</span>
-                            <span class='info-value'>{order.ShippingPhoneNumber}</span>
+                            <span class='info-value'>{E(order.ShippingPhoneNumber)}</span>
                         </div>
                         <div class='info-row'>
                             <span class='info-label'>Địa chỉ giao hàng</span>
@@ -814,7 +823,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email to: {Email}", toEmail);
-            throw new InvalidOperationException($"Failed to send email: {ex.Message}", ex);
+            throw new InvalidOperationException("Failed to send email", ex);
         }
     }
 }

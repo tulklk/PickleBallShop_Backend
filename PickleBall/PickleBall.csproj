@@ -9,6 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Nested class libraries are consumed via ProjectReference; do not compile their sources a second time. -->
+    <Compile Remove="PickleBall.Domain\**" />
+    <Compile Remove="PickleBall.Application\**" />
+    <Compile Remove="PickleBall.Infrastructure\**" />
+    <EmbeddedResource Remove="PickleBall.Domain\**;PickleBall.Application\**;PickleBall.Infrastructure\**" />
+    <None Remove="PickleBall.Domain\**;PickleBall.Application\**;PickleBall.Infrastructure\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />

@@ -1,5 +1,5 @@
-using System.Linq.Expressions;
-using AutoMapper;
+﻿using System.Linq.Expressions;
+using PickleBall.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using PickleBall.Application.DTOs.Products;

@@ -12,6 +12,10 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
     public bool EmailVerified { get; set; } = false;
 
+    /// <summary>SHA-256 (hex) of the single-use password reset token. The raw token is only ever emailed.</summary>
+    public string? PasswordResetTokenHash { get; set; }
+    public DateTime? PasswordResetExpiresAt { get; set; }
+
     // Navigation properties
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     public ICollection<Cart> Carts { get; set; } = new List<Cart>();

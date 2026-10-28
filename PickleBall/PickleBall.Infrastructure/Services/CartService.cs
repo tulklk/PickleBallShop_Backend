@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using PickleBall.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Cart;
 using PickleBall.Application.Interfaces;
@@ -32,6 +32,22 @@ public class CartService : ICartService
         {
             cart = new Cart { UserId = userId };
             _context.Carts.Add(cart);
+            await _context.SaveChangesAsync();
+        }
+
+        // Keep displayed prices identical to what checkout will charge (checkout always re-prices from the catalog).
+        var priceChanged = false;
+        foreach (var item in cart.Items)
+        {
+            var current = item.ProductVariant?.Price ?? item.Product.Price;
+            if (item.UnitPriceSnapshot != current)
+            {
+                item.UnitPriceSnapshot = current;
+                priceChanged = true;
+            }
+        }
+        if (priceChanged)
+        {
             await _context.SaveChangesAsync();
         }
 
@@ -121,6 +137,11 @@ public class CartService : ICartService
         if (existingItem != null)
         {
             existingItem.Quantity += request.Quantity;
+            existingItem.UnitPriceSnapshot = unitPrice;
+            if (existingItem.Quantity > 100)
+            {
+                throw new InvalidOperationException("Quantity must not exceed 100 per item");
+            }
             
             // Re-validate stock
             if (product.HasVariants && selectedVariant != null)
@@ -179,9 +200,9 @@ public class CartService : ICartService
             throw new KeyNotFoundException("Cart item not found");
         }
 
-        if (request.Quantity <= 0)
+        if (request.Quantity <= 0 || request.Quantity > 100)
         {
-            throw new InvalidOperationException("Quantity must be greater than 0");
+            throw new InvalidOperationException("Quantity must be between 1 and 100");
         }
 
         // Check stock based on whether product has variants

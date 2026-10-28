@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using PickleBall.Application.Mapping;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +38,9 @@ public class AdminOrdersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
+        page = Math.Clamp(page, 1, 100000);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = _context.Orders
             .Include(o => o.Items)
             .Include(o => o.User)

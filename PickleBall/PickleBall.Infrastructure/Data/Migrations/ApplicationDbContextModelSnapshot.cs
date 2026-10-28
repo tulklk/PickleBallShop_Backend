@@ -251,6 +251,9 @@ namespace PickleBall.Infrastructure.Data.Migrations
                     b.Property<int>("OrderStatus")
                         .HasColumnType("integer");
 
+                    b.Property<long?>("PayOSOrderCode")
+                        .HasColumnType("bigint");
+
                     b.Property<int?>("PaymentMethod")
                         .HasColumnType("integer");
 
@@ -313,6 +316,10 @@ namespace PickleBall.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("OrderStatus");
+
+                    b.HasIndex("PayOSOrderCode")
+                        .IsUnique()
+                        .HasFilter("\"PayOSOrderCode\" IS NOT NULL");
 
                     b.HasIndex("PaymentStatus");
 
@@ -921,6 +928,13 @@ namespace PickleBall.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("PasswordResetExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PasswordResetTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(20)

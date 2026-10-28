@@ -16,6 +16,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.OrderStatus).HasConversion<int>().IsRequired();
         builder.Property(o => o.PaymentMethod).HasConversion<int?>();
         builder.Property(o => o.PaymentTransactionId).HasMaxLength(256);
+        builder.Property(o => o.PayOSOrderCode);
+        builder.HasIndex(o => o.PayOSOrderCode).IsUnique().HasFilter("\"PayOSOrderCode\" IS NOT NULL");
 
         // Guest checkout fields
         builder.Property(o => o.GuestEmail).HasMaxLength(256);

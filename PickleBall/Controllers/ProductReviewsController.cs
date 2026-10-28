@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PickleBall.Application.DTOs.Reviews;
 using PickleBall.Application.Interfaces;
 using System.Security.Claims;
@@ -56,6 +57,7 @@ public class ProductReviewsController : ControllerBase
     /// Create a new review (public endpoint - no authentication required)
     /// If user is authenticated, their userId will be linked to the review
     /// </summary>
+    [EnableRateLimiting("write")]
     [HttpPost]
     public async Task<ActionResult<ReviewDto>> CreateReview(string productIdOrSlug, [FromBody] CreateReviewRequest request)
     {

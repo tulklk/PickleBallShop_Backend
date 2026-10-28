@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Users;
@@ -30,6 +30,9 @@ public class AdminUsersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
+        page = Math.Clamp(page, 1, 100000);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = _context.Users.AsQueryable();
 
         // Filter by IsActive
@@ -119,6 +122,18 @@ public class AdminUsersController : ControllerBase
     /// <summary>
     /// Update user information (Admin only)
     /// </summary>
+    /// <summary>Revokes all refresh tokens (tracked, saved by the caller) when an account is deactivated or its role changes.</summary>
+    private async Task RevokeSessionsAsync(Guid userId)
+    {
+        var tokens = await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+            .ToListAsync();
+        foreach (var token in tokens)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+        }
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UserDto>> UpdateUser(Guid id, [FromBody] AdminUpdateUserRequest request)
     {
@@ -143,15 +158,21 @@ public class AdminUsersController : ControllerBase
         }
 
         // Update Email if provided
-        if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != user.Email)
+        var requestedEmail = request.Email?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(requestedEmail) && requestedEmail != user.Email.ToLowerInvariant())
         {
+            if (requestedEmail.Length > 256 || !System.Net.Mail.MailAddress.TryCreate(requestedEmail, out _))
+            {
+                return BadRequest(new { message = "Invalid email" });
+            }
+
             // Check if email already exists
-            var emailExists = await _context.Users.AnyAsync(u => u.Email == request.Email && u.Id != id);
+            var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == requestedEmail && u.Id != id);
             if (emailExists)
             {
                 return BadRequest(new { message = "Email already exists" });
             }
-            user.Email = request.Email;
+            user.Email = requestedEmail;
         }
 
         // Update FullName if provided
@@ -173,8 +194,10 @@ public class AdminUsersController : ControllerBase
         }
 
         // Update IsActive if provided
+        var revokeSessions = false;
         if (request.IsActive.HasValue)
         {
+            revokeSessions |= user.IsActive && !request.IsActive.Value;
             user.IsActive = request.IsActive.Value;
         }
 
@@ -188,6 +211,7 @@ public class AdminUsersController : ControllerBase
                 {
                     return BadRequest(new { message = "You cannot change your own role" });
                 }
+                revokeSessions |= user.Role != roleEnum;
                 user.Role = roleEnum;
             }
             else
@@ -197,6 +221,11 @@ public class AdminUsersController : ControllerBase
         }
 
         user.UpdatedAt = DateTime.UtcNow;
+
+        if (revokeSessions)
+        {
+            await RevokeSessionsAsync(id);
+        }
 
         try
         {
@@ -247,6 +276,11 @@ public class AdminUsersController : ControllerBase
         if (id == currentUserId && !request.IsActive)
         {
             return BadRequest(new { message = "You cannot deactivate your own account" });
+        }
+
+        if (user.IsActive && !request.IsActive)
+        {
+            await RevokeSessionsAsync(id);
         }
 
         user.IsActive = request.IsActive;

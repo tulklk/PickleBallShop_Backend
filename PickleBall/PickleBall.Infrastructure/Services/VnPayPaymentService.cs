@@ -85,6 +85,12 @@ public class VnPayPaymentService : IVnPayPaymentService
     {
         try
         {
+            if (string.IsNullOrEmpty(_settings.HashSecret) || string.IsNullOrEmpty(_settings.TmnCode))
+            {
+                _logger.LogError("VNPay secret is not configured; rejecting callback.");
+                return Task.FromResult(false);
+            }
+
             // Extract vnp_SecureHash from callback
             if (!callbackData.TryGetValue("vnp_SecureHash", out var vnpSecureHash))
             {
@@ -105,7 +111,7 @@ public class VnPayPaymentService : IVnPayPaymentService
             var computedSignature = ComputeHmacSha512(queryString, _settings.HashSecret);
 
             // Verify signature
-            if (computedSignature != vnpSecureHash)
+            if (!PickleBall.Application.Security.CryptoUtil.SignatureEquals(computedSignature, vnpSecureHash))
             {
                 _logger.LogWarning("VNPay callback signature mismatch");
                 return Task.FromResult(false);

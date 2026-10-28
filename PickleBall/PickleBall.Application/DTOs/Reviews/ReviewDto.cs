@@ -6,8 +6,7 @@ public class ReviewDto
     public Guid ProductId { get; set; }
     public Guid? UserId { get; set; }
     public string FullName { get; set; } = string.Empty;
-    public string PhoneNumber { get; set; } = string.Empty;
-    public string? Email { get; set; }
+    // NOTE: reviewer PhoneNumber / Email are collected for the shop but are never returned by the public API (PII).
     public int Rating { get; set; }
     public string? Comment { get; set; }
     public string? ReviewImageUrl { get; set; }

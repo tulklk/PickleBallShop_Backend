@@ -1,16 +1,25 @@
+﻿using System.Globalization;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
 using PickleBall.Domain.Entities;
 using PickleBall.Infrastructure.Data;
-using PickleBall.Infrastructure.Services;
 
 namespace PickleBall.Controllers;
 
+/// <summary>
+/// Payment gateway integration.
+///
+/// SECURITY MODEL: an order only becomes Paid after the payment was verified SERVER-SIDE, by either
+///  - a gateway signature (MoMo / VNPay callbacks, PayOS webhook), or
+///  - a server-to-server lookup at the gateway (PayOS return / confirm).
+/// Browser-supplied query strings or JSON (code=00, status=PAID, ...) are NEVER trusted as proof of payment.
+/// </summary>
 [ApiController]
 [Route("api/payments")]
 public class PaymentsController : ControllerBase
@@ -20,7 +29,7 @@ public class PaymentsController : ControllerBase
     private readonly IVnPayPaymentService _vnPayService;
     private readonly IPayOSService _payOSService;
     private readonly IOrderService _orderService;
-    private readonly IEmailService _emailService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<PaymentsController> _logger;
 
     public PaymentsController(
@@ -29,7 +38,7 @@ public class PaymentsController : ControllerBase
         IVnPayPaymentService vnPayService,
         IPayOSService payOSService,
         IOrderService orderService,
-        IEmailService emailService,
+        IConfiguration configuration,
         ILogger<PaymentsController> logger)
     {
         _context = context;
@@ -37,73 +46,27 @@ public class PaymentsController : ControllerBase
         _vnPayService = vnPayService;
         _payOSService = payOSService;
         _orderService = orderService;
-        _emailService = emailService;
+        _configuration = configuration;
         _logger = logger;
     }
+
+    // ----------------------------------------------------------------------------------------------
+    // MoMo
+    // ----------------------------------------------------------------------------------------------
 
     [HttpGet("momo/return")]
     public async Task<IActionResult> MoMoReturn([FromQuery] Dictionary<string, string> callbackData)
     {
         try
         {
-            var isValid = await _moMoService.VerifyCallbackAsync(callbackData);
-
-            if (!isValid)
+            if (!await _moMoService.VerifyCallbackAsync(callbackData))
             {
                 _logger.LogWarning("Invalid MoMo callback signature");
                 return Redirect("/payment/failed");
             }
 
-            if (callbackData.TryGetValue("orderId", out var orderNumber) &&
-                callbackData.TryGetValue("transId", out var transactionId) &&
-                callbackData.TryGetValue("resultCode", out var resultCode))
-            {
-                var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
-
-                if (order != null)
-                {
-                    var isPaid = resultCode == "0"; // MoMo success code
-                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    
-                    // Update order payment status - this will also send email
-                    try
-                    {
-                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        // Continue to save payment record even if update fails
-                    }
-
-                    if (isPaid)
-                    {
-                        // Save payment record
-                        var existingPayment = await _context.Payments
-                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                        if (existingPayment == null)
-                        {
-                            var payment = new Payment
-                            {
-                                OrderId = order.Id,
-                                PaymentGateway = PaymentMethod.MoMo,
-                                Amount = order.TotalAmount,
-                                Currency = "VND",
-                                TransactionId = transactionId,
-                                Status = PaymentStatus.Paid,
-                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                            };
-                            _context.Payments.Add(payment);
-                            await _context.SaveChangesAsync();
-                        }
-
-                        return Redirect("/payment/success");
-                    }
-                }
-            }
-
-            return Redirect("/payment/failed");
+            var paid = await ProcessMoMoAsync(callbackData);
+            return Redirect(paid ? "/payment/success" : "/payment/failed");
         }
         catch (Exception ex)
         {
@@ -117,61 +80,13 @@ public class PaymentsController : ControllerBase
     {
         try
         {
-            var isValid = await _moMoService.VerifyCallbackAsync(callbackData);
-
-            if (!isValid)
+            if (!await _moMoService.VerifyCallbackAsync(callbackData))
             {
                 _logger.LogWarning("Invalid MoMo IPN signature");
                 return BadRequest();
             }
 
-            if (callbackData.TryGetValue("orderId", out var orderNumber) &&
-                callbackData.TryGetValue("transId", out var transactionId) &&
-                callbackData.TryGetValue("resultCode", out var resultCode))
-            {
-                var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
-
-                if (order != null)
-                {
-                    var isPaid = resultCode == "0";
-                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    
-                    // Update order payment status - this will also send email
-                    try
-                    {
-                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        // Continue to save payment record even if update fails
-                    }
-
-                    if (isPaid)
-                    {
-                        // Check if payment record already exists
-                        var existingPayment = await _context.Payments
-                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                        if (existingPayment == null)
-                        {
-                            var payment = new Payment
-                            {
-                                OrderId = order.Id,
-                                PaymentGateway = PaymentMethod.MoMo,
-                                Amount = order.TotalAmount,
-                                Currency = "VND",
-                                TransactionId = transactionId,
-                                Status = PaymentStatus.Paid,
-                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                            };
-                            _context.Payments.Add(payment);
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                }
-            }
-
+            await ProcessMoMoAsync(callbackData);
             return Ok();
         }
         catch (Exception ex)
@@ -181,68 +96,38 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    private async Task<bool> ProcessMoMoAsync(Dictionary<string, string> data)
+    {
+        if (!data.TryGetValue("orderId", out var orderNumber) ||
+            !data.TryGetValue("transId", out var transactionId) ||
+            !data.TryGetValue("resultCode", out var resultCode) ||
+            !data.TryGetValue("amount", out var amountText) ||
+            !decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
+        {
+            return false;
+        }
+
+        return await ApplyGatewayResultAsync(
+            PaymentMethod.MoMo, orderNumber, transactionId, resultCode == "0", amount, "VND", data);
+    }
+
+    // ----------------------------------------------------------------------------------------------
+    // VNPay
+    // ----------------------------------------------------------------------------------------------
+
     [HttpGet("vnpay/return")]
     public async Task<IActionResult> VnPayReturn([FromQuery] Dictionary<string, string> callbackData)
     {
         try
         {
-            var isValid = await _vnPayService.VerifyCallbackAsync(callbackData);
-
-            if (!isValid)
+            if (!await _vnPayService.VerifyCallbackAsync(callbackData))
             {
                 _logger.LogWarning("Invalid VNPay callback signature");
                 return Redirect("/payment/failed");
             }
 
-            if (callbackData.TryGetValue("vnp_TxnRef", out var orderNumber) &&
-                callbackData.TryGetValue("vnp_TransactionNo", out var transactionId) &&
-                callbackData.TryGetValue("vnp_ResponseCode", out var responseCode))
-            {
-                var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
-
-                if (order != null)
-                {
-                    var isPaid = responseCode == "00"; // VNPay success code
-                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    
-                    // Update order payment status - this will also send email
-                    try
-                    {
-                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        // Continue to save payment record even if update fails
-                    }
-
-                    if (isPaid)
-                    {
-                        var existingPayment = await _context.Payments
-                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                        if (existingPayment == null)
-                        {
-                            var payment = new Payment
-                            {
-                                OrderId = order.Id,
-                                PaymentGateway = PaymentMethod.VNPay,
-                                Amount = order.TotalAmount,
-                                Currency = "VND",
-                                TransactionId = transactionId,
-                                Status = PaymentStatus.Paid,
-                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                            };
-                            _context.Payments.Add(payment);
-                            await _context.SaveChangesAsync();
-                        }
-
-                        return Redirect("/payment/success");
-                    }
-                }
-            }
-
-            return Redirect("/payment/failed");
+            var paid = await ProcessVnPayAsync(callbackData);
+            return Redirect(paid ? "/payment/success" : "/payment/failed");
         }
         catch (Exception ex)
         {
@@ -256,60 +141,13 @@ public class PaymentsController : ControllerBase
     {
         try
         {
-            var isValid = await _vnPayService.VerifyCallbackAsync(callbackData);
-
-            if (!isValid)
+            if (!await _vnPayService.VerifyCallbackAsync(callbackData))
             {
                 _logger.LogWarning("Invalid VNPay IPN signature");
                 return BadRequest();
             }
 
-            if (callbackData.TryGetValue("vnp_TxnRef", out var orderNumber) &&
-                callbackData.TryGetValue("vnp_TransactionNo", out var transactionId) &&
-                callbackData.TryGetValue("vnp_ResponseCode", out var responseCode))
-            {
-                var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
-
-                if (order != null)
-                {
-                    var isPaid = responseCode == "00";
-                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                    
-                    // Update order payment status - this will also send email
-                    try
-                    {
-                        await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        // Continue to save payment record even if update fails
-                    }
-
-                    if (isPaid)
-                    {
-                        var existingPayment = await _context.Payments
-                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                        if (existingPayment == null)
-                        {
-                            var payment = new Payment
-                            {
-                                OrderId = order.Id,
-                                PaymentGateway = PaymentMethod.VNPay,
-                                Amount = order.TotalAmount,
-                                Currency = "VND",
-                                TransactionId = transactionId,
-                                Status = PaymentStatus.Paid,
-                                RawResponse = System.Text.Json.JsonSerializer.Serialize(callbackData)
-                            };
-                            _context.Payments.Add(payment);
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                }
-            }
-
+            await ProcessVnPayAsync(callbackData);
             return Ok();
         }
         catch (Exception ex)
@@ -319,257 +157,107 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    private async Task<bool> ProcessVnPayAsync(Dictionary<string, string> data)
+    {
+        if (!data.TryGetValue("vnp_TxnRef", out var orderNumber) ||
+            !data.TryGetValue("vnp_TransactionNo", out var transactionId) ||
+            !data.TryGetValue("vnp_ResponseCode", out var responseCode) ||
+            !data.TryGetValue("vnp_Amount", out var amountText) ||
+            !decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var rawAmount))
+        {
+            return false;
+        }
+
+        // VNPay sends the amount multiplied by 100.
+        return await ApplyGatewayResultAsync(
+            PaymentMethod.VNPay, orderNumber, transactionId, responseCode == "00", rawAmount / 100m, "VND", data);
+    }
+
+    // ----------------------------------------------------------------------------------------------
+    // PayOS
+    // ----------------------------------------------------------------------------------------------
+
     /// <summary>
-    /// PayOS return URL handler - redirects user after payment
+    /// Browser landing after PayOS. Query parameters are only hints: payment is verified by asking PayOS directly.
     /// </summary>
     [HttpGet("payos/return")]
     public async Task<IActionResult> PayOSReturn([FromQuery] PayOSReturnRequest returnData)
     {
+        var frontend = GetFrontendUrl();
+
         try
         {
-            _logger.LogInformation("PayOS return: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}", 
-                returnData.Code, returnData.Status, returnData.OrderCode, returnData.Cancel);
-
-            // Check if payment was cancelled
-            if (returnData.Cancel || returnData.Status == "CANCELLED")
+            if (returnData.Cancel || string.Equals(returnData.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("PayOS payment cancelled for orderCode: {OrderCode}", returnData.OrderCode);
-                return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&cancel=true&paymentStatus=cancelled");
+                return Redirect($"{frontend}/payments/payos/return?status=CANCELLED&cancel=true&paymentStatus=cancelled");
             }
 
-            // Check if payment was successful
-            if (returnData.Code == "00" && returnData.Status == "PAID")
+            var verified = await VerifyAndApplyPayOSAsync(returnData.OrderCode, expectedUserId: null);
+            if (verified.Paid && verified.Order != null)
             {
-                // Try to find order by orderCode from cache first
-                Guid? orderId = PayOSService.GetOrderIdFromOrderCode(returnData.OrderCode);
-                
-                Order? order = null;
-                
-                // If found in cache, get order by ID
-                if (orderId.HasValue)
-                {
-                    order = await _context.Orders
-                        .Include(o => o.User)
-                        .Include(o => o.Items)
-                            .ThenInclude(oi => oi.Product)
-                                .ThenInclude(p => p.Images)
-                        .FirstOrDefaultAsync(o => o.Id == orderId.Value);
-                }
-                
-                // If not found in cache or by ID, try to find by orderCode in OrderNumber
-                if (order == null)
-                {
-                    var orderCodeStr = returnData.OrderCode.ToString();
-                    _logger.LogInformation("OrderId not found in cache, searching database for orderCode: {OrderCode}", returnData.OrderCode);
-                    
-                    order = await _context.Orders
-                        .Include(o => o.User)
-                        .Include(o => o.Items)
-                            .ThenInclude(oi => oi.Product)
-                                .ThenInclude(p => p.Images)
-                        .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCodeStr));
-                }
-
-                if (order != null)
-                {
-                    var transactionId = returnData.Id ?? returnData.OrderCode.ToString();
-                    var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-                    // Update order payment status if not already paid
-                    if (order.PaymentStatus != PaymentStatus.Paid)
-                    {
-                        try
-                        {
-                            order.PaymentTransactionId = transactionId;
-                            order.PaymentStatus = PaymentStatus.Paid;
-                            order.OrderStatus = OrderStatus.Confirmed;
-                            await _context.SaveChangesAsync();
-                            
-                            _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
-                                order.Id, transactionId);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                        }
-
-                        // Create payment record if not exists
-                        var existingPayment = await _context.Payments
-                            .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                        if (existingPayment == null)
-                        {
-                            var payment = new Payment
-                            {
-                                OrderId = order.Id,
-                                PaymentGateway = PaymentMethod.BankTransfer,
-                                Amount = order.TotalAmount,
-                                Currency = "VND",
-                                TransactionId = transactionId,
-                                Status = PaymentStatus.Paid,
-                                RawResponse = System.Text.Json.JsonSerializer.Serialize(returnData)
-                            };
-                            _context.Payments.Add(payment);
-                            await _context.SaveChangesAsync();
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Order {OrderId} is already paid (webhook processed first)", order.Id);
-                    }
-
-                    // ALWAYS send confirmation email when user returns from payment, regardless of order status
-                    // This is similar to COD orders - always send email on success
-                    try
-                    {
-                        _logger.LogInformation("Sending confirmation email for PayOS order {OrderId}", order.Id);
-                        
-                        // Reload order with all details needed for email
-                        var orderForEmail = await _context.Orders
-                            .AsNoTracking()
-                            .Include(o => o.User)
-                            .Include(o => o.Items)
-                                .ThenInclude(oi => oi.Product)
-                                    .ThenInclude(p => p.Images)
-                            .Include(o => o.Items)
-                                .ThenInclude(oi => oi.ProductVariant)
-                            .FirstOrDefaultAsync(o => o.Id == order.Id);
-
-                        if (orderForEmail != null)
-                        {
-                            // Check if it's a guest order or registered user order
-                            if (orderForEmail.UserId == null && !string.IsNullOrWhiteSpace(orderForEmail.GuestEmail))
-                            {
-                                // Guest order - use guest email method
-                                await _emailService.SendGuestOrderConfirmationEmailAsync(orderForEmail, clientIp);
-                                _logger.LogInformation("Guest confirmation email sent successfully to {Email} for order {OrderId}", 
-                                    orderForEmail.GuestEmail, order.Id);
-                            }
-                            else if (orderForEmail.User != null && !string.IsNullOrWhiteSpace(orderForEmail.User.Email))
-                            {
-                                // Registered user order
-                                await _emailService.SendOrderConfirmationEmailAsync(orderForEmail, clientIp);
-                                _logger.LogInformation("Confirmation email sent successfully to {Email} for order {OrderId}", 
-                                    orderForEmail.User.Email, order.Id);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Cannot send email for order {OrderId}: No valid email found", order.Id);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error sending confirmation email for order {OrderId}", order.Id);
-                        // Don't fail the redirect just because email failed
-                    }
-
-                    // Redirect to success page with order info
-                    // Send orderId in multiple param names to ensure frontend can get it
-                    return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}&orderId={order.Id}&savedOrderId={order.Id}");
-                }
-                else
-                {
-                    _logger.LogWarning("Order not found in database for PayOS orderCode: {OrderCode}", returnData.OrderCode);
-                }
+                return Redirect(
+                    $"{frontend}/payments/payos/return?code=00&status=PAID&orderCode={returnData.OrderCode}" +
+                    $"&orderId={verified.Order.Id}&savedOrderId={verified.Order.Id}");
             }
 
-            // Payment failed or order not found
-            _logger.LogWarning("PayOS payment failed or order not found: code={Code}, status={Status}, orderCode={OrderCode}", 
-                returnData.Code, returnData.Status, returnData.OrderCode);
-            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code={returnData.Code}&status={returnData.Status}&orderCode={returnData.OrderCode}&paymentStatus=failed");
+            return Redirect($"{frontend}/payments/payos/return?status=FAILED&orderCode={returnData.OrderCode}&paymentStatus=failed");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing PayOS return");
-            return Redirect($"{GetFrontendUrl()}/payments/payos/return?code=99&status=ERROR&orderCode={returnData.OrderCode}&paymentStatus=error&message={Uri.EscapeDataString(ex.Message)}");
+            return Redirect($"{frontend}/payments/payos/return?code=99&status=ERROR&paymentStatus=error");
         }
     }
 
     /// <summary>
-    /// PayOS webhook endpoint to receive payment notifications
+    /// PayOS webhook. The HMAC signature is verified and ONLY signed fields are used.
     /// </summary>
     [HttpPost("payos/webhook")]
     public async Task<IActionResult> PayOSWebhook([FromBody] PayOSWebhookRequest? webhookData)
     {
         try
         {
-            // Handle PayOS test/ping request
-            if (webhookData == null || string.IsNullOrEmpty(webhookData.Code))
+            // PayOS test/ping request when saving the webhook URL.
+            if (webhookData == null || webhookData.Data == null)
             {
-                _logger.LogInformation("Received PayOS test/ping webhook");
                 return Ok(new { success = true, message = "Webhook received" });
             }
 
-            _logger.LogInformation("Received PayOS webhook: Code={Code}, Success={Success}", 
-                webhookData.Code, webhookData.Success);
-
             var verifiedData = await _payOSService.VerifyWebhookAsync(webhookData);
-
             if (verifiedData == null)
             {
                 _logger.LogWarning("Invalid PayOS webhook signature");
-                // Return OK for test webhooks to pass PayOS validation
                 return Ok(new { success = true, message = "Webhook processed" });
             }
 
-            // Find order by order code using cache
-            var orderCode = verifiedData.OrderCode;
-            Guid? orderId = PayOSService.GetOrderIdFromOrderCode(orderCode);
-            
-            if (orderId == null)
-            {
-                _logger.LogWarning("OrderId not found in cache for PayOS orderCode: {OrderCode}", orderCode);
-                return Ok(new { message = "Order not found in cache" });
-            }
-            
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(o => o.Id == orderId.Value);
-
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.PayOSOrderCode == verifiedData.OrderCode);
             if (order == null)
             {
-                _logger.LogWarning("Order not found in database for OrderId: {OrderId}", orderId.Value);
+                _logger.LogWarning("PayOS webhook for unknown orderCode {OrderCode}", verifiedData.OrderCode);
                 return Ok(new { message = "Order not found" });
             }
 
-            var isPaid = webhookData.Code == "00" && webhookData.Success;
-            var transactionId = verifiedData.Reference;
-            var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            // Update order payment status - this will also send email
-            try
-            {
-                await _orderService.UpdateOrderPaymentStatusAsync(order.Id, transactionId, isPaid, clientIp);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating order payment status for Order {OrderId}", order.Id);
-                // Continue to save payment record even if update fails
-            }
+            // Use the SIGNED code, not the unsigned outer envelope.
+            var isPaid = verifiedData.Code == "00";
+            var transactionId = string.IsNullOrWhiteSpace(verifiedData.Reference)
+                ? verifiedData.OrderCode.ToString()
+                : verifiedData.Reference;
+            var currency = string.IsNullOrWhiteSpace(verifiedData.Currency) ? "VND" : verifiedData.Currency;
 
             if (isPaid)
             {
-                var existingPayment = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.OrderId == order.Id && p.TransactionId == transactionId);
-
-                if (existingPayment == null)
-                {
-                    var payment = new Payment
-                    {
-                        OrderId = order.Id,
-                        PaymentGateway = PaymentMethod.BankTransfer,
-                        Amount = verifiedData.Amount,
-                        Currency = verifiedData.Currency,
-                        TransactionId = transactionId,
-                        Status = PaymentStatus.Paid,
-                        RawResponse = System.Text.Json.JsonSerializer.Serialize(webhookData)
-                    };
-                    _context.Payments.Add(payment);
-                    await _context.SaveChangesAsync();
-                }
-
-                _logger.LogInformation("PayOS payment successful for Order {OrderId}, TransactionId: {TransactionId}", 
-                    order.Id, transactionId);
+                await _orderService.ConfirmPaymentAsync(
+                    order.Id,
+                    PaymentMethod.BankTransfer,
+                    transactionId,
+                    verifiedData.Amount,
+                    currency,
+                    JsonSerializer.Serialize(verifiedData),
+                    HttpContext.Connection.RemoteIpAddress?.ToString());
+            }
+            else
+            {
+                await _orderService.MarkPaymentFailedAsync(order.Id, transactionId);
             }
 
             return Ok(new { message = "Webhook processed" });
@@ -582,181 +270,180 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
-    /// PayOS callback confirmation from frontend - updates order payment status
+    /// Called by the frontend after PayOS redirects back. The request body is treated as a hint only
+    /// (which order code to look at); payment state comes from PayOS, ownership is checked here.
     /// </summary>
+    [EnableRateLimiting("payment-confirm")]
     [HttpPost("payos/confirm")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> PayOSConfirm([FromBody] PayOSConfirmRequest request)
     {
         try
         {
-            _logger.LogInformation("PayOS confirm: code={Code}, status={Status}, orderCode={OrderCode}, cancel={Cancel}, orderId={OrderId}", 
-                request.Code, request.Status, request.OrderCode, request.Cancel, request.OrderId);
-
-            if (request.Cancel || request.Status == "CANCELLED")
+            if (request.Cancel || string.Equals(request.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase))
             {
                 return Ok(new { success = false, message = "Payment was cancelled" });
             }
 
-            if (request.Code == "00" && request.Status == "PAID")
+            long orderCode = request.OrderCode;
+            if (orderCode <= 0 && request.OrderId.HasValue)
             {
-                // Find order by ID from request - load with all navigation properties needed for email
-                Order? order = null;
-                
-                if (request.OrderId.HasValue)
-                {
-                    order = await _context.Orders
-                        .Include(o => o.User)
-                        .Include(o => o.Items)
-                            .ThenInclude(oi => oi.Product)
-                                .ThenInclude(p => p.Images)
-                        .FirstOrDefaultAsync(o => o.Id == request.OrderId.Value);
-                }
-                
-                // If not found by ID, try to find by orderCode
-                if (order == null && request.OrderCode > 0)
-                {
-                    var orderCodeStr = request.OrderCode.ToString();
-                    order = await _context.Orders
-                        .Include(o => o.User)
-                        .Include(o => o.Items)
-                            .ThenInclude(oi => oi.Product)
-                                .ThenInclude(p => p.Images)
-                        .FirstOrDefaultAsync(o => o.OrderNumber.Contains(orderCodeStr));
-                }
-                
-                // If still not found, try to find the most recent BankTransfer order for the user
-                if (order == null)
-                {
-                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    if (!string.IsNullOrEmpty(userId) && Guid.TryParse(userId, out var userGuid))
-                    {
-                        order = await _context.Orders
-                            .Include(o => o.User)
-                            .Include(o => o.Items)
-                                .ThenInclude(oi => oi.Product)
-                                    .ThenInclude(p => p.Images)
-                            .Where(o => o.UserId == userGuid && 
-                                       o.PaymentMethod == PaymentMethod.BankTransfer)
-                            .OrderByDescending(o => o.CreatedAt)
-                            .FirstOrDefaultAsync();
-                    }
-                }
-
-                if (order == null)
-                {
-                    _logger.LogWarning("Order not found for PayOS confirm. OrderCode: {OrderCode}, OrderId: {OrderId}", 
-                        request.OrderCode, request.OrderId);
-                    return NotFound(new { success = false, message = "Order not found", orderCode = request.OrderCode });
-                }
-
-                // Check if order is already paid - if so, just return success
-                if (order.PaymentStatus == PaymentStatus.Paid)
-                {
-                    _logger.LogInformation("Order {OrderId} is already paid. Returning success.", order.Id);
-                    return Ok(new { success = true, message = "Payment already confirmed", orderId = order.Id });
-                }
-
-                // Validate order has user with email before updating
-                if (order.User == null || string.IsNullOrWhiteSpace(order.User.Email))
-                {
-                    _logger.LogWarning("Order {OrderId} has no user or user email. Reloading user from database...", order.Id);
-                    
-                    // Try to reload user from database
-                    var userId = order.UserId;
-                    var user = await _context.Users.FindAsync(userId);
-                    
-                    if (user == null || string.IsNullOrWhiteSpace(user.Email))
-                    {
-                        // Try to get email from JWT token as fallback
-                        var emailFromToken = User.FindFirstValue(ClaimTypes.Email);
-                        
-                        if (string.IsNullOrWhiteSpace(emailFromToken))
-                        {
-                            _logger.LogError("Cannot send order confirmation email: Order {OrderId} has no user email and cannot get from token", order.Id);
-                            return StatusCode(500, new { success = false, message = "Cannot send order confirmation: User email not found" });
-                        }
-                        
-                        // Update user email if we have it from token
-                        if (user != null && string.IsNullOrWhiteSpace(user.Email))
-                        {
-                            user.Email = emailFromToken;
-                            await _context.SaveChangesAsync();
-                            _logger.LogInformation("Updated user {UserId} email from JWT token", userId);
-                        }
-                        
-                        // Reload order with updated user
-                        order = await _context.Orders
-                            .Include(o => o.User)
-                            .Include(o => o.Items)
-                                .ThenInclude(oi => oi.Product)
-                                    .ThenInclude(p => p.Images)
-                            .FirstOrDefaultAsync(o => o.Id == order.Id);
-                    }
-                }
-
-                // Update order payment status - this will also send email
-                var clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-                try
-                {
-                    await _orderService.UpdateOrderPaymentStatusAsync(order.Id, request.OrderCode.ToString(), true, clientIp);
-                    _logger.LogInformation("Order payment status updated and email sent for Order {OrderId}", order.Id);
-                }
-                catch (InvalidOperationException ex) when (ex.Message.Contains("email"))
-                {
-                    _logger.LogError(ex, "Failed to send order confirmation email for Order {OrderId}: {Error}", order.Id, ex.Message);
-                    // Update payment status without email
-                    order.PaymentStatus = PaymentStatus.Paid;
-                    order.OrderStatus = OrderStatus.Confirmed;
-                    order.PaymentTransactionId = request.OrderCode.ToString();
-                    await _context.SaveChangesAsync();
-                    _logger.LogWarning("Order {OrderId} payment status updated without email confirmation", order.Id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error updating order payment status for Order {OrderId}: {Error}", order.Id, ex.Message);
-                    // Continue to create payment record even if update fails
-                }
-
-                // Create payment record if not exists
-                var existingPayment = await _context.Payments
-                    .FirstOrDefaultAsync(p => p.OrderId == order.Id);
-
-                if (existingPayment == null)
-                {
-                    var payment = new Payment
-                    {
-                        OrderId = order.Id,
-                        PaymentGateway = PaymentMethod.BankTransfer,
-                        Amount = order.TotalAmount,
-                        Currency = "VND",
-                        TransactionId = request.OrderCode.ToString(),
-                        Status = PaymentStatus.Paid,
-                        RawResponse = System.Text.Json.JsonSerializer.Serialize(request)
-                    };
-                    _context.Payments.Add(payment);
-                    await _context.SaveChangesAsync();
-                }
-
-                _logger.LogInformation("PayOS payment confirmed for Order {OrderId}", order.Id);
-                return Ok(new { success = true, message = "Payment confirmed", orderId = order.Id });
+                orderCode = await _context.Orders
+                    .Where(o => o.Id == request.OrderId.Value && o.PayOSOrderCode != null)
+                    .Select(o => o.PayOSOrderCode!.Value)
+                    .FirstOrDefaultAsync();
             }
 
-            return Ok(new { success = false, message = "Payment not successful", code = request.Code, status = request.Status, orderCode = request.OrderCode });
+            if (orderCode <= 0)
+            {
+                return NotFound(new { success = false, message = "Order not found" });
+            }
+
+            Guid? currentUserId = null;
+            if (User.Identity?.IsAuthenticated == true &&
+                Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uid))
+            {
+                currentUserId = uid;
+            }
+
+            var result = await VerifyAndApplyPayOSAsync(orderCode, currentUserId, enforceOwnership: true);
+            if (result.Forbidden)
+            {
+                return Forbid();
+            }
+
+            if (result.Order == null)
+            {
+                return NotFound(new { success = false, message = "Order not found" });
+            }
+
+            if (result.Paid)
+            {
+                return Ok(new { success = true, message = "Payment confirmed", orderId = result.Order.Id });
+            }
+
+            return Ok(new { success = false, message = "Payment not successful" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing PayOS confirm. OrderCode: {OrderCode}, Error: {Error}", request?.OrderCode, ex.Message);
-            return StatusCode(500, new { success = false, message = "Error processing payment confirmation", error = ex.Message, orderCode = request?.OrderCode });
+            _logger.LogError(ex, "Error processing PayOS confirm. OrderCode: {OrderCode}", request?.OrderCode);
+            return StatusCode(500, new { success = false, message = "Error processing payment confirmation" });
         }
+    }
+
+    private sealed record PayOSVerification(Order? Order, bool Paid, bool Forbidden);
+
+    /// <summary>
+    /// Looks the order up by its server-generated PayOS code, asks PayOS for the real payment state,
+    /// and marks the order paid only if PayOS says PAID for exactly the order total.
+    /// </summary>
+    private async Task<PayOSVerification> VerifyAndApplyPayOSAsync(
+        long orderCode, Guid? expectedUserId, bool enforceOwnership = false)
+    {
+        if (orderCode <= 0)
+        {
+            return new PayOSVerification(null, false, false);
+        }
+
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.PayOSOrderCode == orderCode);
+        if (order == null)
+        {
+            return new PayOSVerification(null, false, false);
+        }
+
+        if (enforceOwnership)
+        {
+            // Registered-user orders: only the owner. Guest orders carry no account, so the unguessable
+            // server-generated order code is the capability, and the effect is idempotent and verified at PayOS.
+            if (order.UserId != null && order.UserId != expectedUserId)
+            {
+                return new PayOSVerification(null, false, true);
+            }
+        }
+
+        if (order.PaymentStatus == PaymentStatus.Paid)
+        {
+            return new PayOSVerification(order, true, false);
+        }
+
+        var info = await _payOSService.GetPaymentInfoAsync(orderCode);
+        if (info == null || !info.IsPaid)
+        {
+            return new PayOSVerification(order, false, false);
+        }
+
+        await _orderService.ConfirmPaymentAsync(
+            order.Id,
+            PaymentMethod.BankTransfer,
+            info.PaymentLinkId ?? orderCode.ToString(),
+            info.AmountPaid,
+            "VND",
+            JsonSerializer.Serialize(info),
+            HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        var fresh = await _context.Orders.AsNoTracking().FirstAsync(o => o.Id == order.Id);
+        return new PayOSVerification(fresh, fresh.PaymentStatus == PaymentStatus.Paid, false);
+    }
+
+    // ----------------------------------------------------------------------------------------------
+    // Shared
+    // ----------------------------------------------------------------------------------------------
+
+    private async Task<bool> ApplyGatewayResultAsync(
+        PaymentMethod gateway,
+        string orderNumber,
+        string transactionId,
+        bool isPaid,
+        decimal amount,
+        string currency,
+        Dictionary<string, string> raw)
+    {
+        var order = await _context.Orders.FirstOrDefaultAsync(o => o.OrderNumber == orderNumber);
+        if (order == null)
+        {
+            _logger.LogWarning("{Gateway} callback for unknown order number", gateway);
+            return false;
+        }
+
+        // The gateway must be the one the order was created for.
+        if (order.PaymentMethod != gateway)
+        {
+            _logger.LogWarning("{Gateway} callback does not match payment method of order {OrderId}", gateway, order.Id);
+            return false;
+        }
+
+        if (!isPaid)
+        {
+            await _orderService.MarkPaymentFailedAsync(order.Id, transactionId);
+            return false;
+        }
+
+        await _orderService.ConfirmPaymentAsync(
+            order.Id,
+            gateway,
+            transactionId,
+            amount,
+            currency,
+            JsonSerializer.Serialize(raw),
+            HttpContext.Connection.RemoteIpAddress?.ToString());
+
+        var status = await _context.Orders.AsNoTracking()
+            .Where(o => o.Id == order.Id)
+            .Select(o => o.PaymentStatus)
+            .FirstAsync();
+        return status == PaymentStatus.Paid;
     }
 
     private string GetFrontendUrl()
     {
-        // Get from configuration or use default
-        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") 
-            ?? "https://pickleball-shop-frontend.vercel.app";
-        return frontendUrl.TrimEnd('/');
+        var configured = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? _configuration["Email:FrontendUrl"];
+        if (string.IsNullOrWhiteSpace(configured) ||
+            !Uri.TryCreate(configured, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+        {
+            configured = "https://pickleball-shop-frontend.vercel.app";
+        }
+
+        return configured.TrimEnd('/');
     }
 }
 

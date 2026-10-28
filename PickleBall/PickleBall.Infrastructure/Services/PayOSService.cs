@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PickleBall.Application.DTOs.Payments;
 using PickleBall.Application.Interfaces;
+using PickleBall.Application.Security;
 using PickleBall.Domain.Entities;
 
 namespace PickleBall.Infrastructure.Services;
@@ -16,12 +17,6 @@ public class PayOSService : IPayOSService
     private readonly PayOSSettings _settings;
     private readonly ILogger<PayOSService> _logger;
     private const string PAYOS_API_URL = "https://api-merchant.payos.vn/v2/payment-requests";
-    
-    // Static cache to store orderCode -> OrderId mapping
-    // Key: PayOS orderCode, Value: (OrderId, Timestamp)
-    private static readonly Dictionary<long, (Guid OrderId, DateTime Timestamp)> _orderCodeCache = new();
-    private static readonly object _cacheLock = new();
-    private static readonly TimeSpan CacheExpiration = TimeSpan.FromHours(2);
 
     public PayOSService(
         HttpClient httpClient,
@@ -29,6 +24,7 @@ public class PayOSService : IPayOSService
         ILogger<PayOSService> logger)
     {
         _httpClient = httpClient;
+        _httpClient.Timeout = TimeSpan.FromSeconds(20);
         _settings = settings.Value;
         _logger = logger;
     }
@@ -37,20 +33,15 @@ public class PayOSService : IPayOSService
     {
         try
         {
-            var orderCode = GenerateOrderCode(order.OrderNumber);
-            
-            // Cache the orderCode -> OrderId mapping
-            lock (_cacheLock)
-            {
-                _orderCodeCache[orderCode] = (order.Id, DateTime.UtcNow);
-                CleanupExpiredCache();
-            }
-            
-            _logger.LogInformation("Cached PayOS orderCode {OrderCode} for Order {OrderId}", orderCode, order.Id);
-            
+            EnsureConfigured();
+
+            var orderCode = GenerateOrderCode();
+            // Persisted by the caller (Orders.PayOSOrderCode); this replaces the old in-memory cache.
+            order.PayOSOrderCode = orderCode;
+
             var amount = (int)order.TotalAmount;
             var description = $"DH{order.OrderNumber.Replace("ORD-", "").Replace("-", "")}";
-            
+
             // Truncate description to 25 chars max
             if (description.Length > 25)
                 description = description[..25];
@@ -77,23 +68,23 @@ public class PayOSService : IPayOSService
                 signature = signature
             };
 
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("x-client-id", _settings.ClientId);
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", _settings.ApiKey);
+            using var request = new HttpRequestMessage(HttpMethod.Post, PAYOS_API_URL)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            request.Headers.Add("x-client-id", _settings.ClientId);
+            request.Headers.Add("x-api-key", _settings.ApiKey);
 
-            _logger.LogInformation("Creating PayOS payment for Order {OrderNumber}, Amount: {Amount}", 
+            _logger.LogInformation("Creating PayOS payment for Order {OrderNumber}, Amount: {Amount}",
                 order.OrderNumber, order.TotalAmount);
 
-            var response = await _httpClient.PostAsJsonAsync(PAYOS_API_URL, requestBody);
+            using var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
-
-            _logger.LogDebug("PayOS API Response: {Response}", responseContent);
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("PayOS API error: {StatusCode} - {Response}", 
-                    response.StatusCode, responseContent);
-                throw new Exception($"PayOS API error: {response.StatusCode}");
+                _logger.LogError("PayOS API error: {StatusCode}", response.StatusCode);
+                throw new InvalidOperationException("Payment provider error");
             }
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -101,9 +92,9 @@ public class PayOSService : IPayOSService
 
             if (payOSResponse?.Code != "00")
             {
-                _logger.LogError("PayOS creation failed: {Code} - {Desc}", 
+                _logger.LogError("PayOS creation failed: {Code} - {Desc}",
                     payOSResponse?.Code, payOSResponse?.Desc);
-                throw new Exception($"PayOS creation failed: {payOSResponse?.Desc}");
+                throw new InvalidOperationException("Payment provider error");
             }
 
             return new CreatePaymentResponse
@@ -135,15 +126,41 @@ public class PayOSService : IPayOSService
     {
         try
         {
-            // Verify signature
             var data = webhookData.Data;
-            if (data == null) return Task.FromResult<PayOSWebhookData?>(null);
+            if (data == null || string.IsNullOrEmpty(webhookData.Signature) || string.IsNullOrEmpty(_settings.ChecksumKey))
+            {
+                return Task.FromResult<PayOSWebhookData?>(null);
+            }
 
-            // Create signature from data
-            var signatureData = $"amount={data.Amount}&code={data.Code}&desc={data.Desc}&orderCode={data.OrderCode}&paymentLinkId={data.PaymentLinkId}&reference={data.Reference}&transactionDateTime={data.TransactionDateTime}";
-            var computedSignature = ComputeHmacSha256(signatureData, _settings.ChecksumKey);
+            // Official PayOS scheme: every field of "data", sorted alphabetically, key=value joined by '&'.
+            var fields = new SortedDictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["accountNumber"] = data.AccountNumber,
+                ["amount"] = data.Amount.ToString(),
+                ["code"] = data.Code,
+                ["counterAccountBankId"] = data.CounterAccountBankId,
+                ["counterAccountBankName"] = data.CounterAccountBankName,
+                ["counterAccountName"] = data.CounterAccountName,
+                ["counterAccountNumber"] = data.CounterAccountNumber,
+                ["currency"] = data.Currency,
+                ["desc"] = data.Desc,
+                ["description"] = data.Description,
+                ["orderCode"] = data.OrderCode.ToString(),
+                ["paymentLinkId"] = data.PaymentLinkId,
+                ["reference"] = data.Reference,
+                ["transactionDateTime"] = data.TransactionDateTime,
+                ["virtualAccountName"] = data.VirtualAccountName,
+                ["virtualAccountNumber"] = data.VirtualAccountNumber
+            };
+            var canonical = string.Join("&", fields.Select(kv => $"{kv.Key}={kv.Value ?? string.Empty}"));
+            var computed = ComputeHmacSha256(canonical, _settings.ChecksumKey);
 
-            if (computedSignature != webhookData.Signature)
+            // Previous (subset) canonical form, kept so already-working integrations do not silently break.
+            var legacy = $"amount={data.Amount}&code={data.Code}&desc={data.Desc}&orderCode={data.OrderCode}&paymentLinkId={data.PaymentLinkId}&reference={data.Reference}&transactionDateTime={data.TransactionDateTime}";
+            var computedLegacy = ComputeHmacSha256(legacy, _settings.ChecksumKey);
+
+            if (!CryptoUtil.SignatureEquals(computed, webhookData.Signature) &&
+                !CryptoUtil.SignatureEquals(computedLegacy, webhookData.Signature))
             {
                 _logger.LogWarning("PayOS webhook signature mismatch");
                 return Task.FromResult<PayOSWebhookData?>(null);
@@ -158,40 +175,67 @@ public class PayOSService : IPayOSService
         }
     }
 
-    public static Guid? GetOrderIdFromOrderCode(long orderCode)
+    public async Task<PayOSPaymentInfo?> GetPaymentInfoAsync(long orderCode)
     {
-        lock (_cacheLock)
+        if (string.IsNullOrEmpty(_settings.ClientId) || string.IsNullOrEmpty(_settings.ApiKey))
         {
-            CleanupExpiredCache();
-            
-            if (_orderCodeCache.TryGetValue(orderCode, out var cached))
+            _logger.LogError("PayOS credentials are not configured; cannot verify payment.");
+            return null;
+        }
+
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"{PAYOS_API_URL}/{orderCode}");
+            request.Headers.Add("x-client-id", _settings.ClientId);
+            request.Headers.Add("x-api-key", _settings.ApiKey);
+
+            using var response = await _httpClient.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
             {
-                return cached.OrderId;
+                _logger.LogWarning("PayOS status lookup failed with {StatusCode}", response.StatusCode);
+                return null;
             }
-            
+
+            var body = await response.Content.ReadAsStringAsync();
+            var parsed = JsonSerializer.Deserialize<PayOSApiResponse>(body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (parsed?.Code != "00" || parsed.Data == null || parsed.Data.OrderCode != orderCode)
+            {
+                return null;
+            }
+
+            return new PayOSPaymentInfo
+            {
+                OrderCode = parsed.Data.OrderCode,
+                Amount = parsed.Data.Amount,
+                AmountPaid = parsed.Data.AmountPaid,
+                Status = parsed.Data.Status ?? string.Empty,
+                PaymentLinkId = parsed.Data.PaymentLinkId ?? parsed.Data.Id
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error looking up PayOS payment {OrderCode}", orderCode);
             return null;
         }
     }
 
-    private static void CleanupExpiredCache()
+    private void EnsureConfigured()
     {
-        var now = DateTime.UtcNow;
-        var expiredKeys = _orderCodeCache
-            .Where(kvp => now - kvp.Value.Timestamp > CacheExpiration)
-            .Select(kvp => kvp.Key)
-            .ToList();
-        
-        foreach (var key in expiredKeys)
+        if (string.IsNullOrEmpty(_settings.ClientId) ||
+            string.IsNullOrEmpty(_settings.ApiKey) ||
+            string.IsNullOrEmpty(_settings.ChecksumKey))
         {
-            _orderCodeCache.Remove(key);
+            throw new InvalidOperationException("Payment provider is not configured");
         }
     }
 
-    private long GenerateOrderCode(string orderNumber)
+    private static long GenerateOrderCode()
     {
-        // Generate unique numeric code using timestamp + random
+        // Unique numeric code: millisecond timestamp + CSPRNG suffix, kept within JS safe-integer range.
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var random = new Random().Next(1000, 9999);
+        var random = RandomNumberGenerator.GetInt32(1000, 9999);
         return (timestamp * 10000 + random) % 9007199254740991;
     }
 
@@ -199,7 +243,7 @@ public class PayOSService : IPayOSService
     {
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
-        return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }
 
@@ -213,10 +257,12 @@ public class PayOSApiResponse
 
 public class PayOSApiData
 {
+    public string Id { get; set; } = string.Empty;
     public string Bin { get; set; } = string.Empty;
     public string AccountNumber { get; set; } = string.Empty;
     public string AccountName { get; set; } = string.Empty;
-    public int Amount { get; set; }
+    public long Amount { get; set; }
+    public long AmountPaid { get; set; }
     public string Description { get; set; } = string.Empty;
     public long OrderCode { get; set; }
     public string Currency { get; set; } = string.Empty;

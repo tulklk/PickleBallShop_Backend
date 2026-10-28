@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PickleBall.Application.DTOs.Comments;
 using PickleBall.Application.Interfaces;
 using System.Security.Claims;
@@ -48,6 +49,7 @@ public class ProductCommentsController : ControllerBase
     /// <summary>
     /// Create a new comment (requires authentication)
     /// </summary>
+    [EnableRateLimiting("write")]
     [HttpPost]
     [Authorize]
     public async Task<ActionResult<CommentDto>> CreateComment(Guid productId, [FromBody] CreateCommentRequest request)
@@ -71,6 +73,7 @@ public class ProductCommentsController : ControllerBase
     /// <summary>
     /// Reply to a comment (requires authentication - Any authenticated user can reply)
     /// </summary>
+    [EnableRateLimiting("write")]
     [HttpPost("{parentCommentId}/reply")]
     [Authorize]
     public async Task<ActionResult<CommentDto>> ReplyToComment(

@@ -11,6 +11,18 @@ public class AddCartItemRequestValidator : AbstractValidator<AddCartItemRequest>
             .NotEmpty().WithMessage("Product ID is required");
 
         RuleFor(x => x.Quantity)
-            .GreaterThan(0).WithMessage("Quantity must be greater than 0");
+            .InclusiveBetween(1, 100).WithMessage("Quantity must be between 1 and 100");
+
+        RuleFor(x => x.ProductVariantId)
+            .NotEqual(Guid.Empty).When(x => x.ProductVariantId.HasValue);
+    }
+}
+
+public class UpdateCartItemRequestValidator : AbstractValidator<UpdateCartItemRequest>
+{
+    public UpdateCartItemRequestValidator()
+    {
+        RuleFor(x => x.Quantity)
+            .InclusiveBetween(1, 100).WithMessage("Quantity must be between 1 and 100");
     }
 }

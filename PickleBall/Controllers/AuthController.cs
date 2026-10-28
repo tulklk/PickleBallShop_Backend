@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Auth;
 using PickleBall.Application.Interfaces;
@@ -12,21 +13,23 @@ namespace PickleBall.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IEmailService _emailService;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IAuthService authService, IEmailService emailService, ILogger<AuthController> logger)
+    public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
         _authService = authService;
-        _emailService = emailService;
         _logger = logger;
     }
+
+    private static string Truncate(string value, int max) => value.Length <= max ? value : value[..max];
 
     private Guid GetUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return Guid.Parse(userIdClaim ?? throw new UnauthorizedAccessException());
     }
+
+    [EnableRateLimiting("register")]
 
     [HttpPost("register")]
     public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
@@ -38,9 +41,12 @@ public class AuthController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            _logger.LogWarning("Registration rejected: {Message}", ex.Message);
+            return BadRequest(new { message = "Không thể đăng ký với thông tin đã cung cấp" });
         }
     }
+
+    [EnableRateLimiting("password")]
 
     [HttpPost("verify-email")]
     public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
@@ -52,7 +58,7 @@ public class AuthController : ControllerBase
             {
                 return Ok(new { message = "Email verified successfully" });
             }
-            return BadRequest(new { message = "Failed to verify email" });
+            return BadRequest(new { message = "Liên kết xác nhận không hợp lệ hoặc đã hết hạn" });
         }
         catch (InvalidOperationException ex)
         {
@@ -60,23 +66,25 @@ public class AuthController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("password")]
+
     [HttpPost("resend-verification")]
     public async Task<ActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailRequest request)
     {
+        // Uniform response: never reveal whether the email exists / is already verified.
         try
         {
-            var result = await _authService.ResendVerificationEmailAsync(request.Email);
-            if (result)
-            {
-                return Ok(new { message = "Verification email sent successfully" });
-            }
-            return BadRequest(new { message = "Failed to send verification email" });
+            await _authService.ResendVerificationEmailAsync(request.Email);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            _logger.LogError(ex, "Error in ResendVerificationEmail endpoint");
         }
+
+        return Ok(new { message = "Nếu tài khoản tồn tại và chưa được xác nhận, chúng tôi đã gửi lại email xác nhận." });
     }
+
+    [EnableRateLimiting("login")]
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
@@ -84,7 +92,7 @@ public class AuthController : ControllerBase
         try
         {
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = Request.Headers["User-Agent"].ToString();
+            var userAgent = Truncate(Request.Headers["User-Agent"].ToString(), 256);
             var result = await _authService.LoginAsync(request, ipAddress, userAgent);
             return Ok(result);
         }
@@ -94,13 +102,15 @@ public class AuthController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("login")]
+
     [HttpPost("login/google")]
     public async Task<ActionResult<AuthResponse>> LoginWithGoogle([FromBody] GoogleLoginRequest request)
     {
         try
         {
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = Request.Headers["User-Agent"].ToString();
+            var userAgent = Truncate(Request.Headers["User-Agent"].ToString(), 256);
             var result = await _authService.LoginWithGoogleAsync(request, ipAddress, userAgent);
             return Ok(result);
         }
@@ -113,6 +123,8 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [EnableRateLimiting("login")]
 
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
@@ -171,89 +183,40 @@ public class AuthController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("password")]
+
     [HttpPost("forgot-password")]
     public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.Email))
-            {
-                return BadRequest(new { message = "Email là bắt buộc" });
-            }
+            await _authService.ForgotPasswordAsync(request.Email);
+        }
+        catch (Exception ex)
+        {
+            // Log only; the response must be identical whether or not the account exists / mail failed.
+            _logger.LogError(ex, "Error in ForgotPassword endpoint");
+        }
 
-            var result = await _authService.ForgotPasswordAsync(request.Email);
-            if (result)
-            {
-                // Always return success message to prevent email enumeration
-                return Ok(new 
-                { 
-                    message = "Nếu email bạn nhập tồn tại trong hệ thống, chúng tôi đã gửi mật khẩu mới đến email của bạn. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục spam)."
-                });
-            }
-            return BadRequest(new { message = "Không thể xử lý yêu cầu khôi phục mật khẩu" });
+        return Ok(new
+        {
+            message = "Nếu email bạn nhập tồn tại trong hệ thống, chúng tôi đã gửi liên kết đặt lại mật khẩu đến email của bạn. Liên kết có hiệu lực trong 30 phút. Vui lòng kiểm tra hộp thư (bao gồm cả thư mục spam)."
+        });
+    }
+
+    [EnableRateLimiting("password")]
+
+    [HttpPost("reset-password")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        try
+        {
+            await _authService.ResetPasswordAsync(request);
+            return Ok(new { message = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới." });
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in ForgotPassword endpoint for email: {Email}", request.Email);
-            return StatusCode(500, new 
-            { 
-                message = "Đã xảy ra lỗi khi xử lý yêu cầu khôi phục mật khẩu",
-                error = ex.Message
-            });
-        }
-    }
-
-    [HttpPost("test-email")]
-    public async Task<ActionResult> TestEmail([FromBody] TestEmailRequest request)
-    {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(request.Email))
-            {
-                return BadRequest(new { message = "Email is required" });
-            }
-
-            // Generate a test verification token
-            var testToken = Guid.NewGuid().ToString().Replace("-", "");
-            
-            // Send test verification email
-            await _emailService.SendVerificationEmailAsync(
-                request.Email, 
-                request.FullName, 
-                testToken
-            );
-            
-            return Ok(new 
-            { 
-                message = "Test email sent successfully",
-                email = request.Email,
-                fullName = request.FullName,
-                testToken = testToken,
-                note = "This is a test email. The token generated here is for testing purposes only."
-            });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new 
-            { 
-                message = "Failed to send test email",
-                error = ex.Message,
-                details = ex.InnerException?.Message
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new 
-            { 
-                message = "Failed to send test email",
-                error = ex.Message,
-                details = ex.InnerException?.Message,
-                type = ex.GetType().Name
-            });
         }
     }
 }

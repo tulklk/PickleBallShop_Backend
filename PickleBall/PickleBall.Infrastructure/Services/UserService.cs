@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using PickleBall.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Users;
 using PickleBall.Application.Interfaces;
@@ -120,6 +120,15 @@ public class UserService : IUserService
         // Hash and update password
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         user.UpdatedAt = DateTime.UtcNow;
+
+        // A password change must invalidate existing sessions (stolen refresh tokens stop working).
+        var activeTokens = await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+            .ToListAsync();
+        foreach (var token in activeTokens)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+        }
 
         await _context.SaveChangesAsync();
 

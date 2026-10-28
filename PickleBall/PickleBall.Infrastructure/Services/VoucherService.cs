@@ -1,5 +1,4 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
+﻿using PickleBall.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PickleBall.Application.DTOs.Products;
@@ -40,7 +39,7 @@ public class VoucherService : IVoucherService
             .OrderByDescending(v => v.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ProjectTo<VoucherDto>(_mapper.ConfigurationProvider)
+            .Select(DtoMappers.VoucherProjection)
             .ToListAsync();
 
         return new PagedResultDto<VoucherDto>
@@ -190,7 +189,8 @@ public class VoucherService : IVoucherService
             }
             else if (!string.IsNullOrWhiteSpace(guestEmail))
             {
-                usageQuery = usageQuery.Where(u => u.GuestEmail == guestEmail);
+                var normalizedEmail = guestEmail.Trim().ToLowerInvariant();
+                usageQuery = usageQuery.Where(u => u.GuestEmail != null && u.GuestEmail.ToLower() == normalizedEmail);
             }
 
             var usedByCustomer = await usageQuery.CountAsync();

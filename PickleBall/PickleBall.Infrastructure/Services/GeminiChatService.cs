@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -35,8 +35,8 @@ public class GeminiChatService : IGeminiChatService
         _productService = productService;
         _categoryService = categoryService;
         
-        _apiKey = _configuration["Google:Gemini:ApiKey"] 
-            ?? throw new InvalidOperationException("Google Gemini API key is not configured");
+        // Do not fail DI resolution when the key is missing; the chat endpoint degrades gracefully instead.
+        _apiKey = _configuration["Google:Gemini:ApiKey"] ?? string.Empty;
         
         // Use gemini-2.5-flash as default (latest flash model)
         _modelName = _configuration["Google:Gemini:ModelName"] ?? "gemini-2.5-flash";
@@ -54,6 +54,25 @@ public class GeminiChatService : IGeminiChatService
                 {
                     Success = false,
                     Error = "Message cannot be empty"
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(_apiKey))
+            {
+                _logger.LogError("Google:Gemini:ApiKey is not configured; chat is unavailable.");
+                return new ChatResponse
+                {
+                    Success = false,
+                    Error = "Dịch vụ AI tạm thời không khả dụng. Vui lòng thử lại sau."
+                };
+            }
+
+            if (request.Message.Length > 1000)
+            {
+                return new ChatResponse
+                {
+                    Success = false,
+                    Error = "Message is too long"
                 };
             }
 
@@ -77,7 +96,8 @@ public class GeminiChatService : IGeminiChatService
             var validHistory = new List<ChatMessage>();
             if (request.History != null && request.History.Any())
             {
-                foreach (var msg in request.History)
+                // Bound the amount of client-supplied context forwarded to the (paid) model.
+                foreach (var msg in request.History.TakeLast(20))
                 {
                     // Skip placeholder messages from Swagger
                     if (!string.IsNullOrWhiteSpace(msg.Role) && 
@@ -92,7 +112,7 @@ public class GeminiChatService : IGeminiChatService
                         validHistory.Add(new ChatMessage
                         {
                             Role = role,
-                            Content = msg.Content.Trim()
+                            Content = msg.Content.Trim().Length > 2000 ? msg.Content.Trim()[..2000] : msg.Content.Trim()
                         });
                     }
                 }
@@ -186,7 +206,7 @@ public class GeminiChatService : IGeminiChatService
             // Call Gemini API (named client: 60s timeout configured in Program.cs)
             var httpClient = _httpClientFactory.CreateClient("Gemini");
             
-            var url = $"{_baseUrl}/models/{_modelName}:generateContent?key={_apiKey}";
+            var url = $"{_baseUrl}/models/{_modelName}:generateContent"; // API key is sent in a header, never in the URL (URLs end up in logs)
             
             var jsonPayload = JsonSerializer.Serialize(payload, new JsonSerializerOptions
             {
@@ -194,35 +214,22 @@ public class GeminiChatService : IGeminiChatService
                 WriteIndented = false
             });
 
-            _logger.LogInformation("Sending request to Gemini API: {Url}", url.Replace(_apiKey, "***"));
-            _logger.LogDebug("Request payload: {Payload}", jsonPayload);
-
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(url, content);
+            // Do not log prompts/payloads: they contain customer messages.
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json")
+            };
+            httpRequest.Headers.Add("x-goog-api-key", _apiKey);
+            var response = await httpClient.SendAsync(httpRequest);
 
             var responseContent = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Gemini API error: {StatusCode} - {Error}", response.StatusCode, responseContent);
+                _logger.LogError("Gemini API error: {StatusCode}", response.StatusCode);
                 
-                // Try to extract error message from Gemini response
-                string errorMessage = "Failed to get response from AI service";
-                try
-                {
-                    var errorResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    if (errorResponse.TryGetProperty("error", out var errorObj))
-                    {
-                        if (errorObj.TryGetProperty("message", out var message))
-                        {
-                            errorMessage = message.GetString() ?? errorMessage;
-                        }
-                    }
-                }
-                catch
-                {
-                    // Use default error message
-                }
+                // Upstream error text may reveal configuration details; return a generic message to clients.
+                string errorMessage = "Dịch vụ AI tạm thời không khả dụng. Vui lòng thử lại sau.";
                 
                 return new ChatResponse
                 {
@@ -231,7 +238,6 @@ public class GeminiChatService : IGeminiChatService
                 };
             }
 
-            _logger.LogDebug("Gemini API response: {Response}", responseContent);
             
             var geminiResponse = JsonSerializer.Deserialize<GeminiApiResponse>(responseContent, new JsonSerializerOptions
             {

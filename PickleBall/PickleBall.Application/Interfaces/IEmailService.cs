@@ -8,6 +8,6 @@ public interface IEmailService
     Task<bool> SendEmailAsync(string toEmail, string subject, string body);
     Task SendOrderConfirmationEmailAsync(Order order, string? clientIpAddress = null);
     Task SendGuestOrderConfirmationEmailAsync(Order order, string? clientIpAddress = null);
-    Task SendPasswordResetEmailAsync(string email, string fullName, string newPassword);
+    Task SendPasswordResetLinkEmailAsync(string email, string fullName, string resetUrl);
 }
 

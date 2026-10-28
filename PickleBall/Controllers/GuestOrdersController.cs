@@ -1,5 +1,5 @@
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Orders;
 using PickleBall.Application.DTOs.Payments;
@@ -9,127 +9,63 @@ using PickleBall.Infrastructure.Data;
 namespace PickleBall.Controllers;
 
 /// <summary>
-/// Controller for guest checkout - allows users to purchase without logging in
+/// Guest checkout - allows users to purchase without logging in.
+/// Every read requires the order number (or id) AND the email used at checkout; email alone never
+/// grants access to any order data.
 /// </summary>
 [ApiController]
 [Route("api/guest/orders")]
 public class GuestOrdersController : ControllerBase
 {
     private readonly IOrderService _orderService;
-    private readonly IEmailService _emailService;
     private readonly ApplicationDbContext _context;
     private readonly ILogger<GuestOrdersController> _logger;
-    private readonly IMapper _mapper;
     private readonly IVoucherService _voucherService;
 
     public GuestOrdersController(
-        IOrderService orderService, 
-        IEmailService emailService, 
+        IOrderService orderService,
         ApplicationDbContext context,
         ILogger<GuestOrdersController> logger,
-        IMapper mapper,
         IVoucherService voucherService)
     {
         _orderService = orderService;
-        _emailService = emailService;
         _context = context;
         _logger = logger;
-        _mapper = mapper;
         _voucherService = voucherService;
     }
 
+    private static readonly object NotFoundBody = new { message = "Không tìm thấy đơn hàng" };
+
     /// <summary>
-    /// Áp dụng mã giảm giá cho đơn khách vãng lai (chưa tạo đơn)
+    /// Áp dụng mã giảm giá cho đơn khách vãng lai (chưa tạo đơn). The subtotal is computed by the server.
     /// </summary>
+    [EnableRateLimiting("voucher")]
     [HttpPost("apply-voucher")]
     public async Task<ActionResult> ApplyVoucherForGuest([FromBody] ApplyVoucherForGuestOrderRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Email))
+        try
         {
-            return BadRequest(new { message = "Email là bắt buộc" });
+            var totalAmount = await _orderService.CalculateGuestSubtotalAsync(request.Items);
+            var result = await _voucherService.ApplyForGuestAsync(request.Email, totalAmount, request.Code);
+            return Ok(result);
         }
-
-        if (request.Items == null || !request.Items.Any())
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = "Giỏ hàng không được trống" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Tính tạm tổng giống CreateGuestOrderAsync
-        var productIds = request.Items.Select(i => i.ProductId).ToList();
-        var variantIds = request.Items.Where(i => i.ProductVariantId.HasValue).Select(i => i.ProductVariantId!.Value).ToList();
-
-        var products = await _context.Products
-            .Include(p => p.Variants)
-            .Where(p => productIds.Contains(p.Id))
-            .ToListAsync();
-
-        var variants = variantIds.Any()
-            ? await _context.ProductVariants.Where(v => variantIds.Contains(v.Id)).ToListAsync()
-            : new List<Domain.Entities.ProductVariant>();
-
-        decimal totalAmount = 0;
-
-        foreach (var item in request.Items)
-        {
-            var product = products.FirstOrDefault(p => p.Id == item.ProductId);
-            if (product == null)
-            {
-                return BadRequest(new { message = $"Không tìm thấy sản phẩm với ID {item.ProductId}" });
-            }
-
-            decimal price;
-            if (product.HasVariants && item.ProductVariantId.HasValue)
-            {
-                var variant = variants.FirstOrDefault(v => v.Id == item.ProductVariantId);
-                if (variant == null)
-                {
-                    return BadRequest(new { message = $"Không tìm thấy biến thể sản phẩm với ID {item.ProductVariantId}" });
-                }
-                price = variant.Price;
-            }
-            else
-            {
-                price = product.Price;
-            }
-
-            totalAmount += price * item.Quantity;
-        }
-
-        var result = await _voucherService.ApplyForGuestAsync(request.Email, totalAmount, request.Code);
-        return Ok(result);
     }
 
     /// <summary>
     /// Create a guest order without requiring authentication
     /// </summary>
+    [EnableRateLimiting("guest-order")]
     [HttpPost]
     public async Task<ActionResult<object>> CreateGuestOrder([FromBody] CreateGuestOrderRequest request)
     {
         try
         {
-            // Validate request
-            if (string.IsNullOrWhiteSpace(request.Email))
-            {
-                return BadRequest(new { message = "Email là bắt buộc" });
-            }
-
-            if (string.IsNullOrWhiteSpace(request.FullName))
-            {
-                return BadRequest(new { message = "Họ tên là bắt buộc" });
-            }
-
-            if (request.Items == null || !request.Items.Any())
-            {
-                return BadRequest(new { message = "Giỏ hàng không được trống" });
-            }
-
-            if (request.ShippingAddress == null)
-            {
-                return BadRequest(new { message = "Địa chỉ giao hàng là bắt buộc" });
-            }
-
             var order = await _orderService.CreateGuestOrderAsync(request);
-            
+
             // For COD orders, return order with payment info indicating COD
             if (request.PaymentMethod == Domain.Entities.PaymentMethod.COD)
             {
@@ -146,7 +82,7 @@ public class GuestOrdersController : ControllerBase
                     }
                 });
             }
-            
+
             // For Bank Transfer orders, immediately generate QR code and return
             if (request.PaymentMethod == Domain.Entities.PaymentMethod.BankTransfer)
             {
@@ -157,12 +93,12 @@ public class GuestOrdersController : ControllerBase
                     Payment = paymentResponse
                 });
             }
-            
+
             return Ok(order);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning(ex, "Invalid guest order request: {Message}", ex.Message);
+            _logger.LogWarning("Invalid guest order request: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
@@ -175,8 +111,9 @@ public class GuestOrdersController : ControllerBase
     /// <summary>
     /// Get guest order by ID and email (for verification)
     /// </summary>
+    [EnableRateLimiting("guest-lookup")]
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<OrderDto>> GetGuestOrder(Guid id, [FromQuery] string email)
+    public async Task<ActionResult<OrderDto>> GetGuestOrder(Guid id, [FromQuery] string? email)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -186,36 +123,41 @@ public class GuestOrdersController : ControllerBase
         var order = await _orderService.GetGuestOrderByIdAsync(id, email);
         if (order == null)
         {
-            return NotFound(new { message = "Không tìm thấy đơn hàng" });
+            return NotFound(NotFoundBody);
         }
+
         return Ok(order);
     }
 
     /// <summary>
-    /// Look up guest orders by email
+    /// Look up ONE guest order. Requires both the order number and the email used at checkout.
+    /// (Listing every order of an email address was removed: it disclosed other people's personal data.)
     /// </summary>
+    [EnableRateLimiting("guest-lookup")]
     [HttpGet("lookup")]
-    public async Task<ActionResult<List<OrderDto>>> LookupGuestOrders([FromQuery] string email)
+    public async Task<ActionResult<List<OrderDto>>> LookupGuestOrders(
+        [FromQuery] string? email, [FromQuery] string? orderNumber)
     {
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(orderNumber))
         {
-            return BadRequest(new { message = "Email là bắt buộc để tra cứu đơn hàng" });
+            return BadRequest(new { message = "Cần nhập cả mã đơn hàng và email để tra cứu" });
         }
 
-        var orders = await _context.Orders
-            .Include(o => o.Items)
-            .Where(o => o.GuestEmail == email && o.UserId == null)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync();
+        var order = await _orderService.GetGuestOrderAsync(orderNumber, email);
+        if (order == null)
+        {
+            return NotFound(NotFoundBody);
+        }
 
-        return Ok(_mapper.Map<List<OrderDto>>(orders));
+        return Ok(new List<OrderDto> { order });
     }
 
     /// <summary>
     /// Initiate payment for guest order
     /// </summary>
+    [EnableRateLimiting("guest-lookup")]
     [HttpPost("{id:guid}/payment")]
-    public async Task<ActionResult<CreatePaymentResponse>> InitiateGuestPayment(Guid id, [FromQuery] string email)
+    public async Task<ActionResult<CreatePaymentResponse>> InitiateGuestPayment(Guid id, [FromQuery] string? email)
     {
         try
         {
@@ -229,11 +171,12 @@ public class GuestOrdersController : ControllerBase
             {
                 return BadRequest(new { message = "Không thể khởi tạo thanh toán" });
             }
+
             return Ok(paymentResponse);
         }
-        catch (KeyNotFoundException ex)
+        catch (KeyNotFoundException)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound(NotFoundBody);
         }
         catch (InvalidOperationException ex)
         {
@@ -242,19 +185,26 @@ public class GuestOrdersController : ControllerBase
     }
 
     /// <summary>
-    /// Get order status by order number (no login required)
-    /// Guest can check order status using the order number received after checkout
+    /// Get order status by order number. The email used at checkout must match, otherwise the order
+    /// number alone (which can leak through screenshots, emails, etc.) would disclose order data.
     /// </summary>
+    [EnableRateLimiting("guest-lookup")]
     [HttpGet("status/{orderNumber}")]
-    public async Task<ActionResult<OrderStatusDto>> GetGuestOrderStatusByOrderNumber(string orderNumber)
+    public async Task<ActionResult<OrderStatusDto>> GetGuestOrderStatusByOrderNumber(
+        string orderNumber, [FromQuery] string? email)
     {
-        if (string.IsNullOrWhiteSpace(orderNumber))
+        if (string.IsNullOrWhiteSpace(orderNumber) || string.IsNullOrWhiteSpace(email))
         {
-            return BadRequest(new { message = "Mã đơn hàng là bắt buộc" });
+            return BadRequest(new { message = "Mã đơn hàng và email là bắt buộc" });
         }
 
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var number = orderNumber.Trim();
+
         var order = await _context.Orders
-            .Where(o => o.OrderNumber == orderNumber)
+            .AsNoTracking()
+            .Where(o => o.OrderNumber == number && o.UserId == null &&
+                        o.GuestEmail != null && o.GuestEmail.ToLower() == normalizedEmail)
             .Select(o => new OrderStatusDto
             {
                 OrderId = o.Id,
@@ -271,15 +221,12 @@ public class GuestOrdersController : ControllerBase
 
         if (order == null)
         {
-            return NotFound(new { message = "Không tìm thấy đơn hàng với mã này" });
+            return NotFound(NotFoundBody);
         }
 
         return Ok(order);
     }
 
-    /// <summary>
-    /// Helper method to get Vietnamese status description
-    /// </summary>
     private static string GetStatusDescription(Domain.Entities.OrderStatus orderStatus, Domain.Entities.PaymentStatus paymentStatus)
     {
         var paymentDesc = paymentStatus switch
@@ -305,4 +252,3 @@ public class GuestOrdersController : ControllerBase
         return $"{orderDesc} - {paymentDesc}";
     }
 }
-

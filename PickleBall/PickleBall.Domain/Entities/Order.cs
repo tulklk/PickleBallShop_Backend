@@ -10,6 +10,9 @@ public class Order : BaseEntity
     public PaymentMethod? PaymentMethod { get; set; }
     public string? PaymentTransactionId { get; set; }
 
+    /// <summary>PayOS numeric order code generated server-side when the payment link is created.</summary>
+    public long? PayOSOrderCode { get; set; }
+
     // Guest checkout fields (used when UserId is null)
     public string? GuestEmail { get; set; }
     public string? GuestFullName { get; set; }

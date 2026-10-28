@@ -32,5 +32,8 @@ COPY --from=publish /app/publish .
 # Fly.io will set PORT automatically at runtime
 ENV ASPNETCORE_ENVIRONMENT=Production
 
+# Run as the unprivileged user shipped with the aspnet image (not root)
+USER app
+
 # Use shell form to allow PORT variable expansion at runtime
 ENTRYPOINT ["/bin/sh", "-c", "export ASPNETCORE_URLS=http://+:${PORT:-8080} && dotnet PickleBall.dll"]

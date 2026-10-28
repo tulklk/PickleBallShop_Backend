@@ -16,6 +16,14 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
             .Matches(@"^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$")
             .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
             .WithMessage("Invalid phone number format");
+
+        // Avatar is rendered by clients; only plain http(s) URLs (no javascript:/data: schemes).
+        RuleFor(x => x.Avatar)
+            .MaximumLength(2048)
+            .Must(a => Uri.TryCreate(a, UriKind.Absolute, out var u) &&
+                       (u.Scheme == Uri.UriSchemeHttp || u.Scheme == Uri.UriSchemeHttps))
+            .When(x => !string.IsNullOrWhiteSpace(x.Avatar))
+            .WithMessage("Avatar must be an http(s) URL");
     }
 }
 

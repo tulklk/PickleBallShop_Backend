@@ -12,10 +12,12 @@ namespace PickleBall.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     private Guid GetUserId()
@@ -114,7 +116,8 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            _logger.LogError(ex, "Error updating user {UserId}", id);
+            return BadRequest(new { message = "Không thể cập nhật thông tin người dùng" });
         }
     }
 
@@ -125,6 +128,11 @@ public class UsersController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
+        if (id == GetUserId())
+        {
+            return BadRequest(new { message = "Không thể xóa chính tài khoản đang đăng nhập" });
+        }
+
         var deleted = await _userService.DeleteUserAsync(id);
         
         if (!deleted)
@@ -172,7 +180,8 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while changing password", error = ex.Message });
+            _logger.LogError(ex, "Error changing password");
+            return StatusCode(500, new { message = "An error occurred while changing password" });
         }
     }
 }

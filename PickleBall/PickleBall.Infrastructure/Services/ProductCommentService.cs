@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using PickleBall.Application.Mapping;
 using Microsoft.EntityFrameworkCore;
 using PickleBall.Application.DTOs.Comments;
 using PickleBall.Application.Interfaces;
