@@ -1,12 +1,46 @@
 # Build output
 [Bb]in/
 [Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Pp]ublish/
+artifacts/
+TestResults/
+*.trx
+coverage/
+coverage*.json
+coverage*.xml
+*.coverage
+*.coveragexml
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# IDE / editor
 .vs/
 .vscode/
 .idea/
 *.user
+*.userosscache
 *.suo
-TestResults/
+*.sln.docstates
+*.rsuser
+*.DotSettings.user
+*.http
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# Logs / temp
+*.log
+*.tmp
+*.temp
+test-out.txt
 
 # Secrets / local configuration (never commit real values)
 .env
